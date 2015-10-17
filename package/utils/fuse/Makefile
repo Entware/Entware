@@ -1,0 +1,101 @@
+# 
+# Copyright (C) 2006-2015 OpenWrt.org
+#
+# This is free software, licensed under the GNU General Public License v2.
+# See /LICENSE for more information.
+#
+
+include $(TOPDIR)/rules.mk
+include $(INCLUDE_DIR)/kernel.mk
+
+PKG_NAME:=fuse
+PKG_VERSION:=2.9.3
+PKG_RELEASE:=2
+
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=@SF/$(PKG_NAME)
+PKG_MD5SUM:=33cae22ca50311446400daf8a6255c6a
+
+PKG_LICENSE:=LGPLv2.1 GPLv2
+PKG_LICENSE_FILES:=COPYING.LIB COPYING
+
+PKG_INSTALL:=1
+
+include $(INCLUDE_DIR)/package.mk
+
+define Package/fuse/Default
+  TITLE:=FUSE
+  URL:=http://fuse.sourceforge.net/
+endef
+
+define Package/fuse/Default/description
+ FUSE (Filesystem in UserSpacE)
+endef
+
+define Package/fuse-utils
+$(call Package/fuse/Default)
+  SECTION:=utils
+  CATEGORY:=Utilities
+  DEPENDS:=+libfuse
+  TITLE+= (utilities)
+  SUBMENU:=Filesystem
+endef
+
+define Package/fuse-utils/description
+$(call Package/fuse/Default/description)
+ This package contains the FUSE utilities.
+ - fusermount
+ - ulockmgr_server
+endef
+
+define Package/libfuse
+$(call Package/fuse/Default)
+  SECTION:=libs
+  CATEGORY:=Libraries
+  TITLE+= (library)
+  DEPENDS:=+libpthread
+  SUBMENU:=Filesystem
+endef
+
+define Package/libfuse/description
+$(call Package/fuse/Default/description)
+ This package contains the FUSE shared libraries, needed by other programs.
+ - libfuse
+ - libulockmgr
+endef
+
+# generic args
+CONFIGURE_ARGS += \
+	--enable-shared \
+	--enable-static \
+	--enable-lib \
+	--enable-util \
+	--disable-rpath \
+	--disable-example \
+	--disable-mtab
+
+define Build/InstallDev
+	$(INSTALL_DIR) $(1)/opt/include
+	$(CP)	$(PKG_INSTALL_DIR)/opt/include/{fuse,fuse.h,ulockmgr.h} $(1)/opt/include/
+	$(INSTALL_DIR)  $(1)/opt/lib
+	$(CP)	$(PKG_INSTALL_DIR)/opt/lib/lib{fuse,ulockmgr}.{a,so*} $(1)/opt/lib/
+	$(INSTALL_DIR)  $(1)/opt/lib/pkgconfig
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/fuse.pc $(1)/opt/lib/pkgconfig/
+	$(SED) 's,-I$$$${includedir}/fuse,,g' $(1)/opt/lib/pkgconfig/fuse.pc
+	$(SED) 's,-L$$$${libdir},,g' $(1)/opt/lib/pkgconfig/fuse.pc
+endef
+
+define Package/fuse-utils/install
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(CP) $(PKG_INSTALL_DIR)/sbin/mount.fuse $(1)/opt/sbin/
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(CP) $(PKG_INSTALL_DIR)/opt/bin/{fusermount,ulockmgr_server} $(1)/opt/bin/
+endef
+
+define Package/libfuse/install
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/lib{fuse,ulockmgr}.so.* $(1)/opt/lib/
+endef
+
+$(eval $(call BuildPackage,fuse-utils))
+$(eval $(call BuildPackage,libfuse))

@@ -1,0 +1,277 @@
+--- a/src/drv_mei_cpe_common.c
++++ b/src/drv_mei_cpe_common.c
+@@ -19,7 +19,6 @@
+ /* get at first the driver configuration */
+ #include "drv_mei_cpe_config.h"
+ 
+-#include "ifx_types.h"
+ #include "drv_mei_cpe_os.h"
+ #include "drv_mei_cpe_dbg.h"
+ 
+--- a/src/drv_mei_cpe_linux.h
++++ b/src/drv_mei_cpe_linux.h
+@@ -51,12 +51,6 @@
+ #include <linux/poll.h>
+ #include <linux/types.h>
+ 
+-#if (LINUX_VERSION_CODE < KERNEL_VERSION(3,10,0))
+-   #include <asm/ifx/ifx_types.h>
+-#else
+-   #include <ifx_types.h>
+-#endif
+-
+ #endif /* #if (MEI_DRV_IFXOS_ENABLE == 0)*/
+ 
+ /* ============================================================================
+--- a/src/drv_mei_cpe_linux.c
++++ b/src/drv_mei_cpe_linux.c
+@@ -98,6 +98,8 @@
+ 
+ #include "drv_mei_cpe_api_atm_ptm_intern.h"
+ 
++#include <lantiq_soc.h>
++
+ /* ===================================
+    extern function declarations
+    =================================== */
+@@ -1783,7 +1785,9 @@ static int __init MEI_module_init (void)
+       return (result);
+    }
+ 
++#if 0
+    ppa_callback_set(LTQ_MEI_SHOWTIME_CHECK, (void *)ltq_mei_atm_showtime_check);
++#endif
+ 
+    return 0;
+ }
+@@ -1963,7 +1967,9 @@ static void MEI_module_exit (void)
+             ("MEI_DRV: Chipset Basic Exit failed" MEI_DRV_CRLF));
+    }
+ 
++#if 0
+    ppa_callback_set(LTQ_MEI_SHOWTIME_CHECK, (void *)NULL);
++#endif
+ 
+    /* touch one time this variable to avoid that the linker will remove it */
+    debug_level = MEI_DRV_PRN_LEVEL_OFF;
+@@ -2120,21 +2126,32 @@ static int MEI_InitModuleBasics(void)
+ }
+ 
+ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,0))
++
++#define PMU_DFE         BIT(9)
++
+ static int MEI_SysClkEnable(struct clk *clk)
+ {
++#if 0
+    if (IS_ERR(clk))
+       return -1;
+    clk_enable(clk);
++#else
++   ltq_pmu_enable(PMU_DFE);
++#endif
+ 
+    return 0;
+ }
+ 
+ static int MEI_SysClkDisable(struct clk *clk)
+ {
++#if 0
+    if (IS_ERR(clk))
+       return -1;
+    clk_disable(clk);
+    clk_put(clk);
++#else
++   ltq_pmu_disable(PMU_DFE);
++#endif
+ 
+    return 0;
+ }
+@@ -2454,11 +2471,15 @@ IFX_int32_t MEI_IoctlInitDevice(
+             pMeiDev->eModePoll = e_MEI_DEV_ACCESS_MODE_IRQ;
+             pMeiDev->intMask   = ME_ARC2ME_INTERRUPT_UNMASK_ALL;
+ 
++#if 1
++            virq = (IFX_uint32_t)pInitDev->usedIRQ;
++#else
+ #if (LINUX_VERSION_CODE < KERNEL_VERSION(3,8,0))
+             virq = (IFX_uint32_t)pInitDev->usedIRQ;
+ #else
+             virq = irq_create_mapping(NULL, (IFX_uint32_t)pInitDev->usedIRQ);
+ #endif
++#endif
+ 
+             pTmpXCntrl = MEI_VrxXDevToIrqListAdd(
+                                           MEI_DRV_LINENUM_GET(pMeiDev),
+--- a/src/drv_mei_cpe_api_atm_ptm_intern.c
++++ b/src/drv_mei_cpe_api_atm_ptm_intern.c
+@@ -193,6 +193,51 @@ int ifx_mei_atm_led_blink(void)
+     return IFX_SUCCESS;
+ }
+ 
++#if MEI_MAX_DFE_CHAN_DEVICES > 1
++#error "Compat functions do not support MEI_MAX_DFE_CHAN_DEVICES > 1 yet"
++#else
++int (*ifx_mei_atm_showtime_enter)(struct port_cell_info *, void *) = NULL;
++int (*ifx_mei_atm_showtime_exit)(void) = NULL;
++
++ltq_ifx_mei_atm_showtime_enter_compat(IFX_uint8_t dslLineNum,
++				      struct port_cell_info *cellInfo,
++				      void *xdata) {
++	if (ifx_mei_atm_showtime_enter)
++		return ifx_mei_atm_showtime_enter(cellInfo, xdata);
++
++	return -e_MEI_ERR_OP_FAILED;
++}
++
++ltq_ifx_mei_atm_showtime_exit_compat(IFX_uint8_t dslLineNum) {
++	if (ifx_mei_atm_showtime_exit)
++		return ifx_mei_atm_showtime_exit();
++
++	return -e_MEI_ERR_OP_FAILED;
++}
++
++void* ppa_callback_get(e_ltq_mei_cb_type type) {
++	switch (type) {
++		case LTQ_MEI_SHOWTIME_ENTER:
++			return &ltq_ifx_mei_atm_showtime_enter_compat;
++		case LTQ_MEI_SHOWTIME_EXIT:
++			return &ltq_ifx_mei_atm_showtime_exit_compat;
++			break;
++	}
++
++	BUG();
++}
++
++int ifx_mei_atm_showtime_check(int *is_showtime,
++                              struct port_cell_info *port_cell,
++                              void **xdata_addr) {
++	return ltq_mei_atm_showtime_check(0, is_showtime, port_cell, xdata_addr);
++}
++
++EXPORT_SYMBOL(ifx_mei_atm_showtime_enter);
++EXPORT_SYMBOL(ifx_mei_atm_showtime_exit);
++EXPORT_SYMBOL(ifx_mei_atm_showtime_check);
++#endif
++
+ EXPORT_SYMBOL (MEI_InternalXtmSwhowtimeEntrySignal);
+ EXPORT_SYMBOL (MEI_InternalXtmSwhowtimeExitSignal);
+ EXPORT_SYMBOL(ifx_mei_atm_led_blink);
+--- a/src/drv_mei_cpe_api_atm_ptm_intern.h
++++ b/src/drv_mei_cpe_api_atm_ptm_intern.h
+@@ -21,7 +21,6 @@
+ 
+ #include "drv_mei_cpe_config.h"
+ #include "drv_mei_cpe_interface.h"
+-#include <net/ppa_stack_al.h>
+ 
+ #if (MEI_EXPORT_INTERNAL_API == 1) && (MEI_DRV_ATM_PTM_INTERFACE_ENABLE == 1)
+ 
+@@ -42,8 +41,20 @@ extern IFX_int32_t MEI_InternalXtmSwhowt
+                               MEI_DYN_CNTRL_T        *pMeiDynCntrl,
+                               MEI_XTM_ShowtimeExit_t *pArgXtm);
+ 
++#if 1
++typedef enum {
++	LTQ_MEI_SHOWTIME_ENTER,
++	LTQ_MEI_SHOWTIME_EXIT
++} e_ltq_mei_cb_type;
++
++typedef void (*ltq_mei_atm_showtime_enter_t)(IFX_uint8_t, struct port_cell_info *, void *);
++typedef void (*ltq_mei_atm_showtime_exit_t)(IFX_uint8_t);
++
++void* ppa_callback_get(e_ltq_mei_cb_type type);
++#else
+ extern int ppa_callback_set(e_ltq_mei_cb_type type, void *func);
+ extern void* ppa_callback_get(e_ltq_mei_cb_type type);
++#endif
+ 
+ int ltq_mei_atm_showtime_check (
+                               const unsigned char line_idx,
+--- a/src/drv_mei_cpe_device_vrx.c
++++ b/src/drv_mei_cpe_device_vrx.c
+@@ -27,13 +27,6 @@
+ #include "drv_mei_cpe_mei_interface.h"
+ #include "drv_mei_cpe_api.h"
+ 
+-#if defined(LINUX)
+-#  if (LINUX_VERSION_CODE < KERNEL_VERSION(3,10,0))
+-#    include "ifx_pcie.h"
+-#  else
+-#    include "lantiq_pcie.h"
+-#  endif
+-#endif /* #if defined(LINUX)*/
+ 
+ IFX_int32_t MEI_GPIntProcess(MEI_MeiRegVal_t processInt, MEI_DEV_T *pMeiDev)
+ {
+@@ -81,6 +74,7 @@ IFX_int32_t MEI_GetChipInfo(MEI_DEV_T *p
+ */
+ IFX_int32_t MEI_VR10_PcieEntitiesCheck(IFX_uint8_t nEntityNum)
+ {
++#if 0
+    IFX_uint32_t pcie_entitiesNum;
+ 
+    /* get information from pcie driver */
+@@ -101,6 +95,9 @@ IFX_int32_t MEI_VR10_PcieEntitiesCheck(I
+    }
+ 
+    return IFX_SUCCESS;
++#else
++   return IFX_ERROR;
++#endif
+ }
+ 
+ /**
+@@ -115,6 +112,7 @@ IFX_int32_t MEI_VR10_PcieEntitiesCheck(I
+ */
+ IFX_int32_t MEI_VR10_PcieEntityInit(MEI_MEI_DRV_CNTRL_T *pMeiDrvCntrl)
+ {
++#if 0
+    IFX_uint8_t entityNum;
+    ifx_pcie_ep_dev_t MEI_pcie_ep_dev;
+ 
+@@ -137,6 +135,9 @@ IFX_int32_t MEI_VR10_PcieEntityInit(MEI_
+    pMeiDrvCntrl->MEI_pcie_irq = MEI_pcie_ep_dev.irq;
+ 
+    return IFX_SUCCESS;
++#else
++   return IFX_ERROR;
++#endif
+ }
+ 
+ /**
+@@ -151,6 +152,7 @@ IFX_int32_t MEI_VR10_PcieEntityInit(MEI_
+ */
+ IFX_int32_t MEI_VR10_PcieEntityFree(IFX_uint8_t entityNum)
+ {
++#if 0
+    if (ifx_pcie_ep_dev_info_release(entityNum))
+    {
+       PRN_ERR_USR_NL( MEI_DRV, MEI_DRV_PRN_LEVEL_ERR,
+@@ -160,6 +162,9 @@ IFX_int32_t MEI_VR10_PcieEntityFree(IFX_
+    }
+ 
+    return IFX_SUCCESS;
++#else
++   return IFX_ERROR;
++#endif
+ }
+ 
+ /**
+@@ -174,6 +179,7 @@ IFX_int32_t MEI_VR10_PcieEntityFree(IFX_
+ */
+ IFX_int32_t MEI_VR10_InternalInitDevice(MEI_DYN_CNTRL_T *pMeiDynCntrl)
+ {
++#if 0
+    IFX_int32_t         retVal;
+    IOCTL_MEI_devInit_t InitDev;
+    MEI_DEV_T           *pMeiDev = pMeiDynCntrl->pMeiDev;
+@@ -198,5 +204,8 @@ IFX_int32_t MEI_VR10_InternalInitDevice(
+    *MEI_GPIO_U32REG(GPIO_P0_ALSEL1) &= ~((1 << 0) | (1 << 3) | (1 << 8));
+ 
+    return IFX_SUCCESS;
++#else
++   return IFX_ERROR;
++#endif
+ }
+ 

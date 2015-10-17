@@ -1,0 +1,11 @@
+--- a/Makefile
++++ b/Makefile
+@@ -29,7 +29,7 @@ ADDLIB+=ipx_ntop.o ipx_pton.o
+ CC = gcc
+ HOSTCC = gcc
+ DEFINES += -D_GNU_SOURCE
+-CCOPTS = -O2
++CCOPTS = -O2 $(EXTRA_CCOPTS)
+ WFLAGS := -Wall -Wstrict-prototypes  -Wmissing-prototypes
+ WFLAGS += -Wmissing-declarations -Wold-style-definition -Wformat=2
+ 

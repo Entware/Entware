@@ -1,0 +1,12 @@
+choice
+	prompt "glibc version"
+	depends on TOOLCHAINOPTS && USE_GLIBC
+	default GLIBC_USE_VERSION_2_22
+	help
+	  Select the version of glibc you wish to use.
+
+	config GLIBC_USE_VERSION_2_22
+		bool "glibc 2.22"
+		select GLIBC_VERSION_2_22
+
+endchoice

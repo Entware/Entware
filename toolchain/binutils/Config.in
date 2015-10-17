@@ -1,0 +1,24 @@
+# Choose binutils version.
+
+choice
+	prompt "Binutils Version" if TOOLCHAINOPTS
+	default BINUTILS_VERSION_2_25_1
+	help
+	  Select the version of binutils you wish to use.
+
+	config BINUTILS_VERSION_2_25_1
+		bool "Binutils 2.25.1"
+
+endchoice
+
+config EXTRA_BINUTILS_CONFIG_OPTIONS
+	string
+	prompt "Additional binutils configure options" if TOOLCHAINOPTS
+	default ""
+	help
+	    Any additional binutils options you may want to include....
+
+config BINUTILS_VERSION
+	string
+	prompt "Binutils Version" if (TOOLCHAINOPTS && NULL)
+	default "2.25.1"          if BINUTILS_VERSION_2_25_1

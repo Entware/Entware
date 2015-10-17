@@ -1,0 +1,20 @@
+[
+	[ "case", "ACTION", {
+		"add": [
+			[ "if",
+				[ "has", "FIRMWARE" ],
+				[
+					[ "exec", "/sbin/hotplug-call", "%SUBSYSTEM%" ],
+					[ "load-firmware", "/lib/firmware" ],
+					[ "return" ]
+				]
+			],
+		],
+	}, ],
+	[ "if",
+		[ "and",
+			[ "eq", "SUBSYSTEM", "button" ],
+		],
+		[ "exec", "/etc/rc.button/failsafe" ]
+	],
+]

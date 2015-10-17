@@ -1,0 +1,89 @@
+#!/bin/sh /etc/rc.common
+
+START=50
+
+SERVICE_DAEMONIZE=1
+SERVICE_WRITE_PID=1
+
+start_daemon() {
+	. /lib/functions/network.sh
+
+	local cfg="$1"
+
+	local atmdev
+	config_get atmdev "$cfg" atmdev 0
+
+	local unit
+	config_get unit "$cfg" unit 0
+
+	local vpi
+	config_get vpi "$cfg" vpi 8
+
+	local vci
+	config_get vci "$cfg" vci 35
+
+	local encaps
+	config_get encaps "$cfg" encaps
+
+	case "$encaps" in
+		1|vc) encaps=1;;
+		*) encaps=0;;
+	esac
+
+	local payload
+	config_get payload "$cfg" payload
+
+	case "$payload" in
+		0|routed) payload=0;;
+		*) payload=1;;
+	esac
+
+	local qos
+	config_get qos "$cfg" qos
+
+	local sendsize
+	config_get sendsize "$cfg" sendsize
+
+	local circuit="$atmdev.$vpi.$vci"
+
+	network_defer_device "nas$unit"
+
+	SERVICE_PID_FILE="/var/run/br2684ctl-$circuit.pid" \
+	service_start /usr/sbin/br2684ctl \
+		-c "$unit" -e "$encaps" -p "$payload" \
+		-a "$circuit" ${qos:+-q "$qos"} ${sendsize:+-s "$sendsize"}
+	sleep 1
+
+	network_ready_device "nas$unit"
+}
+
+stop_daemon() {
+	local cfg="$1"
+
+	local atmdev
+	config_get atmdev "$cfg" atmdev 0
+
+	local unit
+	config_get unit "$cfg" unit 0
+
+	local vpi
+	config_get vpi "$cfg" vpi 8
+
+	local vci
+	config_get vci "$cfg" vci 35
+
+	local circuit="$atmdev.$vpi.$vci"
+	
+	SERVICE_PID_FILE="/var/run/br2684ctl-$circuit.pid" \
+	service_stop /usr/sbin/br2684ctl
+}
+
+start() {
+	config_load network
+	config_foreach start_daemon atm-bridge
+}
+
+stop() {
+	config_load network
+	config_foreach stop_daemon atm-bridge
+}

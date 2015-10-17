@@ -1,0 +1,76 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2008-2012 OpenWrt.org
+
+START=90
+
+USE_PROCD=1
+
+find_release_info()
+{
+	[ -s /etc/openwrt_release ] && . /etc/openwrt_release
+	[ -z "$DISTRIB_DESCRIPTION" ] && [ -s /etc/openwrt_version ] && \
+		DISTRIB_DESCRIPTION="$(cat /etc/openwrt_version)"
+
+	echo "${DISTRIB_DESCRIPTION:-Unknown OpenWrt release} @ $(cat /proc/sys/kernel/hostname)"
+}
+
+start_service() {
+	. /lib/functions/network.sh
+
+	local enable_cdp
+	local enable_fdp
+	local enable_sonmp
+	local enable_edp
+	local lldp_class
+	local lldp_location
+	local lldp_description
+	local readonly_mode
+
+	config_load 'lldpd'
+	config_get_bool enable_cdp 'config' 'enable_cdp' 0
+	config_get_bool enable_fdp 'config' 'enable_fdp' 0
+	config_get_bool enable_sonmp 'config' 'enable_sonmp' 0
+	config_get_bool enable_edp 'config' 'enable_edp' 0
+	config_get lldp_class 'config' 'lldp_class'
+	config_get lldp_location 'config' 'lldp_location'
+	config_get lldp_description 'config' 'lldp_description' "$(find_release_info)"
+	config_get_bool readonly_mode 'config' 'readonly_mode' 0
+
+	local ifaces
+	config_get ifaces 'config' 'interface'
+
+	local iface ifnames=""
+	for iface in $ifaces; do
+		local ifname=""
+		if network_get_device ifname "$iface" || [ -e "/sys/class/net/$iface" ]; then
+			append ifnames "${ifname:-$iface}" ","
+		fi
+	done
+
+	mkdir -p /var/run/lldp
+	chown lldp:lldp /var/run/lldp
+
+	procd_open_instance
+	procd_set_param command /usr/sbin/lldpd
+	procd_append_param command -d # don't daemonize, procd will handle that for us
+
+	[ -n "$ifnames" ] && procd_append_param command -I "$ifnames"
+	[ $enable_cdp -gt 0 ] && procd_append_param command '-c'
+	[ $enable_fdp -gt 0 ] && procd_append_param command '-f'
+	[ $enable_sonmp -gt 0 ] && procd_append_param command '-s'
+	[ $enable_edp -gt 0 ] && procd_append_param command '-e'
+	[ $readonly_mode -gt 0 ] && procd_append_param command '-r'
+	[ -n "$lldp_class" ] && procd_append_param command -M "$lldp_class"
+	[ -n "$lldp_description" ] && procd_append_param command -S "$lldp_description"
+
+	# set auto respawn behavior
+	procd_set_param respawn
+	procd_append_param respawn 3600
+	procd_append_param respawn 5
+	procd_append_param respawn -1
+	procd_close_instance
+}
+
+stop_service() {
+	rm -f /var/run/lldpd.socket /var/run/lldpd.pid
+}

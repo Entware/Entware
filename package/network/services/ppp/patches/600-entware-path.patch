@@ -1,0 +1,69 @@
+--- a/pppd/pathnames.h
++++ b/pppd/pathnames.h
+@@ -9,7 +9,7 @@
+ 
+ #else /* HAVE_PATHS_H */
+ #ifndef _PATH_VARRUN
+-#define _PATH_VARRUN 	"/etc/ppp/"
++#define _PATH_VARRUN 	"/opt/etc/ppp/"
+ #endif
+ #define _PATH_DEVNULL	"/dev/null"
+ #endif /* HAVE_PATHS_H */
+@@ -18,31 +18,31 @@
+ #define _ROOT_PATH
+ #endif
+ 
+-#define _PATH_UPAPFILE 	 _ROOT_PATH "/etc/ppp/pap-secrets"
+-#define _PATH_CHAPFILE 	 _ROOT_PATH "/etc/ppp/chap-secrets"
+-#define _PATH_SRPFILE 	 _ROOT_PATH "/etc/ppp/srp-secrets"
+-#define _PATH_SYSOPTIONS _ROOT_PATH "/etc/ppp/options"
+-#define _PATH_IPUP	 _ROOT_PATH "/etc/ppp/ip-up"
+-#define _PATH_IPDOWN	 _ROOT_PATH "/etc/ppp/ip-down"
+-#define _PATH_IPPREUP	 _ROOT_PATH "/etc/ppp/ip-pre-up"
+-#define _PATH_AUTHUP	 _ROOT_PATH "/etc/ppp/auth-up"
+-#define _PATH_AUTHDOWN	 _ROOT_PATH "/etc/ppp/auth-down"
+-#define _PATH_TTYOPT	 _ROOT_PATH "/etc/ppp/options."
+-#define _PATH_CONNERRS	 _ROOT_PATH "/etc/ppp/connect-errors"
+-#define _PATH_PEERFILES	 _ROOT_PATH "/etc/ppp/peers/"
+-#define _PATH_RESOLV	 _ROOT_PATH "/etc/ppp/resolv.conf"
++#define _PATH_UPAPFILE 	 _ROOT_PATH "/opt/etc/ppp/pap-secrets"
++#define _PATH_CHAPFILE 	 _ROOT_PATH "/opt/etc/ppp/chap-secrets"
++#define _PATH_SRPFILE 	 _ROOT_PATH "/opt/etc/ppp/srp-secrets"
++#define _PATH_SYSOPTIONS _ROOT_PATH "/opt/etc/ppp/options"
++#define _PATH_IPUP	 _ROOT_PATH "/opt/etc/ppp/ip-up"
++#define _PATH_IPDOWN	 _ROOT_PATH "/opt/etc/ppp/ip-down"
++#define _PATH_IPPREUP	 _ROOT_PATH "/opt/etc/ppp/ip-pre-up"
++#define _PATH_AUTHUP	 _ROOT_PATH "/opt/etc/ppp/auth-up"
++#define _PATH_AUTHDOWN	 _ROOT_PATH "/opt/etc/ppp/auth-down"
++#define _PATH_TTYOPT	 _ROOT_PATH "/opt/etc/ppp/options."
++#define _PATH_CONNERRS	 _ROOT_PATH "/opt/etc/ppp/connect-errors"
++#define _PATH_PEERFILES	 _ROOT_PATH "/opt/etc/ppp/peers/"
++#define _PATH_RESOLV	 _ROOT_PATH "/opt/etc/ppp/resolv.conf"
+ 
+ #define _PATH_USEROPT	 ".ppprc"
+ #define	_PATH_PSEUDONYM	 ".ppp_pseudonym"
+ 
+ #ifdef INET6
+-#define _PATH_IPV6UP     _ROOT_PATH "/etc/ppp/ipv6-up"
+-#define _PATH_IPV6DOWN   _ROOT_PATH "/etc/ppp/ipv6-down"
++#define _PATH_IPV6UP     _ROOT_PATH "/opt/etc/ppp/ipv6-up"
++#define _PATH_IPV6DOWN   _ROOT_PATH "/opt/etc/ppp/ipv6-down"
+ #endif
+ 
+ #ifdef IPX_CHANGE
+-#define _PATH_IPXUP	 _ROOT_PATH "/etc/ppp/ipx-up"
+-#define _PATH_IPXDOWN	 _ROOT_PATH "/etc/ppp/ipx-down"
++#define _PATH_IPXUP	 _ROOT_PATH "/opt/etc/ppp/ipx-up"
++#define _PATH_IPXDOWN	 _ROOT_PATH "/opt/etc/ppp/ipx-down"
+ #endif /* IPX_CHANGE */
+ 
+ #ifdef __STDC__
+@@ -51,7 +51,7 @@
+ #ifdef HAVE_PATHS_H
+ #define _PATH_PPPDB	"/var/run/pppd2.tdb"
+ #else
+-#define _PATH_PPPDB	"/etc/ppp/pppd2.tdb"
++#define _PATH_PPPDB	"/opt/etc/ppp/pppd2.tdb"
+ #endif
+ #endif /* __STDC__ */
+ 

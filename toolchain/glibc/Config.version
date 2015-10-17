@@ -1,0 +1,15 @@
+if USE_GLIBC
+
+config GLIBC_VERSION
+	string
+	default "2.22" if GLIBC_VERSION_2_22
+
+config GLIBC_VERSION_2_22
+	bool
+
+config GLIBC_REVISION
+	string
+	default ""
+
+endif
+

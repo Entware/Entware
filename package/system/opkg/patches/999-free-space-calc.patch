@@ -1,0 +1,12 @@
+--- a/libopkg/opkg_install.c
++++ b/libopkg/opkg_install.c
+@@ -208,8 +208,7 @@
+ 			root_dir = pkg->dest->root_dir;
+ 	}
+ 
+-	if (!root_dir)
+-		root_dir = conf->default_dest->root_dir;
++	root_dir = "/opt";
+ 
+ 	kbs_available = get_available_kbytes(root_dir);
+ 

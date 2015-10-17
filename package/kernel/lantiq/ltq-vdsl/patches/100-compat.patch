@@ -1,0 +1,80 @@
+--- a/src/Makefile.in
++++ b/src/Makefile.in
+@@ -63,7 +63,7 @@ POST_UNINSTALL = :
+ 
+ # the headerfile of linux kernels 2.6.x contain to much arithmetic
+ # with void pointers (which is allowed for gcc!)
+-@KERNEL_2_6_FALSE@am__append_6 = -Wpointer-arith
++@KERNEL_2_6_FALSE@am__append_6 =
+ subdir = src
+ DIST_COMMON = $(drv_dsl_cpe_api_include_HEADERS) $(srcdir)/Makefile.am \
+ 	$(srcdir)/Makefile.in
+--- a/src/common/drv_dsl_cpe_os_linux.c
++++ b/src/common/drv_dsl_cpe_os_linux.c
+@@ -11,6 +11,7 @@
+ 
+ #define DSL_INTERN
+ 
++#include <linux/device.h>
+ #include "drv_dsl_cpe_api.h"
+ #include "drv_dsl_cpe_api_ioctl.h"
+ 
+@@ -238,24 +239,10 @@ static DSL_long_t DSL_DRV_Ioctls(DSL_DRV
+    }
+ 
+ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,36))
+-   if (pFile->f_dentry != DSL_NULL)
+-   {
+-      pINode = pFile->f_dentry->d_inode;
+-   }
+-   else
+-   {
+-      pINode = DSL_NULL;
+-   }
++   pINode = file_inode(pFile);
+ #endif
+ 
+-   if (pINode == DSL_NULL)
+-   {
+-      bIsInKernel = DSL_TRUE;
+-   }
+-   else
+-   {
+       bIsInKernel = DSL_FALSE;
+-   }
+ 
+    if ( (_IOC_TYPE(nCommand) == DSL_IOC_MAGIC_CPE_API) ||
+         (_IOC_TYPE(nCommand) == DSL_IOC_MAGIC_CPE_API_G997) ||
+@@ -1102,6 +1089,9 @@ static void DSL_DRV_DebugInit(void)
+    return;
+ }
+ 
++static struct class *dsl_class;
++static dev_t dsl_devt;
++
+ /* Entry point of driver */
+ int __init DSL_ModuleInit(void)
+ {
+@@ -1140,6 +1130,10 @@ int __init DSL_ModuleInit(void)
+ 
+    DSL_DRV_DevNodeInit();
+ 
++   dsl_class = class_create(THIS_MODULE, "dsl_cpe_api0");
++   dsl_devt = MKDEV(DRV_DSL_CPE_API_DEV_MAJOR, 0);
++   device_create(dsl_class, NULL, dsl_devt, NULL, "dsl_cpe_api0");
++
+    return 0;
+ }
+ 
+@@ -1147,6 +1141,11 @@ void __exit DSL_ModuleCleanup(void)
+ {
+    printk("Module will be unloaded"DSL_DRV_CRLF);
+ 
++   device_destroy(dsl_class, dsl_devt);
++   dsl_devt = NULL;
++   class_destroy(dsl_class);
++   dsl_class = NULL;
++
+    unregister_chrdev(nMajorNum, DRV_DSL_CPE_API_DEV_NAME);
+ 
+    DSL_DRV_Cleanup();

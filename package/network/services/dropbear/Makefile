@@ -1,0 +1,132 @@
+#
+# Copyright (C) 2006-2014 OpenWrt.org
+#
+# This is free software, licensed under the GNU General Public License v2.
+# See /LICENSE for more information.
+#
+
+include $(TOPDIR)/rules.mk
+
+PKG_NAME:=dropbear
+PKG_VERSION:=2015.68
+PKG_RELEASE:=3
+
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+PKG_SOURCE_URL:= \
+	http://matt.ucc.asn.au/dropbear/releases/ \
+	https://dropbear.nl/mirror/releases/
+PKG_MD5SUM:=7664ac10f7cc2301c530eb80c756fc5d
+
+PKG_LICENSE:=MIT
+PKG_LICENSE_FILES:=LICENSE libtomcrypt/LICENSE libtommath/LICENSE
+
+PKG_BUILD_PARALLEL:=1
+PKG_USE_MIPS16:=0
+
+PKG_CONFIG_DEPENDS:=CONFIG_DROPBEAR_ECC
+
+include $(INCLUDE_DIR)/package.mk
+
+define Package/dropbear/Default
+  URL:=http://matt.ucc.asn.au/dropbear/
+endef
+
+define Package/dropbear/config
+	source "$(SOURCE)/Config.in"
+endef
+
+define Package/dropbear
+  $(call Package/dropbear/Default)
+  SECTION:=net
+  CATEGORY:=Base system
+  TITLE:=Small SSH2 client/server
+endef
+
+define Package/dropbear/description
+ A small SSH2 server/client designed for small memory environments.
+endef
+
+define Package/dropbear/conffiles
+/opt/etc/dropbear/dropbear_rsa_host_key
+/opt/etc/config/dropbear 
+endef
+
+define Package/dropbearconvert
+  $(call Package/dropbear/Default)
+  SECTION:=utils
+  CATEGORY:=Utilities
+  TITLE:=Utility for converting SSH keys
+endef
+
+CONFIGURE_ARGS += \
+	--disable-pam \
+	--enable-openpty \
+	--enable-syslog \
+	$(if $(CONFIG_SHADOW_PASSWORDS),,--disable-shadow) \
+	--disable-lastlog \
+	--disable-utmp \
+	--disable-utmpx \
+	--disable-wtmp \
+	--disable-wtmpx \
+	--disable-loginfunc \
+	--disable-pututline \
+	--disable-pututxline \
+	--disable-zlib \
+	--enable-bundled-libtom
+
+define Build/Configure
+	$(Build/Configure/Default)
+
+	# Enforce that all replacements are made, otherwise options.h has changed
+	# format and this logic is broken.
+	for OPTION in DROPBEAR_ECDSA DROPBEAR_ECDH DROPBEAR_CURVE25519; do \
+	  awk 'BEGIN { rc = 1 } \
+	       /'$$$$OPTION'/ { $$$$0 = "$(if $(CONFIG_DROPBEAR_ECC),,// )#define '$$$$OPTION'"; rc = 0 } \
+	       { print } \
+	       END { exit(rc) }' $(PKG_BUILD_DIR)/options.h \
+	       >$(PKG_BUILD_DIR)/options.h.new && \
+	  mv $(PKG_BUILD_DIR)/options.h.new $(PKG_BUILD_DIR)/options.h || exit 1; \
+	done
+endef
+
+define Build/Compile
+	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
+		$(TARGET_CONFIGURE_OPTS) \
+		PROGRAMS="dropbear dbclient dropbearkey scp" \
+		MULTI=1 SCPPROGRESS=1
+	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
+		$(TARGET_CONFIGURE_OPTS) \
+		PROGRAMS="dropbearconvert"
+endef
+
+define Package/dropbear/install
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/dropbearmulti $(1)/opt/sbin/dropbear
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(LN) ../sbin/dropbear $(1)/opt/bin/scp
+	$(LN) ../sbin/dropbear $(1)/opt/bin/ssh
+	$(LN) ../sbin/dropbear $(1)/opt/bin/dbclient
+	$(LN) ../sbin/dropbear $(1)/opt/bin/dropbearkey
+	$(INSTALL_DIR) $(1)/opt/etc/init.d
+	$(INSTALL_BIN) ./files/S51dropbear $(1)/opt/etc/init.d
+endef
+
+define Package/dropbearconvert/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/dropbearconvert $(1)/opt/bin/dropbearconvert
+endef
+
+define package/network/services/dropbear/postinst
+#!/bin/sh
+
+if [ ! -f /opt/etc/dropbear/dropbear_rsa_host_key ]; then
+    /opt/bin/dropbearkey -t rsa -f /opt/etc/dropbear/dropbear_rsa_host_key
+fi
+
+if [ ! -f /opt/etc/dropbear/dropbear_dss_host_key ]; then
+    /opt/bin/dropbearkey -t dss -f /opt/etc/dropbear/dropbear_dss_host_key
+fi
+endef
+
+$(eval $(call BuildPackage,dropbear))
+$(eval $(call BuildPackage,dropbearconvert))

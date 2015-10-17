@@ -1,0 +1,10 @@
+config GCC_VERSION
+	string
+	default "4.8.5" if GCC_VERSION_4_8_5
+	default "5.2.0" if GCC_VERSION_5
+
+config GCC_VERSION_4_8_5
+	bool
+
+config GCC_VERSION_5
+	bool

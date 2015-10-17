@@ -1,0 +1,103 @@
+--- a/include/applets.src.h
++++ b/include/applets.src.h
+@@ -254,6 +254,7 @@ IF_MT(APPLET(mt, BB_DIR_BIN, BB_SUID_DRO
+ IF_MV(APPLET(mv, BB_DIR_BIN, BB_SUID_DROP))
+ IF_NAMEIF(APPLET(nameif, BB_DIR_SBIN, BB_SUID_DROP))
+ IF_NC(APPLET(nc, BB_DIR_USR_BIN, BB_SUID_DROP))
++IF_NETMSG(APPLET(netmsg, BB_DIR_BIN, BB_SUID_REQUIRE))
+ IF_NETSTAT(APPLET(netstat, BB_DIR_BIN, BB_SUID_DROP))
+ IF_NICE(APPLET(nice, BB_DIR_BIN, BB_SUID_DROP))
+ IF_NOHUP(APPLET(nohup, BB_DIR_USR_BIN, BB_SUID_DROP))
+--- a/networking/Config.src
++++ b/networking/Config.src
+@@ -619,6 +619,12 @@ config FEATURE_IPCALC_LONG_OPTIONS
+ 	help
+ 	  Support long options for the ipcalc applet.
+ 
++config NETMSG
++	bool "netmsg"
++	default n
++	help
++	  simple program for sending udp broadcast messages
++
+ config NETSTAT
+ 	bool "netstat"
+ 	default y
+--- a/networking/Kbuild.src
++++ b/networking/Kbuild.src
+@@ -27,6 +27,7 @@ lib-$(CONFIG_IP)           += ip.o
+ lib-$(CONFIG_IPCALC)       += ipcalc.o
+ lib-$(CONFIG_NAMEIF)       += nameif.o
+ lib-$(CONFIG_NC)           += nc.o
++lib-$(CONFIG_NETMSG)       += netmsg.o
+ lib-$(CONFIG_NETSTAT)      += netstat.o
+ lib-$(CONFIG_NSLOOKUP)     += nslookup.o
+ lib-$(CONFIG_NTPD)         += ntpd.o
+--- /dev/null
++++ b/networking/netmsg.c
+@@ -0,0 +1,65 @@
++/*
++ * Copyright (C) 2006 Felix Fietkau <nbd@openwrt.org>
++ *
++ * This is free software, licensed under the GNU General Public License v2.
++ */
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <netinet/in.h>
++#include <netdb.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include "busybox.h"
++
++//usage:#define netmsg_trivial_usage NOUSAGE_STR
++//usage:#define netmsg_full_usage ""
++
++#ifndef CONFIG_NETMSG
++int main(int argc, char **argv)
++#else
++int netmsg_main(int argc, char **argv)
++#endif
++{
++	int s;
++	struct sockaddr_in addr;
++	int optval = 1;
++	unsigned char buf[1001];
++
++	if (argc != 3) {
++		fprintf(stderr, "usage: %s <ip> \"<message>\"\n", argv[0]);
++		exit(1);
++	}
++
++	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
++		perror("Opening socket");
++		exit(1);
++	}
++
++	memset(&addr, 0, sizeof(addr));
++	addr.sin_family = AF_INET;
++	addr.sin_addr.s_addr = inet_addr(argv[1]);
++	addr.sin_port = htons(0x1337);
++
++	memset(buf, 0, 1001);
++	buf[0] = 0xde;
++	buf[1] = 0xad;
++
++	strncpy(buf + 2, argv[2], 998);
++
++	if (setsockopt (s, SOL_SOCKET, SO_BROADCAST, (caddr_t) &optval, sizeof (optval)) < 0) {
++		perror("setsockopt()");
++		goto fail;
++	}
++
++	if (sendto(s, buf, 1001, 0, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
++		perror("sendto()");
++		goto fail;
++	}
++
++	return 0;
++
++fail:
++	close(s);
++	exit(1);
++}

@@ -1,0 +1,20 @@
+--- a/net.c
++++ b/net.c
+@@ -351,7 +351,7 @@
+ 	case AF_BLUETOOTH:
+ 		tprintf("{sco_bdaddr=%02X:%02X:%02X:%02X:%02X:%02X} or "
+ 			"{rc_bdaddr=%02X:%02X:%02X:%02X:%02X:%02X, rc_channel=%d} or "
+-			"{l2_psm=htobs(%d), l2_bdaddr=%02X:%02X:%02X:%02X:%02X:%02X, l2_cid=htobs(%d)} or "
++			"{l2_psm=htobs(%d), l2_bdaddr=%02X:%02X:%02X:%02X:%02X:%02X} or "
+ 			"{hci_dev=htobs(%d)}",
+ 			addrbuf.sco.sco_bdaddr.b[0], addrbuf.sco.sco_bdaddr.b[1],
+ 			addrbuf.sco.sco_bdaddr.b[2], addrbuf.sco.sco_bdaddr.b[3],
+@@ -363,7 +363,7 @@
+ 			btohs(addrbuf.l2.l2_psm), addrbuf.l2.l2_bdaddr.b[0],
+ 			addrbuf.l2.l2_bdaddr.b[1], addrbuf.l2.l2_bdaddr.b[2],
+ 			addrbuf.l2.l2_bdaddr.b[3], addrbuf.l2.l2_bdaddr.b[4],
+-			addrbuf.l2.l2_bdaddr.b[5], btohs(addrbuf.l2.l2_cid),
++			addrbuf.l2.l2_bdaddr.b[5],
+ 			btohs(addrbuf.hci.hci_dev));
+ 		break;
+ #endif /* AF_BLUETOOTH && HAVE_BLUETOOTH_BLUETOOTH_H */
