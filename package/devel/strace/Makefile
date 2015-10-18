@@ -27,7 +27,7 @@ PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
-HOST_CFLAGS += -I$(LINUX_DIR)/user_headers/include
+HOST_CFLAGS += -I$(LINUX_DIR)/include
 
 CONFIGURE_VARS+= \
 	LDFLAGS_FOR_BUILD="$(HOST_LDFLAGS)" \
@@ -46,6 +46,9 @@ define Package/strace/description
 A useful diagnostic, instructional, and debugging tool. Allows you to track what
 system calls a program makes while it is running.
 endef
+
+TARGET_CFLAGS += \
+	-I$(LINUX_DIR)/include
 
 MAKE_FLAGS := \
 	CCOPT="$(TARGET_CFLAGS)"

@@ -32,7 +32,7 @@ define Package/openvpn/Default
   URL:=http://openvpn.net
   SUBMENU:=VPN
   MENU:=1
-  DEPENDS:=+OPENVPN_$(1)_ENABLE_LZO:liblzo +OPENVPN_$(1)_ENABLE_IPROUTE2:ip $(3)
+  DEPENDS:=+OPENVPN_$(1)_ENABLE_LZO:liblzo $(3)
   VARIANT:=$(1)
   MAINTAINER:=Mirko Vogt <mirko@openwrt.org>
 endef

@@ -80,6 +80,7 @@ TARGET_SUBARCH=""
 # TARGET_mips is not set
 # TARGET_nios is not set
 # TARGET_nios2 is not set
+# TARGET_or1k is not set
 # TARGET_powerpc is not set
 # TARGET_sh is not set
 # TARGET_sh64 is not set

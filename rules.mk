@@ -144,10 +144,10 @@ endif
 # dynamic linker depends on libc and arch. it is set for the targets we compile
 # may be it is better to patch gcc & glibc to set the path of dynamic linker ????
 #
+#LIBRPC=-lrpc
+#LIBRPC_DEPENDS=+librpc
 
 ifeq ($(LIBC),uClibc)
-LIBRPC=-lrpc
-LIBRPC_DEPENDS=+librpc
 TARGET_LDFLAGS+= -Wl,--dynamic-linker=/opt/lib/ld-uClibc.so.0
 endif
 

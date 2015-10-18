@@ -103,12 +103,12 @@ MAKE_FLAGS = \
 		HOST_CPU="$(PKGARCH)" \
 		LDFLAGS="-Wl,--gc-sections $(TARGET_LDFLAGS)" \
 
+#	$(INSTALL_DATA) ./files/opkg.conf.$(CONFIG_ARCH) $(1)/opt/etc/opkg.conf
 define Package/opkg/Default/install
 	$(INSTALL_DIR) $(1)/opt/lib/opkg
 	$(INSTALL_DIR) $(1)/opt/{bin,etc,tmp}
 	$(INSTALL_DIR) $(1)/opt/var/{lock,log,run}
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/opkg-cl $(1)/opt/bin/opkg
-	$(INSTALL_DATA) ./files/opkg.conf.$(CONFIG_ARCH) $(1)/opt/etc/opkg.conf
 endef
 
 Package/opkg/install = $(call Package/opkg/Default/install,$(1),)
