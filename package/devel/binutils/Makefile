@@ -11,7 +11,7 @@ PKG_NAME:=binutils
 PKG_VERSION:=2.24
 PKG_RELEASE:=3
 
-PKG_BUILD_DEPENDS:=@!TARGET_mipselsf:gbd @TARGET_mipselsf:gdb-legacy
+PKG_BUILD_DEPENDS:=!TARGET_mipselsf:gbd TARGET_mipselsf:gdb-legacy
 
 PKG_SOURCE_URL:=@GNU/binutils
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -69,7 +69,7 @@ define Package/binutils/description
   The Binutils package contains a linker, an assembler, and other tools for handling object files
 endef
 
-TARGET_CFLAGS += $(FPIC) -Wno-unused-value
+TARGET_CFLAGS += $(FPIC) -Wno-unused-value -Wno-logical-not-parentheses
 
 CONFIGURE_ARGS += \
 	--host=$(REAL_GNU_TARGET_NAME) \
