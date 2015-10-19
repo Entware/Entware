@@ -170,7 +170,7 @@ define Build/InstallDev
 	$(CP) $(PKG_INSTALL_DIR)/opt/bin/ncursesw6-config $(2)/bin/
 	$(SED) 's,^\(prefix\|exec_prefix\)=.*,\1=$(STAGING_DIR)/opt,g' -e 's/$$$$INCS //g' \
 		$(2)/bin/ncursesw6-config
-	$(LN) $(2)/bin/ncursesw6-config $(1)/opt/bin/ncursesw6-config
+	$(LN) $(STAGING_DIR)/host/bin/ncursesw6-config $(1)/opt/bin/ncursesw6-config
 endef
 else
 define Build/InstallDev
