@@ -1,0 +1,12 @@
+The usage is very simple.
+First clone the repo:
+    git clone https://github.com/Entware-ng/Entware-ng.git
+and cd to Entware-ng directory
+    cd Entware-ng
+Second get the feeds:
+    ./scripts/feeds update
+    ./scripts/feeds install -a
+Third copy config for your arch from configs folder:
+    cp -f /configs/mipselsf.config .config
+Fourth - run make:
+    make
