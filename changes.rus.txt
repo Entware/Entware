@@ -1,0 +1,65 @@
+Что это такое? Это система сборки Openwrt переделанаая на сборку Entware разных архитектур.
+
+Были внесены следующие изменения (часть взята из патчей Entware, часть добавлена):
+
+1. Makefile - удалены последние этапы - $(package/stamp-install) $(target/stamp-install). make заканчивает на package/compile
+2. rules.mk - изменение путей в TARGET_CPPFLAGS и TARGET_LDFLAGS.
+              Установка dynamic-linker в зависимости от архитектуры и libc. Для musl не делал, для mipsel + glibc не проверял.
+              Выкинул задание LIBRPC и LIBRPC_DEPENDS - librpc не собирается и ненужна (musl - неизвестно ???)
+3. scripts/download.pl (добавлены зеркала entware)
+4. scripts/ipkg-make-index.sh - libc теперь индексируется в package/index
+5. scripts/rstrip.sh - выкинул удаление RPATH
+6. папка include
+autotools.mk usr -> opt
+cmake.mk     usr -> opt
+kernel-build.mk - выброшена сборка ядра и модулей
+kernel-version.mk - добавлены 2.6.32 и 2.6.36, 2.6.22. Выброшены 3.x. 2.6.22.19 не скачивается,
+                    md5 не нужно, задается через CONFIG_EXTERNAL_KERNEL_TREE
+nls.mk       usr -> opt
+package-defaults.mk usr -> opt
+package-ipkg.mk     usr -> opt и другие изменения из entware
+package.mk          usr -> opt
+target.mk           набор пакетов по умолчанию (косметика)
+7. tools
+ent-kernel - псевдо тул, скачивает и распаковывает ядро энтузиастов
+ppl/patches/010-ptrdiff.patch
+8. target
+выкинул target'ы openwrt и добавил свои. Обращаю внимание, что версия ядра задается через KERNEL_PATCHVER,
+остальное делает include/kernel-version.mk. Можно использовать свои ядра, через задание пути CONFIG_EXTERNAL_KERNEL_TREE
+Makefile в подпапке Image у новых таргетов не должен ничего вызывать.
+9. toolchain (тут много изменений)
+Выкинуты многие версии binutils, gcc, clib и добавлены новые
+binutils - оставил 2.25.1, может имеет смыл добавить 2.24 (не Linaro)
+gcc - оставил 5.2, добавил 4.9.3 и 4.8.5. Остальные выкинул
+libc - добавил glibc 2.22 (release), добавил при сборке --enable-obsolete-rpc
+Выкинул все Uclibc, оставил Uclibc-ng и обновил до 1.0.7 (поменял config - uClibc/config-ng-1.0.7/common поближе к тулчену
+энтузиастов). musl не трогал.
+Немного изменил kernel-headers/Makefile (для энтузиастовского ядра)
+10. packages
+Выкинул
+firmware
+boot - кроме kexec-tools
+убрал аттрибут hidden у некоторых пакетов
+(TODO) Дурацкая модификация gdb на случай сборки после binutils. 
+Раньше через PKG_BUILD_DEPENDS было (это вернуть после добавления legacy вариантов)
+ncurses -> 6.0 плюс девелоперсие патчи. Иначе под  gcc 5.2 не собрать.
+другие изменения от Entware (usr->opt) то be revised
+
+Тулчейн с uclibc-ng собирается только при выборе gcc 5.2. Поэтому 5.2 выбрал для всех архитектур (однообразие)
+
+Проблемы, замечания,TODO
+
+Cтатическая линковка в случае glibc 2.22 по умолчанию непроходит, чтобы прошла нужно перед --static задать "-lc -lgcc_eh",
+для варианта с uclibc_ng это не нужно.
+
+Многие пакеты (вариант mipselsf) захотели при конфигурации libssp
+В таких случаях добавлял
+TARGET_LDFLAGS += -lssp
+и в DEPENDS +libssp.
+Можно наоборот попробовать отключить через флаги gcc
+TARGET_CFLAGS += \
+<------>-U_FORTIFY_SOURCE  -fno-stack-protector \
+
+Нужно сделать legacy варианты некоторых пакетов и прописать в зависимости от TARGET_mipselsf
+
+Этап gcc_initial (make install-gcc install-target-libgcc) создает битую символическую ссылку lib в staging_dir/toolchain....
