@@ -201,6 +201,7 @@ push @mirrors, 'http://downloads.openwrt.org/sources';
 push @mirrors, 'http://x.vm0.ru/wl500g-repo/sources-mirror';
 push @mirrors, 'http://entware.wl500g.info/sources';
 push @mirrors, 'http://entware.dyndns.info/sources';
+push @mirrors, 'http://qnapware.zyxmon.org/sources';
 
 while (!$ok) {
 	my $mirror = shift @mirrors;
