@@ -11,7 +11,7 @@ ARCH:=arm
 BOARD:=armv5soft
 BOARDNAME:=Board with armv5 (armv5te) SoC
 FEATURES:=
-#LINUX_VERSION:=2.6.32.67 (LT)
+#LINUX_VERSION:=2.6.32.68 (LT)
 KERNEL_PATCHVER:=2.6.32
 DEFAULT_PACKAGES := toolchain
 
