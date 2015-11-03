@@ -10,3 +10,14 @@ Third copy config for your arch from configs folder:
     cp -f /configs/mipselsf.config .config
 Fourth - run make:
     make
+================================
+You can run make in several steps:
+
+make tools/install
+make toolchain/install
+make target/compile
+make package/compile
+
+You can use several simultanios jobs (-jN) and verbose output. For example (V=s)
+
+make -j5 package/compile V=s
