@@ -28,29 +28,29 @@ endef
 
 define Build/InstallDev
 	$(INSTALL_DIR) \
-		$(1)/lib \
-		$(1)/usr/include
+		$(1)/opt/lib \
+		$(1)/opt/include
 
 	$(CP) \
 		$(PKG_INSTALL_DIR)/lib/libbsd.so* \
-		$(1)/lib/
+		$(1)/opt/lib/
 
 	$(CP) \
 		$(PKG_INSTALL_DIR)/usr/include/* \
-		$(1)/usr/include/
+		$(1)/opt/include/
 
-	( cd $(1)/lib ; $(LN) libbsd.so.$(PKG_VERSION) libbsd.so )
+	( cd $(1)/opt/lib ; $(LN) libbsd.so.$(PKG_VERSION) libbsd.so )
 endef
 
 define Package/libbsd/install
 	$(INSTALL_DIR) \
-		$(1)/lib
+		$(1)/opt/lib
 
 	$(CP) \
 		$(PKG_INSTALL_DIR)/lib/libbsd.so* \
-		$(1)/lib/
+		$(1)/opt/lib/
 
-	( cd $(1)/lib ; $(LN) libbsd.so.$(PKG_VERSION) libbsd.so )
+	( cd $(1)/opt/lib ; $(LN) libbsd.so.$(PKG_VERSION) libbsd.so )
 endef
 
 $(eval $(call BuildPackage,libbsd))
