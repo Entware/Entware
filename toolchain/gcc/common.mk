@@ -106,6 +106,12 @@ else
 		--disable-libssp
 endif
 
+ifneq ($(CONFIG_GCC_USE_GRAPHITE),)
+  GCC_CONFIGURE+= \
+		--with-cloog=$(TOPDIR)/staging_dir/host \
+		--with-isl=$(TOPDIR)/staging_dir/host
+endif
+
 ifneq ($(CONFIG_EXTRA_TARGET_ARCH),)
   GCC_CONFIGURE+= \
 		--enable-biarch \
@@ -136,6 +142,8 @@ ifneq ($(CONFIG_SOFT_FLOAT),y)
 		--with-float=hard
   endif
 endif
+
+# GCC 4.8.5 fails with -fhonour-copts
 
 GCC_MAKE:= \
 	export SHELL="$(BASH)"; \

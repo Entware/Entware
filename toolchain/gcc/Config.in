@@ -19,9 +19,9 @@ config GCC_USE_GRAPHITE
 	bool
 	prompt "Compile in support for the new Graphite framework in GCC 4.4+" if TOOLCHAINOPTS
 
-config GCC_USE_SYSTEM_PPL_CLOOG
+config GCC_USE_SYSTEM_ISL_CLOOG
 	bool
-	prompt "Use the system versions of PPL and CLooG"
+	prompt "Use the system versions of ISL and CLooG"
 	depends on GCC_USE_GRAPHITE
 	default n
 
