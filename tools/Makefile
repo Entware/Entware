@@ -14,9 +14,10 @@ tools-y :=
 ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
   BUILD_TOOLCHAIN := y
 endif
+# For graphite: gcc 4.4..4.7 need ppl, while 4.8.. need isl
 ifdef CONFIG_GCC_USE_GRAPHITE
-  ifeq ($(CONFIG_GCC_USE_SYSTEM_PPL_CLOOG),)
-    BUILD_PPL_CLOOG = y
+  ifeq ($(CONFIG_GCC_USE_SYSTEM_ISL_CLOOG),)
+    BUILD_ISL_CLOOG = y
   endif
 endif
 ifneq ($(CONFIG_PACKAGE_kmod-b43)$(CONFIG_PACKAGE_kmod-b43legacy)$(CONFIG_BRCMSMAC_USE_FW_FROM_WL),)
@@ -37,7 +38,7 @@ tools-$(CONFIG_TARGET_ar71xx) += lzma-old squashfs
 tools-$(CONFIG_TARGET_mipselsf) += ent-kernel
 tools-y += lzma squashfs4
 tools-$(BUILD_B43_TOOLS) += b43-tools
-tools-$(BUILD_PPL_CLOOG) += ppl cloog
+tools-$(BUILD_ISL_CLOOG) += isl cloog
 tools-$(CONFIG_USE_SPARSE) += sparse
 
 # builddir dependencies
@@ -54,7 +55,7 @@ $(curdir)/gmp/compile := $(curdir)/libtool/install
 $(curdir)/mpc/compile := $(curdir)/mpfr/install $(curdir)/gmp/install
 $(curdir)/mpfr/compile := $(curdir)/gmp/install
 $(curdir)/ppl/compile := $(curdir)/gmp/install
-$(curdir)/cloog/compile := $(curdir)/ppl/install
+$(curdir)/cloog/compile := $(curdir)/isl/install
 $(curdir)/mtd-utils/compile := $(curdir)/e2fsprogs/install $(curdir)/xz/install
 $(curdir)/mkimage/compile := $(curdir)/sed/install
 $(curdir)/mklibs/compile := $(curdir)/libtool/install
@@ -67,7 +68,7 @@ $(curdir)/libelf/compile := $(curdir)/libtool/install
 $(curdir)/sdcc/compile := $(curdir)/bison/install
 $(curdir)/b43-tools/compile := $(curdir)/bison/install
 $(curdir)/padjffs2/compile := $(curdir)/findutils/install
-$(curdir)/cloog/compile := $(curdir)/ppl/install
+$(curdir)/isl/compile := $(curdir)/gmp/install
 $(curdir)/bc/compile := $(curdir)/bison/install
 $(curdir)/findutils/compile := $(curdir)/bison/install
 $(curdir)/gengetopt/compile := $(curdir)/libtool/install
