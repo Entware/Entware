@@ -17,6 +17,10 @@ ifeq ($(PKG_VERSION),2.25.1)
     PKG_MD5SUM:=ac493a78de4fee895961d025b7905be4
 endif
 
+ifeq ($(PKG_VERSION),2.24)
+    PKG_MD5SUM:=e0f71a7b2ddab0f8612336ac81d9636b
+endif
+
 HOST_BUILD_PARALLEL:=1
 
 PATCH_DIR:=./patches/$(PKG_VERSION)

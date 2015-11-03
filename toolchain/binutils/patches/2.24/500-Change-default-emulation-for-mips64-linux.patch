@@ -19,7 +19,7 @@
      targ_defvec=bfd_elf32_tradlittlemips_vec
 --- a/ld/configure.tgt
 +++ b/ld/configure.tgt
-@@ -472,11 +472,11 @@ mips*el-*-vxworks*)	targ_emul=elf32elmip
+@@ -471,11 +471,11 @@ mips*el-*-vxworks*)	targ_emul=elf32elmip
  mips*-*-vxworks*)	targ_emul=elf32ebmipvxworks
  		        targ_extra_emuls="elf32elmipvxworks" ;;
  mips*-*-windiss)	targ_emul=elf32mipswindiss ;;
