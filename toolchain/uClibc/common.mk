@@ -11,13 +11,12 @@ PKG_VERSION:=$(call qstrip,$(CONFIG_UCLIBC_VERSION))
 
 PKG_NAME:=uClibc-ng
 PKG_SOURCE_URL = http://downloads.uclibc-ng.org/releases/$(PKG_VERSION)/
-PATCH_DIR:=$(PATH_PREFIX)/patches-ng-$(PKG_VERSION)
-CONFIG_DIR:=$(PATH_PREFIX)/config-ng-$(PKG_VERSION)
+PATCH_DIR:=$(PATH_PREFIX)/patches
+CONFIG_DIR:=$(PATH_PREFIX)/config
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 LIBC_SO_VERSION:=$(PKG_VERSION)
 
-PKG_MD5SUM_1.0.7 = 6a3f9de8d11b449471467f5ed3b68d65
-PKG_MD5SUM=$(PKG_MD5SUM_$(PKG_VERSION))
+PKG_MD5SUM=d7dbc8ddb0274beacbb48e6928d7b097
 
 HOST_BUILD_DIR:=$(BUILD_DIR_TOOLCHAIN)/$(PKG_NAME)-$(PKG_VERSION)
 
@@ -69,6 +68,9 @@ define Host/Prepare
 		fi
 	)
 	ln -snf $(PKG_NAME)-$(PKG_VERSION) $(BUILD_DIR_TOOLCHAIN)/$(PKG_NAME)
+	$(RM) $(BUILD_DIR_TOOLCHAIN)/$(PKG_NAME)/include/sys/fanotify.h
+	$(RM) $(BUILD_DIR_TOOLCHAIN)/$(PKG_NAME)/libc/sysdeps/linux/common/sys/fanotify.h
+	$(RM) $(BUILD_DIR_TOOLCHAIN)/$(PKG_NAME)/libc/sysdeps/linux/common/fanotify.c
 endef
 
 define Host/Configure

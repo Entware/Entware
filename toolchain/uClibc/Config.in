@@ -1,18 +1,3 @@
-# Choose uclibc version.
-
-choice
-	prompt "uClibc Version"
-	depends on TOOLCHAINOPTS && USE_UCLIBC
-	default UCLIBC_USE_VERSION_NG
-	help
-	  Select the version of uClibc you wish to use.
-
-	config UCLIBC_USE_VERSION_NG
-		select UCLIBC_VERSION_NG
-		bool "uClibc-ng"
-
-endchoice
-
 # Debug version.
 
 config UCLIBC_ENABLE_DEBUG
