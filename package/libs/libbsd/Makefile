@@ -1,5 +1,8 @@
 include $(TOPDIR)/rules.mk
 
+# Cannot build detach with libbsd installed
+PKG_BUILD_DEPENDS:=dtach
+
 PKG_NAME:=libbsd
 PKG_VERSION:=0.3.0
 PKG_RELEASE:=1
