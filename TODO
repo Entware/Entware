@@ -1,0 +1,4 @@
+Make legacy versions of packages, that depend on 2.6.22.
+Upgrade packages, that requre c++11.
+opkg & busybox - static linking? May be it is better to link libs staticaly but use dynamic linker?
+??? Zyxel keenetic specific packages + dropbear with PAM auth ???
