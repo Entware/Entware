@@ -4,28 +4,22 @@
 #
 CONFIG_MODULES=y
 CONFIG_HAVE_DOT_CONFIG=y
-# CONFIG_TARGET_armv5soft is not set
-# CONFIG_TARGET_armv7soft is not set
-CONFIG_TARGET_x86_32=y
+CONFIG_TARGET_armv7soft=y
 # CONFIG_TARGET_mipselsf is not set
-CONFIG_TARGET_x86_32_Default=y
-CONFIG_TARGET_BOARD="x86-32"
-CONFIG_TARGET_ARCH_PACKAGES="x86-32"
-CONFIG_DEFAULT_TARGET_OPTIMIZATION="-Os -pipe -march=i486"
-CONFIG_CPU_TYPE="i486"
-CONFIG_LINUX_2_6_32=y
+CONFIG_TARGET_armv7soft_Default=y
+CONFIG_TARGET_BOARD="armv7soft"
+CONFIG_TARGET_ARCH_PACKAGES="armv7soft"
+CONFIG_DEFAULT_TARGET_OPTIMIZATION="-Os -pipe -march=armv7-a -mtune=cortex-a9"
+CONFIG_CPU_TYPE="cortex-a9"
+CONFIG_LINUX_2_6_36=y
 CONFIG_DEFAULT_busybox=y
 CONFIG_DEFAULT_dropbear=y
 CONFIG_DEFAULT_libc=y
 CONFIG_DEFAULT_libgcc=y
 CONFIG_AUDIO_SUPPORT=y
-CONFIG_PCI_SUPPORT=y
-CONFIG_PCIE_SUPPORT=y
-CONFIG_PCMCIA_SUPPORT=y
 CONFIG_USB_SUPPORT=y
-CONFIG_RTC_SUPPORT=y
-CONFIG_i386=y
-CONFIG_ARCH="i386"
+CONFIG_arm=y
+CONFIG_ARCH="arm"
 
 #
 # Global build settings
@@ -48,7 +42,6 @@ CONFIG_SHADOW_PASSWORDS=y
 # Kernel build options
 #
 # CONFIG_KERNEL_PRINTK is not set
-CONFIG_KERNEL_CRASHLOG=y
 # CONFIG_KERNEL_SWAP is not set
 # CONFIG_KERNEL_DEBUG_FS is not set
 # CONFIG_KERNEL_PERF_EVENTS is not set
@@ -57,7 +50,10 @@ CONFIG_KERNEL_CRASHLOG=y
 # CONFIG_KERNEL_FTRACE is not set
 # CONFIG_KERNEL_DEBUG_KERNEL is not set
 # CONFIG_KERNEL_DEBUG_INFO is not set
+# CONFIG_KERNEL_DEBUG_LL_UART_NONE is not set
+# CONFIG_KERNEL_DEBUG_LL is not set
 # CONFIG_KERNEL_DYNAMIC_DEBUG is not set
+# CONFIG_KERNEL_EARLY_PRINTK is not set
 # CONFIG_KERNEL_KPROBES is not set
 # CONFIG_KERNEL_AIO is not set
 # CONFIG_KERNEL_DIRECT_IO is not set
@@ -103,6 +99,9 @@ CONFIG_USE_LIBSTDCXX=y
 # Hardening build options
 #
 # CONFIG_PKG_CHECK_FORMAT_SECURITY is not set
+CONFIG_KERNEL_CC_STACKPROTECTOR_NONE=y
+# CONFIG_KERNEL_CC_STACKPROTECTOR_REGULAR is not set
+# CONFIG_KERNEL_CC_STACKPROTECTOR_STRONG is not set
 CONFIG_PKG_FORTIFY_SOURCE_NONE=y
 # CONFIG_PKG_FORTIFY_SOURCE_1 is not set
 # CONFIG_PKG_FORTIFY_SOURCE_2 is not set
@@ -124,7 +123,8 @@ CONFIG_KERNEL_GIT_CLONE_URI=""
 # CONFIG_SRC_TREE_OVERRIDE is not set
 CONFIG_EXTRA_OPTIMIZATION="-fno-caller-saves"
 CONFIG_TARGET_OPTIONS=y
-CONFIG_TARGET_OPTIMIZATION="-march=prescott -O2 -pipe -fomit-frame-pointer"
+CONFIG_TARGET_OPTIMIZATION="-O2 -pipe -march=armv7-a -mtune=cortex-a9"
+CONFIG_SOFT_FLOAT=y
 # CONFIG_EXTERNAL_TOOLCHAIN is not set
 CONFIG_NEED_TOOLCHAIN=y
 CONFIG_TOOLCHAINOPTS=y
@@ -133,18 +133,16 @@ CONFIG_TOOLCHAINOPTS=y
 #
 # Binary tools
 #
-CONFIG_BINUTILS_VERSION_2_24=y
-# CONFIG_BINUTILS_VERSION_2_25_1 is not set
+CONFIG_BINUTILS_VERSION_2_25_1=y
 CONFIG_EXTRA_BINUTILS_CONFIG_OPTIONS=""
-CONFIG_BINUTILS_VERSION="2.24"
+CONFIG_BINUTILS_VERSION="2.25.1"
 
 #
 # Compiler
 #
-CONFIG_GCC_USE_VERSION_4_8_5=y
-# CONFIG_GCC_USE_VERSION_5 is not set
-CONFIG_GCC_USE_GRAPHITE=y
-# CONFIG_GCC_USE_SYSTEM_ISL_CLOOG is not set
+# CONFIG_GCC_USE_VERSION_4_8_5 is not set
+CONFIG_GCC_USE_VERSION_5=y
+# CONFIG_GCC_USE_GRAPHITE is not set
 CONFIG_EXTRA_GCC_CONFIG_OPTIONS=""
 CONFIG_SSP_SUPPORT=y
 # CONFIG_SJLJ_EXCEPTIONS is not set
@@ -165,14 +163,14 @@ CONFIG_GLIBC_USE_VERSION_2_22=y
 # CONFIG_GDB is not set
 # CONFIG_INSIGHT is not set
 CONFIG_USE_GLIBC=y
-CONFIG_GCC_VERSION="4.8.5"
-CONFIG_GCC_VERSION_4_8_5=y
+CONFIG_GCC_VERSION="5.2.0"
+CONFIG_GCC_VERSION_5=y
 CONFIG_GLIBC_VERSION="2.22"
 CONFIG_GLIBC_VERSION_2_22=y
 CONFIG_GLIBC_REVISION=""
 CONFIG_LIBC="glibc"
 CONFIG_LIBC_VERSION="2.22"
-CONFIG_TARGET_SUFFIX="gnu"
+CONFIG_TARGET_SUFFIX="gnueabi"
 CONFIG_IMAGEOPT=y
 # CONFIG_PREINITOPT is not set
 CONFIG_TARGET_PREINIT_SUPPRESS_STDERR=y
@@ -2058,10 +2056,8 @@ CONFIG_PACKAGE_zork=m
 # Block Devices
 #
 # CONFIG_PACKAGE_kmod-aoe is not set
-# CONFIG_PACKAGE_kmod-ata-core is not set
 # CONFIG_PACKAGE_kmod-block2mtd is not set
 # CONFIG_PACKAGE_kmod-dm is not set
-# CONFIG_PACKAGE_kmod-ide-core is not set
 # CONFIG_PACKAGE_kmod-loop is not set
 # CONFIG_PACKAGE_kmod-md-mod is not set
 # CONFIG_PACKAGE_kmod-nbd is not set
@@ -2150,7 +2146,6 @@ CONFIG_PACKAGE_zork=m
 #
 # FireWire support
 #
-# CONFIG_PACKAGE_kmod-firewire is not set
 
 #
 # Hardware Monitoring Support
@@ -2296,21 +2291,7 @@ CONFIG_PACKAGE_zork=m
 #
 # Network Devices
 #
-# CONFIG_PACKAGE_kmod-3c59x is not set
-# CONFIG_PACKAGE_kmod-8139cp is not set
-# CONFIG_PACKAGE_kmod-8139too is not set
-# CONFIG_PACKAGE_kmod-atl1 is not set
-# CONFIG_PACKAGE_kmod-atl1c is not set
-# CONFIG_PACKAGE_kmod-atl1e is not set
-# CONFIG_PACKAGE_kmod-atl2 is not set
-# CONFIG_PACKAGE_kmod-b44 is not set
-# CONFIG_PACKAGE_kmod-dm9000 is not set
 # CONFIG_PACKAGE_kmod-dummy is not set
-# CONFIG_PACKAGE_kmod-e100 is not set
-# CONFIG_PACKAGE_kmod-e1000 is not set
-# CONFIG_PACKAGE_kmod-e1000e is not set
-# CONFIG_PACKAGE_kmod-et131x is not set
-# CONFIG_PACKAGE_kmod-forcedeth is not set
 # CONFIG_PACKAGE_kmod-gigaset is not set
 # CONFIG_PACKAGE_kmod-hfcmulti is not set
 # CONFIG_PACKAGE_kmod-hfcpci is not set
@@ -2318,27 +2299,13 @@ CONFIG_PACKAGE_zork=m
 # CONFIG_PACKAGE_kmod-libphy is not set
 # CONFIG_PACKAGE_kmod-macvlan is not set
 # CONFIG_PACKAGE_kmod-mii is not set
-# CONFIG_PACKAGE_kmod-natsemi is not set
-# CONFIG_PACKAGE_kmod-ne2k-pci is not set
 # CONFIG_PACKAGE_kmod-of-mdio is not set
-# CONFIG_PACKAGE_kmod-pcnet32 is not set
 # CONFIG_PACKAGE_kmod-phy-broadcom is not set
-# CONFIG_PACKAGE_kmod-r6040 is not set
-# CONFIG_PACKAGE_kmod-r8169 is not set
 # CONFIG_PACKAGE_kmod-siit is not set
-# CONFIG_PACKAGE_kmod-sis190 is not set
-# CONFIG_PACKAGE_kmod-sis900 is not set
-# CONFIG_PACKAGE_kmod-skge is not set
-# CONFIG_PACKAGE_kmod-sky2 is not set
-# CONFIG_PACKAGE_kmod-solos-pci is not set
 # CONFIG_PACKAGE_kmod-spi-ks8995 is not set
 # CONFIG_PACKAGE_kmod-swconfig is not set
 # CONFIG_PACKAGE_kmod-switch-ip17xx is not set
 # CONFIG_PACKAGE_kmod-tg3 is not set
-# CONFIG_PACKAGE_kmod-tulip is not set
-# CONFIG_PACKAGE_kmod-via-rhine is not set
-# CONFIG_PACKAGE_kmod-via-velocity is not set
-# CONFIG_PACKAGE_kmod-vmxnet3 is not set
 
 #
 # Network Support
@@ -2392,7 +2359,6 @@ CONFIG_PACKAGE_zork=m
 # Other modules
 #
 # CONFIG_PACKAGE_kmod-6lowpan is not set
-# CONFIG_PACKAGE_kmod-bcma is not set
 # CONFIG_PACKAGE_kmod-bluetooth is not set
 # CONFIG_PACKAGE_kmod-bluetooth_6lowpan is not set
 # CONFIG_PACKAGE_kmod-button-hotplug is not set
@@ -2413,22 +2379,14 @@ CONFIG_PACKAGE_zork=m
 # CONFIG_PACKAGE_kmod-ptp is not set
 # CONFIG_PACKAGE_kmod-random-core is not set
 # CONFIG_PACKAGE_kmod-regmap is not set
-# CONFIG_PACKAGE_kmod-rtc-ds1307 is not set
-# CONFIG_PACKAGE_kmod-rtc-ds1672 is not set
-# CONFIG_PACKAGE_kmod-rtc-isl1208 is not set
-# CONFIG_PACKAGE_kmod-rtc-pcf2123 is not set
-# CONFIG_PACKAGE_kmod-rtc-pcf8563 is not set
-# CONFIG_PACKAGE_kmod-rtc-pt7c4338 is not set
 # CONFIG_PACKAGE_kmod-sdhci is not set
 # CONFIG_PACKAGE_kmod-serial-8250 is not set
 # CONFIG_PACKAGE_kmod-softdog is not set
-# CONFIG_PACKAGE_kmod-ssb is not set
 # CONFIG_PACKAGE_kmod-zram is not set
 
 #
 # PCMCIA support
 #
-# CONFIG_PACKAGE_kmod-pcmcia-core is not set
 
 #
 # SPI Support
@@ -2454,7 +2412,6 @@ CONFIG_PACKAGE_zork=m
 # CONFIG_PACKAGE_kmod-usb-hid is not set
 # CONFIG_PACKAGE_kmod-usb-net is not set
 # CONFIG_PACKAGE_kmod-usb-ohci is not set
-# CONFIG_PACKAGE_kmod-usb-ohci-pci is not set
 # CONFIG_PACKAGE_kmod-usb-printer is not set
 # CONFIG_PACKAGE_kmod-usb-serial is not set
 # CONFIG_PACKAGE_kmod-usb-storage is not set
@@ -2464,7 +2421,6 @@ CONFIG_PACKAGE_zork=m
 # CONFIG_PACKAGE_kmod-usb-wdm is not set
 # CONFIG_PACKAGE_kmod-usb-yealink is not set
 # CONFIG_PACKAGE_kmod-usb2 is not set
-# CONFIG_PACKAGE_kmod-usb2-pci is not set
 # CONFIG_PACKAGE_kmod-usb3 is not set
 # CONFIG_PACKAGE_kmod-usbip is not set
 # CONFIG_PACKAGE_kmod-usbip-client is not set
@@ -2508,64 +2464,29 @@ CONFIG_PACKAGE_zork=m
 #
 # Wireless Drivers
 #
-# CONFIG_PACKAGE_kmod-adm8211 is not set
 # CONFIG_PACKAGE_kmod-ath is not set
-# CONFIG_PACKAGE_kmod-ath10k is not set
-# CONFIG_PACKAGE_kmod-ath5k is not set
-# CONFIG_PACKAGE_kmod-ath9k is not set
 # CONFIG_PACKAGE_kmod-ath9k-common is not set
 # CONFIG_PACKAGE_kmod-ath9k-htc is not set
-# CONFIG_PACKAGE_kmod-b43 is not set
-# CONFIG_PACKAGE_kmod-b43legacy is not set
 # CONFIG_PACKAGE_kmod-brcmfmac is not set
-# CONFIG_PACKAGE_kmod-brcmsmac is not set
 # CONFIG_PACKAGE_kmod-brcmutil is not set
 # CONFIG_PACKAGE_kmod-carl9170 is not set
 # CONFIG_PACKAGE_kmod-cfg80211 is not set
-# CONFIG_PACKAGE_kmod-hermes is not set
-# CONFIG_PACKAGE_kmod-hermes-pci is not set
-# CONFIG_PACKAGE_kmod-hermes-plx is not set
-# CONFIG_PACKAGE_kmod-hostap is not set
-# CONFIG_PACKAGE_kmod-hostap-cs is not set
-# CONFIG_PACKAGE_kmod-hostap-pci is not set
-# CONFIG_PACKAGE_kmod-hostap-plx is not set
-# CONFIG_PACKAGE_kmod-ipw2100 is not set
-# CONFIG_PACKAGE_kmod-ipw2200 is not set
-# CONFIG_PACKAGE_kmod-iwl-legacy is not set
-# CONFIG_PACKAGE_kmod-iwl3945 is not set
-# CONFIG_PACKAGE_kmod-iwl4965 is not set
-# CONFIG_PACKAGE_kmod-iwlwifi is not set
 # CONFIG_PACKAGE_kmod-lib80211 is not set
 # CONFIG_PACKAGE_kmod-libertas-sdio is not set
 # CONFIG_PACKAGE_kmod-libertas-usb is not set
-# CONFIG_PACKAGE_kmod-libipw is not set
 # CONFIG_PACKAGE_kmod-mac80211 is not set
 # CONFIG_PACKAGE_kmod-mac80211-hwsim is not set
-# CONFIG_PACKAGE_kmod-mt76 is not set
 # CONFIG_PACKAGE_kmod-mt7601u is not set
-# CONFIG_PACKAGE_kmod-mwifiex-pcie is not set
-# CONFIG_PACKAGE_kmod-mwl8k is not set
-# CONFIG_PACKAGE_kmod-net-airo is not set
-# CONFIG_PACKAGE_kmod-net-prism54 is not set
 # CONFIG_PACKAGE_kmod-net-rtl8188eu is not set
 # CONFIG_PACKAGE_kmod-net-rtl8192su is not set
 # CONFIG_PACKAGE_kmod-p54-common is not set
-# CONFIG_PACKAGE_kmod-p54-pci is not set
 # CONFIG_PACKAGE_kmod-p54-usb is not set
-# CONFIG_PACKAGE_kmod-rt2400-pci is not set
-# CONFIG_PACKAGE_kmod-rt2500-pci is not set
 # CONFIG_PACKAGE_kmod-rt2500-usb is not set
-# CONFIG_PACKAGE_kmod-rt2800-pci is not set
 # CONFIG_PACKAGE_kmod-rt2800-usb is not set
 # CONFIG_PACKAGE_kmod-rt2x00-lib is not set
-# CONFIG_PACKAGE_kmod-rt61-pci is not set
 # CONFIG_PACKAGE_kmod-rt73-usb is not set
-# CONFIG_PACKAGE_kmod-rtl8180 is not set
 # CONFIG_PACKAGE_kmod-rtl8187 is not set
-# CONFIG_PACKAGE_kmod-rtl8192ce is not set
 # CONFIG_PACKAGE_kmod-rtl8192cu is not set
-# CONFIG_PACKAGE_kmod-rtl8192de is not set
-# CONFIG_PACKAGE_kmod-rtl8192se is not set
 # CONFIG_PACKAGE_kmod-zd1211rw is not set
 
 #
@@ -3200,7 +3121,7 @@ CONFIG_PACKAGE_libavahi-dbus-support=m
 CONFIG_PACKAGE_libbfd=m
 CONFIG_PACKAGE_libblkid=m
 CONFIG_PACKAGE_libblobmsg-json=m
-# CONFIG_PACKAGE_libbsd is not set
+CONFIG_PACKAGE_libbsd=m
 CONFIG_PACKAGE_libcap=m
 # CONFIG_PACKAGE_libcares is not set
 CONFIG_PACKAGE_libcharset=m
@@ -4898,7 +4819,6 @@ CONFIG_PACKAGE_snmpd=m
 CONFIG_PACKAGE_snmpd-static=m
 # CONFIG_PACKAGE_socat is not set
 # CONFIG_PACKAGE_softflowd is not set
-# CONFIG_PACKAGE_soloscli is not set
 # CONFIG_PACKAGE_sstp-client is not set
 CONFIG_PACKAGE_stunnel=m
 CONFIG_PACKAGE_tayga=m
