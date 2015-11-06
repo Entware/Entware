@@ -26,7 +26,7 @@
 	printable = no
 	security = user
 	smb encrypt = disabled
-	smb passwd file = /etc/samba/smbpasswd
+	smb passwd file = /opt/etc/samba/smbpasswd
 	socket options = TCP_NODELAY IPTOS_LOWDELAY
 	syslog = 2
 	use sendfile = yes
