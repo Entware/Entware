@@ -449,22 +449,22 @@ endef
 
 define Package/libblkid/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_BUILD_DIR)/.libs/libblkid.so.* $(1)/opt/lib/
+	$(CP) $(PKG_BUILD_DIR)/.libs/libblkid.so* $(1)/opt/lib/
 endef
 
 define Package/libmount/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_BUILD_DIR)/.libs/libmount.so.* $(1)/opt/lib/
+	$(CP) $(PKG_BUILD_DIR)/.libs/libmount.so* $(1)/opt/lib/
 endef
 
 define Package/libsmartcols/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_BUILD_DIR)/.libs/libsmartcols.so.* $(1)/opt/lib/
+	$(CP) $(PKG_BUILD_DIR)/.libs/libsmartcols.so* $(1)/opt/lib/
 endef
 
 define Package/libuuid/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_BUILD_DIR)/.libs/libuuid.so.* $(1)/opt/lib/
+	$(CP) $(PKG_BUILD_DIR)/.libs/libuuid.so* $(1)/opt/lib/
 endef
 
 define Package/agetty/install
