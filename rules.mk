@@ -148,16 +148,18 @@ endif
 #LIBRPC_DEPENDS=+librpc
 
 ifeq ($(LIBC),uClibc)
-TARGET_LDFLAGS+= -Wl,--dynamic-linker=/opt/lib/ld-uClibc.so.0
+DYNLINKER=ld-uClibc.so.0
 endif
 
 ifeq  ($(LIBC),glibc)
   ifeq ($(ARCH),arm)
-    TARGET_LDFLAGS+= -Wl,--dynamic-linker=/opt/lib/ld-linux.so.3
+    DYNLINKER=ld-linux.so.3
   else
-    TARGET_LDFLAGS+= -Wl,--dynamic-linker=/opt/lib/ld-linux.so.2
+    DYNLINKER=ld-linux.so.2
   endif
 endif
+
+TARGET_LDFLAGS+= -Wl,--dynamic-linker=/opt/lib/$(DYNLINKER)
 
 ifeq ($(CONFIG_ARCH_64BIT),y)
   LIB_SUFFIX:=64
