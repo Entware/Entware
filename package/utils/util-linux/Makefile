@@ -385,7 +385,7 @@ $(call Package/util-linux/Default)
 endef
 
 define Package/swap-utils/description
- contains: mkswap, swaplabel
+ contains: mkswap, swaplabel, swapon, swapoff
 endef
 
 define Package/uuidd
