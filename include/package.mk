@@ -34,6 +34,7 @@ ifdef CONFIG_USE_MIPS16
   endif
 endif
 
+include $(INCLUDE_DIR)/hardening.mk
 include $(INCLUDE_DIR)/prereq.mk
 include $(INCLUDE_DIR)/host.mk
 include $(INCLUDE_DIR)/unpack.mk
