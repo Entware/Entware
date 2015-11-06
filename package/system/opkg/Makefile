@@ -62,7 +62,7 @@ define Package/opkg/description
 endef
 
 define Package/opkg/conffiles
-/etc/opkg.conf
+/opt/etc/opkg.conf
 endef
 
 
