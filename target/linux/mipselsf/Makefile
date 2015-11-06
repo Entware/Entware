@@ -8,6 +8,7 @@
 include $(TOPDIR)/rules.mk
 
 ARCH:=mipsel
+CPU_TYPE:=mips32r2
 BOARD:=mipselsf
 BOARDNAME:=Entware repository (mipsel, soft float)
 FEATURES:=
