@@ -154,8 +154,12 @@ endif
 ifeq  ($(LIBC),glibc)
   ifeq ($(ARCH),arm)
     DYNLINKER=ld-linux.so.3
-  else
+  endif
+  ifeq ($(ARCH),i368)
     DYNLINKER=ld-linux.so.2
+  endif
+  ifeq ($(ARCH),x86_64)
+    DYNLINKER=ld-linux-x86-64.so.2
   endif
 endif
 

@@ -590,7 +590,8 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
   ifeq ($(CONFIG_USE_GLIBC),y)
 	$(SED) 's|^\#!.*bash|\#!/opt/bin/sh|g; \
 	s|/lib/ld-linux.so.3|/opt/lib/ld-linux.so.3|g; \
-	s|/lib/ld-linux.so.2|/opt/lib/ld-linux.so.2|g' $(1)/opt/bin/ldd
+	s|/lib/ld-linux.so.2|/opt/lib/ld-linux.so.2|g; \
+	s|/lib64/ld-linux-x86-64.so.2|/opt/lib/ld-linux-x86-64.so.2|g' $(1)/opt/bin/ldd
   endif
   endef
 
