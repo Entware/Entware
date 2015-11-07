@@ -1,10 +1,11 @@
 #
-# Copyright (C) 2006-2014 OpenWrt.org
+# Copyright (C) 2006-2015 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 
 include $(TOPDIR)/rules.mk
+include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/version.mk
 include $(INCLUDE_DIR)/feeds.mk
 
@@ -25,6 +26,8 @@ PKG_REMOVE_FILES = autogen.sh aclocal.m4
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=COPYING
 
+PKG_MAINTAINER:=Jo-Philipp Wich <jow@openwrt.org>
+
 PKG_CONFIG_DEPENDS := CONFIG_SIGNED_PACKAGES
 
 PKG_BUILD_PARALLEL:=1
@@ -38,7 +41,6 @@ define Package/opkg/Default
   SECTION:=base
   CATEGORY:=Base system
   TITLE:=opkg package manager
-  MAINTAINER:=Jo-Philipp Wich <xm@subsignal.org>
   URL:=http://wiki.openmoko.org/wiki/Opkg
 endef
 

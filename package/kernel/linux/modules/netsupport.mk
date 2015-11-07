@@ -389,6 +389,7 @@ $(eval $(call KernelPackage,ipsec6))
 define KernelPackage/iptunnel
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=IP tunnel support
+  HIDDEN:=1
   KCONFIG:= \
 	CONFIG_NET_IP_TUNNEL
   FILES:=$(LINUX_DIR)/net/ipv4/ip_tunnel.ko
@@ -421,6 +422,7 @@ $(eval $(call KernelPackage,ipvti))
 define KernelPackage/iptunnel4
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=IPv4 tunneling
+  HIDDEN:=1
   KCONFIG:= \
 	CONFIG_INET_TUNNEL
   FILES:=$(LINUX_DIR)/net/ipv4/tunnel4.ko
@@ -455,6 +457,7 @@ define KernelPackage/ipv6
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=IPv6 support
   DEPENDS:=@IPV6
+  HIDDEN:=1
   DEFAULT:=y
   KCONFIG:= \
 	CONFIG_IPV6=y \
@@ -571,6 +574,7 @@ $(eval $(call KernelPackage,veth))
 
 define KernelPackage/slhc
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  HIDDEN:=1
   TITLE:=Serial Line Header Compression
   DEPENDS:=+kmod-lib-crc-ccitt
   KCONFIG:=CONFIG_SLHC

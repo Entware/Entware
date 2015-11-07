@@ -10,11 +10,11 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=mac80211
 
-PKG_VERSION:=2015-07-21
+PKG_VERSION:=2015-10-26
 PKG_RELEASE:=1
 PKG_SOURCE_URL:=http://mirror2.openwrt.org/sources
 PKG_BACKPORT_VERSION:=
-PKG_MD5SUM:=ec529acfb9c942daf8116e5cff47c999
+PKG_MD5SUM:=3b07569065a18c6a69a340ea50235b7d
 
 PKG_SOURCE:=compat-wireless-$(PKG_VERSION)$(PKG_BACKPORT_VERSION).tar.bz2
 PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/compat-wireless-$(PKG_VERSION)
@@ -269,25 +269,6 @@ This module adds support for wireless adapters based on
 Atheros IEEE 802.11ac family of chipsets. For now only
 PCI is supported.
 endef
-
-PKG_ATH10K_LINUX_FIRMWARE_NAME:=ath10k-firmware
-PKG_ATH10K_LINUX_FIRMWARE_VERSION:=b46f3e01a6c1f9150fb4612ef53611d714565842
-PKG_ATH10K_LINUX_FIRMWARE_SOURCE:=$(PKG_ATH10K_LINUX_FIRMWARE_NAME)-$(PKG_ATH10K_LINUX_FIRMWARE_VERSION).tar.bz2
-PKG_ATH10K_LINUX_FIRMWARE_PROTO:=git
-PKG_ATH10K_LINUX_FIRMWARE_SOURCE_URL:=https://github.com/kvalo/ath10k-firmware.git
-PKG_ATH10K_LINUX_FIRMWARE_SUBDIR:=$(PKG_ATH10K_LINUX_FIRMWARE_NAME)-$(PKG_ATH10K_LINUX_FIRMWARE_VERSION)
-#PKG_ATH10K_LINUX_FIRMWARE_MIRROR_MD5SUM:=?
-
-define Download/ath10k-firmware
-  FILE:=$(PKG_ATH10K_LINUX_FIRMWARE_SOURCE)
-  URL:=$(PKG_ATH10K_LINUX_FIRMWARE_SOURCE_URL)
-  PROTO:=$(PKG_ATH10K_LINUX_FIRMWARE_PROTO)
-  VERSION:=$(PKG_ATH10K_LINUX_FIRMWARE_VERSION)
-  SUBDIR:=$(PKG_ATH10K_LINUX_FIRMWARE_SUBDIR)
-  #MIRROR_MD5SUM:=$(PKG_ATH10K_LINUX_FIRMWARE_MIRROR_MD5SUM)
-endef
-$(eval $(call Download,ath10k-firmware))
-
 
 #Broadcom firmware
 ifneq ($(CONFIG_B43_FW_6_30),)
@@ -1435,7 +1416,7 @@ define KernelPackage/rtl8180
   $(call KernelPackage/rtl818x/Default)
   DEPENDS+= @PCI_SUPPORT
   TITLE+= (RTL8180 PCI)
-  FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/rtl818x/rtl8180/rtl818x_pci.ko
+  FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtl818x/rtl8180/rtl818x_pci.ko
   AUTOLOAD:=$(call AutoProbe,rtl818x_pci)
 endef
 
@@ -1443,7 +1424,7 @@ define KernelPackage/rtl8187
 $(call KernelPackage/rtl818x/Default)
   DEPENDS+= @USB_SUPPORT +kmod-usb-core
   TITLE+= (RTL8187 USB)
-  FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/rtl818x/rtl8187/rtl8187.ko
+  FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtl818x/rtl8187/rtl8187.ko
   AUTOLOAD:=$(call AutoProbe,rtl8187)
 endef
 
@@ -1460,7 +1441,7 @@ define KernelPackage/rtlwifi
   $(call KernelPackage/mac80211/Default)
   TITLE:=Realtek common driver part
   DEPENDS+= @(PCI_SUPPORT||USB_SUPPORT) +kmod-mac80211 +@DRIVER_11N_SUPPORT
-  FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/rtlwifi/rtlwifi.ko
+  FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtlwifi/rtlwifi.ko
   HIDDEN:=1
 endef
 
@@ -1468,7 +1449,7 @@ define KernelPackage/rtlwifi-pci
   $(call KernelPackage/mac80211/Default)
   TITLE:=Realtek common driver part (PCI support)
   DEPENDS+= @PCI_SUPPORT +kmod-rtlwifi
-  FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/rtlwifi/rtl_pci.ko
+  FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtlwifi/rtl_pci.ko
   AUTOLOAD:=$(call AutoProbe,rtl_pci)
   HIDDEN:=1
 endef
@@ -1477,7 +1458,7 @@ define KernelPackage/rtlwifi-usb
   $(call KernelPackage/mac80211/Default)
   TITLE:=Realtek common driver part (USB support)
   DEPENDS+= @USB_SUPPORT +kmod-usb-core +kmod-rtlwifi
-  FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/rtlwifi/rtl_usb.ko
+  FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtlwifi/rtl_usb.ko
   AUTOLOAD:=$(call AutoProbe,rtl_usb)
   HIDDEN:=1
 endef
@@ -1486,7 +1467,7 @@ define KernelPackage/rtl8192c-common
   $(call KernelPackage/mac80211/Default)
   TITLE:=Realtek RTL8192CE/RTL8192CU common support module
   DEPENDS+= +kmod-rtlwifi
-  FILES:= $(PKG_BUILD_DIR)/drivers/net/wireless/rtlwifi/rtl8192c/rtl8192c-common.ko
+  FILES:= $(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtlwifi/rtl8192c/rtl8192c-common.ko
   HIDDEN:=1
 endef
 
@@ -1494,7 +1475,7 @@ define KernelPackage/rtl8192ce
   $(call KernelPackage/mac80211/Default)
   TITLE:=Realtek RTL8192CE/RTL8188CE support
   DEPENDS+= +kmod-rtlwifi-pci +kmod-rtl8192c-common
-  FILES:= $(PKG_BUILD_DIR)/drivers/net/wireless/rtlwifi/rtl8192ce/rtl8192ce.ko
+  FILES:= $(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtlwifi/rtl8192ce/rtl8192ce.ko
   AUTOLOAD:=$(call AutoProbe,rtl8192ce)
 endef
 
@@ -1509,7 +1490,7 @@ define KernelPackage/rtl8192se
   $(call KernelPackage/mac80211/Default)
   TITLE:=Realtek RTL8192SE/RTL8191SE support
   DEPENDS+= +kmod-rtlwifi-pci
-  FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/rtlwifi/rtl8192se/rtl8192se.ko
+  FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtlwifi/rtl8192se/rtl8192se.ko
   AUTOLOAD:=$(call AutoProbe,rtl8192se)
 endef
 
@@ -1522,7 +1503,7 @@ define KernelPackage/rtl8192de
   $(call KernelPackage/mac80211/Default)
   TITLE:=Realtek RTL8192DE/RTL8188DE support
   DEPENDS+= +kmod-rtlwifi-pci
-  FILES:= $(PKG_BUILD_DIR)/drivers/net/wireless/rtlwifi/rtl8192de/rtl8192de.ko
+  FILES:= $(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtlwifi/rtl8192de/rtl8192de.ko
   AUTOLOAD:=$(call AutoProbe,rtl8192de)
 endef
 
@@ -1535,7 +1516,7 @@ define KernelPackage/rtl8192cu
   $(call KernelPackage/mac80211/Default)
   TITLE:=Realtek RTL8192CU/RTL8188CU support
   DEPENDS+= +kmod-rtlwifi-usb +kmod-rtl8192c-common
-  FILES:= $(PKG_BUILD_DIR)/drivers/net/wireless/rtlwifi/rtl8192cu/rtl8192cu.ko
+  FILES:= $(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtlwifi/rtl8192cu/rtl8192cu.ko
   AUTOLOAD:=$(call AutoProbe,rtl8192cu)
 endef
 
@@ -1789,7 +1770,6 @@ define Build/Prepare
 	$(TAR) -C $(PKG_BUILD_DIR) -xzf $(DL_DIR)/$(IPW2200_NAME)-$(IPW2200_VERSION).tgz
 	$(TAR) -C $(PKG_BUILD_DIR) -xjf $(DL_DIR)/$(ZD1211FW_NAME)-$(ZD1211FW_VERSION).tar.bz2
 	$(TAR) -C $(PKG_BUILD_DIR) -xJf $(DL_DIR)/$(PKG_LINUX_FIRMWARE_SOURCE)
-	$(TAR) -C $(PKG_BUILD_DIR) -xjf $(DL_DIR)/$(PKG_ATH10K_LINUX_FIRMWARE_SOURCE)
 	$(TAR) -C $(PKG_BUILD_DIR) -xjf $(DL_DIR)/$(PKG_MT7601U_FW_SOURCE)
 	rm -rf \
 		$(PKG_BUILD_DIR)/include/linux/ssb \
@@ -1847,16 +1827,6 @@ define KernelPackage/ath9k-htc/install
 		$(PKG_BUILD_DIR)/$(PKG_LINUX_FIRMWARE_SUBDIR)/htc_9271.fw \
 		$(PKG_BUILD_DIR)/$(PKG_LINUX_FIRMWARE_SUBDIR)/htc_7010.fw \
 		$(1)/lib/firmware/
-endef
-
-define KernelPackage/ath10k/install
-	$(INSTALL_DIR) $(1)/lib/firmware/ath10k/QCA988X/hw2.0
-	$(INSTALL_DATA) \
-		$(PKG_BUILD_DIR)/$(PKG_ATH10K_LINUX_FIRMWARE_SUBDIR)/ath10k/QCA988X/hw2.0/board.bin \
-		$(1)/lib/firmware/ath10k/QCA988X/hw2.0/
-	$(INSTALL_DATA) \
-		$(PKG_BUILD_DIR)/$(PKG_ATH10K_LINUX_FIRMWARE_SUBDIR)/10.2.4/untested/firmware-5.bin_10.2.4.70-2 \
-		$(1)/lib/firmware/ath10k/QCA988X/hw2.0/firmware-5.bin
 endef
 
 define KernelPackage/b43/install

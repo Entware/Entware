@@ -1,4 +1,4 @@
-# 
+#
 # Copyright (C) 2011-2015 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mbedtls
-PKG_VERSION:=2.0.0
+PKG_VERSION:=2.1.2
 PKG_RELEASE:=1
 PKG_USE_MIPS16:=0
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-gpl.tgz
 PKG_SOURCE_URL:=https://tls.mbed.org/download/
-PKG_MD5SUM:=6b8246a19a7a77737856e729cc8a0952
+PKG_MD5SUM:=38b7baae95d6b0826605a1edfffeebe4
 
 PKG_BUILD_PARALLEL:=1
 PKG_LICENSE:=GPL-2.0+

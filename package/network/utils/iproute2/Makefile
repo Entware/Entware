@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=iproute2
 PKG_VERSION:=4.0.0
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=http://kernel.org/pub/linux/utils/net/iproute2/
@@ -78,13 +78,7 @@ define Build/Configure
 		> $(PKG_BUILD_DIR)/include/SNAPSHOT.h
 endef
 
-ifdef CONFIG_USE_GLIBC
-  TARGET_CFLAGS += -DHAVE_SETNS
-endif
-ifdef CONFIG_USE_MUSL
-  TARGET_CFLAGS += -DHAVE_SETNS
-endif
-
+TARGET_CFLAGS += -DHAVE_SETNS
 TARGET_CFLAGS += -ffunction-sections -fdata-sections
 
 MAKE_FLAGS += \
@@ -107,13 +101,13 @@ define Build/InstallDev
 endef
 
 define Package/ip/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ip/ip $(1)/usr/sbin/
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ip/ip $(1)/usr/bin/
 endef
 
 define Package/ip-full/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ip/ip $(1)/usr/bin/
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ip/ip $(1)/usr/sbin/
 endef
 
 define Package/tc/install
