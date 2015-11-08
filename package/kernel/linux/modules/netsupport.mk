@@ -457,7 +457,6 @@ define KernelPackage/ipv6
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=IPv6 support
   DEPENDS:=@IPV6
-  HIDDEN:=1
   DEFAULT:=y
   KCONFIG:= \
 	CONFIG_IPV6=y \
