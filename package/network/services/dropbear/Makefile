@@ -107,7 +107,7 @@ define Package/dropbear/install
 	$(LN) ../sbin/dropbear $(1)/opt/bin/ssh
 	$(LN) ../sbin/dropbear $(1)/opt/bin/dbclient
 	$(LN) ../sbin/dropbear $(1)/opt/bin/dropbearkey
-	$(INSTALL_DIR) $(1)/opt/etc/init.d
+	$(INSTALL_DIR) $(1)/opt/etc/{dropbear,init.d}
 	$(INSTALL_BIN) ./files/S51dropbear $(1)/opt/etc/init.d
 endef
 
