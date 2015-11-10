@@ -11,7 +11,7 @@ PKG_NAME:=binutils
 PKG_VERSION:=2.24
 PKG_RELEASE:=3
 
-PKG_BUILD_DEPENDS:=!TARGET_mipselsf:gbd TARGET_mipselsf:gdb-legacy
+PKG_BUILD_DEPENDS:=gbd
 
 PKG_SOURCE_URL:=@GNU/binutils
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
