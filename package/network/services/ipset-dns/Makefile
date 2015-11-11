@@ -44,7 +44,7 @@ define Package/ipset-dns/description
  IP addresses and instead rely on dizzying arrays of DNS resolutions.
 endef
 
-MAKE_FLAGS += $(if $(CONFIG_TARGET_mipselsf),OLD_IPSET=1)
+MAKE_FLAGS += OLD_IPSET=1
 
 define Package/ipset-dns/install
 	$(INSTALL_DIR) $(1)/opt/sbin
