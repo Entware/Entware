@@ -482,7 +482,7 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
 
   define Package/glibc/install
 	$(INSTALL_DIR) $(1)/opt/etc
-	$(CP) ./glibc-files/* $(1)/opt/etc
+	$(CP) ./glibc-files/etc/* $(1)/opt/etc
 	$(INSTALL_DIR) $(1)/opt/lib
 	$(CP) \
 		$(TOOLCHAIN_DIR)/lib/ld*.so.* \
