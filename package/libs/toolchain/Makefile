@@ -79,8 +79,8 @@ fi
 if [ -f '/opt/usr/lib/locale/locale-archive' ]
 then
         echo "/opt/usr/lib/locale/locale-archive found"
-        echo "You can download locale sources from http://qnapware.zyxmon.org/sources/i18n.tar.gz"
-        echo "You can add new locales for Entware-arm using /opt/bin/localedef.new"
+        echo "You can download locale sources from http://entware.zyxmon.org/sources/i18n_glib222.tar.gz"
+        echo "You can add new locales to Entware using /opt/bin/localedef.new"
 fi
 endef
 
