@@ -89,6 +89,16 @@ define toupper
 $(shell echo $(1) | tr '[:lower:]' '[:upper:]')
 endef
 
+define tolower
+$(shell echo $(1) | tr '[:upper:]' '[:lower:]')
+endef
+
+define sanitize
+$(shell echo $(call tolower,$(1)) | sed 's/_/-/g')
+endef
+
+PROFILE_SANITIZED := $(call sanitize,$(PROFILE))
+
 define split_args
 $(foreach data, \
 	$(subst |,$(space),\
@@ -245,7 +255,7 @@ define Image/mkfs/cpiogz
 endef
 
 define Image/mkfs/targz
-	$(TAR) -czpf $(BIN_DIR)/$(IMG_PREFIX)$(if $(PROFILE),-$(PROFILE))-rootfs.tar.gz --numeric-owner --owner=0 --group=0 --sort=name -C $(TARGET_DIR)/ .
+	$(TAR) -czpf $(BIN_DIR)/$(IMG_PREFIX)$(if $(PROFILE_SANITIZED),-$(PROFILE_SANITIZED))-rootfs.tar.gz --numeric-owner --owner=0 --group=0 --sort=name -C $(TARGET_DIR)/ .
 endef
 
 E2SIZE=$(shell echo $$(($(CONFIG_TARGET_ROOTFS_PARTSIZE)*1024*1024)))
