@@ -66,7 +66,7 @@ endef
 define Package/locales/postinst
 #!/bin/sh
 
-echo "Entware-arm uses separate locale-archive file independent from main system"
+echo "Entware uses separate locale-archive file independent from main system"
 if ! [ -f '/opt/usr/lib/locale/locale-archive' ]
 then
 	mkdir -p /opt/usr/lib/locale
