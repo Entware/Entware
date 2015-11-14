@@ -155,7 +155,7 @@ ifeq  ($(LIBC),glibc)
   ifeq ($(ARCH),arm)
     DYNLINKER=ld-linux.so.3
   endif
-  ifeq ($(ARCH),i368)
+  ifeq ($(ARCH),i386)
     DYNLINKER=ld-linux.so.2
   endif
   ifeq ($(ARCH),x86_64)
