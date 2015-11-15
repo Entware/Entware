@@ -7,7 +7,7 @@ Second get the feeds:
     ./scripts/feeds update
     ./scripts/feeds install -a
 Third copy config for your arch from configs folder:
-    cp -f /configs/mipselsf.config .config
+    cp -f ./configs/mipselsf.config .config
 Fourth - run make:
     make
 ================================
@@ -18,6 +18,6 @@ make toolchain/install
 make target/compile
 make package/compile
 
-You can use several simultanios jobs (-jN) and verbose output. For example (V=s)
+You can use several simultaneous jobs (-jN) and verbose output. For example (V=s)
 
 make -j5 package/compile V=s
