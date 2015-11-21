@@ -123,7 +123,7 @@ if [ ! -f /opt/etc/dropbear/dropbear_rsa_host_key ]; then
     /opt/bin/dropbearkey -t rsa -f /opt/etc/dropbear/dropbear_rsa_host_key
 fi
 
-if [ ! -f /opt/etc/dropbear/dropbear_dss_host_key ]; then
+if [ ! -f /opt/etc/dropbear/dropbear_ecdsa_host_key ]; then
     /opt/bin/dropbearkey -t ecdsa -f /opt/etc/dropbear/dropbear_ecdsa_host_key
 fi
 endef
