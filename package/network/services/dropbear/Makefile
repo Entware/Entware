@@ -116,7 +116,7 @@ define Package/dropbearconvert/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/dropbearconvert $(1)/opt/bin/dropbearconvert
 endef
 
-define package/network/services/dropbear/postinst
+define package/dropbear/postinst
 #!/bin/sh
 
 if [ ! -f /opt/etc/dropbear/dropbear_rsa_host_key ]; then
@@ -124,7 +124,7 @@ if [ ! -f /opt/etc/dropbear/dropbear_rsa_host_key ]; then
 fi
 
 if [ ! -f /opt/etc/dropbear/dropbear_dss_host_key ]; then
-    /opt/bin/dropbearkey -t dss -f /opt/etc/dropbear/dropbear_dss_host_key
+    /opt/bin/dropbearkey -t ecdsa -f /opt/etc/dropbear/dropbear_ecdsa_host_key
 fi
 endef
 
