@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dropbear
 PKG_VERSION:=2015.68
-PKG_RELEASE:=3
+PKG_RELEASE:=3a
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:= \
@@ -116,7 +116,7 @@ define Package/dropbearconvert/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/dropbearconvert $(1)/opt/bin/dropbearconvert
 endef
 
-define package/dropbear/postinst
+define Package/dropbear/postinst
 #!/bin/sh
 
 if [ ! -f /opt/etc/dropbear/dropbear_rsa_host_key ]; then
