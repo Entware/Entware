@@ -1,3 +1,5 @@
+. /lib/functions/network.sh
+
 wpa_supplicant_add_rate() {
 	local var="$1"
 	local val="$(($2 / 1000))"
@@ -194,6 +196,7 @@ hostapd_set_bss_options() {
 	set_default hidden 0
 	set_default wmm 1
 	set_default uapsd 1
+	set_default eapol_version 0
 
 	append bss_conf "ctrl_interface=/var/run/hostapd"
 	if [ "$isolate" -gt 0 ]; then
@@ -350,8 +353,9 @@ hostapd_set_bss_options() {
 	append bss_conf "ssid=$ssid" "$N"
 	[ -n "$network_bridge" ] && append bss_conf "bridge=$network_bridge" "$N"
 	[ -n "$iapp_interface" ] && {
-		iapp_interface="$(uci_get_state network "$iapp_interface" ifname "$iapp_interface")"
-		[ -n "$iapp_interface" ] && append bss_conf "iapp_interface=$iapp_interface" "$N"
+		local ifname
+		network_get_device ifname "$iapp_interface" || ifname = "$iapp_interface"
+		append bss_conf "iapp_interface=$ifname" "$N"
 	}
 
 	if [ "$wpa" -ge "1" ]; then
@@ -577,6 +581,9 @@ wpa_supplicant_add_network() {
 	}
 
 	[[ "$_w_mode" = "mesh" ]] && {
+		json_get_vars mesh_id
+		ssid="${mesh_id}"
+
 		append network_data "mode=5" "$N$T"
 		[ -n "$channel" ] && {
 			freq="$(get_freq "$phy" "$channel")"

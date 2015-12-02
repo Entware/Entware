@@ -442,10 +442,17 @@ $(eval $(call KernelPackage,crypto-md4))
 define KernelPackage/crypto-md5
   TITLE:=MD5 digest CryptoAPI module
   DEPENDS:=+kmod-crypto-hash
-  KCONFIG:=CONFIG_CRYPTO_MD5
+  KCONFIG:= \
+	CONFIG_CRYPTO_MD5 \
+	CONFIG_CRYPTO_MD5_OCTEON
   FILES:=$(LINUX_DIR)/crypto/md5.ko
   AUTOLOAD:=$(call AutoLoad,09,md5)
   $(call AddDepends/crypto)
+endef
+
+define KernelPackage/crypto-md5/octeon
+  FILES+=$(LINUX_DIR)/arch/mips/cavium-octeon/crypto/octeon-md5.ko
+  AUTOLOAD:=$(call AutoLoad,09,octeon-md5)
 endef
 
 $(eval $(call KernelPackage,crypto-md5))
@@ -466,10 +473,17 @@ $(eval $(call KernelPackage,crypto-michael-mic))
 define KernelPackage/crypto-sha1
   TITLE:=SHA1 digest CryptoAPI module
   DEPENDS:=+kmod-crypto-hash
-  KCONFIG:=CONFIG_CRYPTO_SHA1
+  KCONFIG:= \
+	CONFIG_CRYPTO_SHA1 \
+	CONFIG_CRYPTO_SHA1_OCTEON
   FILES:=$(LINUX_DIR)/crypto/sha1_generic.ko
   AUTOLOAD:=$(call AutoLoad,09,sha1_generic)
   $(call AddDepends/crypto)
+endef
+
+define KernelPackage/crypto-sha1/octeon
+  FILES+=$(LINUX_DIR)/arch/mips/cavium-octeon/crypto/octeon-sha1.ko
+  AUTOLOAD:=$(call AutoLoad,09,octeon-sha1)
 endef
 
 $(eval $(call KernelPackage,crypto-sha1))
@@ -478,13 +492,39 @@ $(eval $(call KernelPackage,crypto-sha1))
 define KernelPackage/crypto-sha256
   TITLE:=SHA224 SHA256 digest CryptoAPI module
   DEPENDS:=+kmod-crypto-hash
-  KCONFIG:=CONFIG_CRYPTO_SHA256
+  KCONFIG:= \
+	CONFIG_CRYPTO_SHA256 \
+	CONFIG_CRYPTO_SHA256_OCTEON
   FILES:=$(LINUX_DIR)/crypto/sha256_generic.ko
   AUTOLOAD:=$(call AutoLoad,09,sha256_generic)
   $(call AddDepends/crypto)
 endef
 
+define KernelPackage/crypto-sha256/octeon
+  FILES+=$(LINUX_DIR)/arch/mips/cavium-octeon/crypto/octeon-sha256.ko
+  AUTOLOAD:=$(call AutoLoad,09,octeon-sha256)
+endef
+
 $(eval $(call KernelPackage,crypto-sha256))
+
+
+define KernelPackage/crypto-sha512
+  TITLE:=SHA512 digest CryptoAPI module
+  DEPENDS:=+kmod-crypto-hash
+  KCONFIG:= \
+	CONFIG_CRYPTO_SHA512 \
+	CONFIG_CRYPTO_SHA512_OCTEON
+  FILES:=$(LINUX_DIR)/crypto/sha512_generic.ko
+  AUTOLOAD:=$(call AutoLoad,09,sha512_generic)
+  $(call AddDepends/crypto)
+endef
+
+define KernelPackage/crypto-sha512/octeon
+  FILES+=$(LINUX_DIR)/arch/mips/cavium-octeon/crypto/octeon-sha512.ko
+  AUTOLOAD:=$(call AutoLoad,09,octeon-sha512)
+endef
+
+$(eval $(call KernelPackage,crypto-sha512))
 
 
 define KernelPackage/crypto-misc
@@ -499,7 +539,6 @@ define KernelPackage/crypto-misc
 	CONFIG_CRYPTO_FCRYPT \
 	CONFIG_CRYPTO_KHAZAD \
 	CONFIG_CRYPTO_SERPENT \
-	CONFIG_CRYPTO_SHA512 \
 	CONFIG_CRYPTO_TEA \
 	CONFIG_CRYPTO_TGR192 \
 	CONFIG_CRYPTO_TWOFISH \
@@ -513,7 +552,6 @@ define KernelPackage/crypto-misc
 	$(LINUX_DIR)/crypto/cast5_generic.ko \
 	$(LINUX_DIR)/crypto/cast6_generic.ko \
 	$(LINUX_DIR)/crypto/khazad.ko \
-	$(LINUX_DIR)/crypto/sha512_generic.ko \
 	$(LINUX_DIR)/crypto/tea.ko \
 	$(LINUX_DIR)/crypto/tgr192.ko \
 	$(LINUX_DIR)/crypto/twofish_common.ko \

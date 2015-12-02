@@ -257,7 +257,7 @@ define KernelPackage/ath10k
   $(call KernelPackage/mac80211/Default)
   TITLE:=Atheros 802.11ac wireless cards support
   URL:=https://wireless.wiki.kernel.org/en/users/Drivers/ath10k
-  DEPENDS+= @PCI_SUPPORT +kmod-ath +@DRIVER_11N_SUPPORT +@DRIVER_11W_SUPPORT
+  DEPENDS+= @PCI_SUPPORT +kmod-ath +@DRIVER_11N_SUPPORT +@DRIVER_11W_SUPPORT +@KERNEL_RELAY
   FILES:= \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath10k/ath10k_core.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath10k/ath10k_pci.ko
@@ -1163,7 +1163,7 @@ define KernelPackage/mt7601u
   TITLE:=MT7601U-based USB dongles Wireless Driver
   DEPENDS+= +kmod-mac80211 +@DRIVER_11N_SUPPORT @USB_SUPPORT +kmod-usb-core
   FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/mediatek/mt7601u/mt7601u.ko
-  AUTOLOAD:=$(call AutoProbe,mt7601)
+  AUTOLOAD:=$(call AutoProbe,mt7601u)
 endef
 
 
@@ -1782,7 +1782,8 @@ define Build/Prepare
 		$(PKG_BUILD_DIR)/include/linux/eeprom_93cx6.h \
 		$(PKG_BUILD_DIR)/include/linux/wl12xx.h \
 		$(PKG_BUILD_DIR)/include/linux/spi/libertas_spi.h \
-		$(PKG_BUILD_DIR)/include/net/ieee80211.h
+		$(PKG_BUILD_DIR)/include/net/ieee80211.h \
+		$(PKG_BUILD_DIR)/backport-include/linux/bcm47xx_nvram.h
 
 	echo 'compat-wireless-$(PKG_VERSION)-$(PKG_RELEASE)-$(REVISION)' > $(PKG_BUILD_DIR)/compat_version
 	$(CP) ./files/regdb.txt $(PKG_BUILD_DIR)/net/wireless/db.txt

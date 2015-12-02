@@ -250,4 +250,4 @@ VALUE		Octets-Direction        Output			2
 VALUE		Octets-Direction        MaxOveral		3
 VALUE		Octets-Direction        MaxSession		4
 
-INCLUDE /opt/etc/ppp/radius/dictionary.microsoft
+INCLUDE /etc/ppp/radius/dictionary.microsoft

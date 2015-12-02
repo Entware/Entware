@@ -1,4 +1,5 @@
 # Copyright (C) 2012 OpenWrt.org
+# Copyright (C) 2015 Lantiq Beteiligungs GmbH & Co KG.
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -7,14 +8,14 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=ltq-vdsl-vr9-mei
-PKG_VERSION:=1.4.8.4
+PKG_VERSION:=1.4.8.5
 PKG_RELEASE:=1
 
 PKG_BASE_NAME:=drv_mei_cpe
 PKG_SOURCE:=$(PKG_BASE_NAME)-$(PKG_VERSION).tar.gz
 PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/$(PKG_BASE_NAME)-$(PKG_VERSION)
-PKG_SOURCE_URL:=https://github.com/xdarklight/$(PKG_BASE_NAME)/archive/v$(PKG_VERSION)
-PKG_MD5SUM:=30570722dc7f19ff2f0228838043f2a2
+PKG_SOURCE_URL:=http://mirror2.openwrt.org/sources
+PKG_MD5SUM:=78bf61dbc3421123c6716b874a930759
 PKG_FIXUP:=autoreconf
 PKG_MAINTAINER:=John Crispin <blogic@openwrt.org>
 PKG_USE_MIPS16:=0
@@ -35,7 +36,19 @@ define KernelPackage/ltq-vdsl-vr9-mei/description
 	Lantiq MEI CPE Kernel Module Driver
 endef
 
-#DEBUG=-DDEBUG_PRINT=1
+
+define Package/ltq-vdsl-mei_test
+  SECTION:=net
+  CATEGORY:=Network
+  TITLE:=Lantiq mei driver test tool
+  URL:=http://www.lantiq.com/
+  DEPENDS:=@TARGET_lantiq_xrx200
+endef
+
+define Package/ltq-vdsl-mei_test/description
+	Userland tool to directly control the mei driver, this is only needed
+	for test and development purposes.
+endef
 
 MAKE_FLAGS += \
 	SHELL="$(BASH)"
@@ -49,10 +62,10 @@ CONFIGURE_ARGS += \
 	--enable-error_print \
 	--enable-ifxos-include="-I$(STAGING_DIR)/usr/include/ifxos/" \
 	--enable-ifxos-library="-L$(STAGING_DIR)/usr/lib" \
-	--enable-add_drv_cflags="$(DEBUG) -DMEI_DRV_ATM_PTM_INTERFACE_ENABLE=1 -DMEI_EXPORT_INTERNAL_API=1 -DMEI_SUPPORT_DSM=0 -fno-pic -mno-abicalls -mlong-calls -O2 -g0" \
+	--enable-add_drv_cflags="-DMEI_SUPPORT_DSM=0 -DMEI_DRV_ATM_PTM_INTERFACE_ENABLE=1 -fno-pic -mlong-calls -O2 -g0" \
 	--enable-linux-26 \
 	--enable-kernelbuild="$(LINUX_DIR)" \
-	--enable-drv_test_appl=0 \
+	--enable-drv_test_appl=yes \
 	ARCH=$(LINUX_KARCH)
 
 define Build/InstallDev
@@ -65,3 +78,10 @@ define Build/InstallDev
 endef
 
 $(eval $(call KernelPackage,ltq-vdsl-vr9-mei))
+
+define Package/ltq-vdsl-mei_test/install
+	$(INSTALL_DIR) $(1)/bin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/mei_cpe_drv_test $(1)/bin
+endef
+
+$(eval $(call BuildPackage,ltq-vdsl-mei_test))

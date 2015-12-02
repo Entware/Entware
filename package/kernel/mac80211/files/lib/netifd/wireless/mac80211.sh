@@ -23,6 +23,7 @@ drv_mac80211_init_device_config() {
 	config_add_int rxantenna txantenna antenna_gain txpower distance
 	config_add_boolean noscan ht_coex
 	config_add_array ht_capab
+	config_add_array channels
 	config_add_boolean \
 		rxldpc \
 		short_gi_80 \
@@ -89,6 +90,7 @@ mac80211_hostapd_setup_base() {
 	json_select config
 
 	[ "$auto_channel" -gt 0 ] && channel=acs_survey
+	[ "$auto_channel" -gt 0 ] && json_get_values channel_list channels
 
 	json_get_vars noscan ht_coex
 	json_get_values ht_capab_list ht_capab
@@ -301,6 +303,7 @@ mac80211_hostapd_setup_base() {
 	hostapd_prepare_device_config "$hostapd_conf_file" nl80211
 	cat >> "$hostapd_conf_file" <<EOF
 ${channel:+channel=$channel}
+${channel_list:+chanlist=$channel_list}
 ${noscan:+noscan=$noscan}
 $base_cfg
 
@@ -455,12 +458,7 @@ mac80211_prepare_vif() {
 			}
 		;;
 		mesh)
-			json_get_vars key mesh_id
-			if [ -n "$key" ]; then
-				iw phy "$phy" interface add "$ifname" type mp
-			else
-				iw phy "$phy" interface add "$ifname" type mp mesh_id "$mesh_id"
-			fi
+			iw phy "$phy" interface add "$ifname" type mp
 		;;
 		monitor)
 			iw phy "$phy" interface add "$ifname" type monitor
@@ -603,6 +601,13 @@ mac80211_setup_vif() {
 					wireless_vif_parse_encryption
 					mac80211_setup_supplicant || failed=1
 				fi
+			else
+				json_get_vars mesh_id mcast_rate
+
+				mcval=
+				[ -n "$mcast_rate" ] && wpa_supplicant_add_rate mcval "$mcast_rate"
+
+				iw dev "$ifname" mesh join "$mesh_id" ${mcval:+mcast-rate $mcval}
 			fi
 
 			for var in $MP_CONFIG_INT $MP_CONFIG_BOOL $MP_CONFIG_STRING; do

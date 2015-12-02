@@ -143,8 +143,6 @@ ifneq ($(CONFIG_SOFT_FLOAT),y)
   endif
 endif
 
-# GCC 4.8.5 fails with -fhonour-copts
-
 GCC_MAKE:= \
 	export SHELL="$(BASH)"; \
 	$(MAKE) \

@@ -22,11 +22,10 @@ unexport CFLAGS
 HOST_CONFIGURE_ARGS += \
 	--enable-static \
 	--disable-shared \
-	--with-libgmpxx-prefix=$(TOPDIR)/staging_dir/host \
+	--with-libgmpxx-prefix=$(STAGING_DIR_HOST) \
 	--with-gmp=system \
-	--with-gmp-prefix=$(TOPDIR)/staging_dir/host \
+	--with-gmp-prefix=$(STAGING_DIR_HOST) \
 	--with-piplib=no \
-	--with-clang=no \
-	--with-gmp-prefix=$(TOPDIR)/staging_dir/host
+	--with-clang=no
 
 $(eval $(call HostBuild))

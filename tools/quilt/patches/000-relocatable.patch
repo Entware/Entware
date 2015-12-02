@@ -7,10 +7,10 @@
 -export TEXTDOMAINDIR=@LOCALEDIR@
  
 -: ${QUILT_DIR=@QUILT_DIR@}
-+if test -n "$STAGING_DIR"; then
-+	export TEXTDOMAINDIR="$STAGING_DIR/../host/share/locale"
-+	: ${QUILT_DIR=$STAGING_DIR/../host/share/quilt} ${QUILT_LIB=$STAGING_DIR/../host/lib/quilt}
-+	: ${QUILT_ETC=$STAGING_DIR/../host/etc}
++if test -n "$STAGING_DIR_HOST"; then
++	export TEXTDOMAINDIR="$STAGING_DIR_HOST/share/locale"
++	: ${QUILT_DIR=$STAGING_DIR_HOST/share/quilt} ${QUILT_LIB=$STAGING_DIR_HOST/lib/quilt}
++	: ${QUILT_ETC=$STAGING_DIR_HOST/etc}
 +else
 +	export TEXTDOMAINDIR=@LOCALEDIR@
 +	: ${QUILT_DIR=@QUILT_DIR@}
