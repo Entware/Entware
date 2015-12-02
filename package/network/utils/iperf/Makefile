@@ -78,8 +78,8 @@ ifeq ($(BUILD_VARIANT),mt)
 endif
 
 define Package/iperf/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/iperf $(1)/usr/bin/iperf
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/iperf $(1)/opt/bin/iperf
 endef
 Package/iperf-mt/install = $(Package/iperf/install)
 
