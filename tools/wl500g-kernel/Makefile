@@ -6,7 +6,7 @@
 #
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=ent-kernel
+PKG_NAME:=wl500g-kernel
 PKG_VERSION:=20151205
 PKG_REV:=4424ebabf6ea50f5b2296f95d4471a51a1ce5430
 
