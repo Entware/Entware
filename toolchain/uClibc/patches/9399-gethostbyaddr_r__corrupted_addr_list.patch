@@ -1,0 +1,34 @@
+From: Nikolaus Voss <n.voss@weinmann.de>
+Date: Mon, 28 Nov 2011 16:18:30 +0100
+Subject: gethostbyaddr_r: add space for alias pointers
+
+addr_list and alias where on the same buffer offset. This led
+to corrupt addr_list which was overwritten by the resolved name.
+
+This happens since commit f65e6607 "resolver: switch to config parser"
+
+Signed-off-by: Nikolaus Voss <n.voss@weinmann.de>
+
+---
+
+diff --git a/libc/inet/resolv.c b/libc/inet/resolv.c
+--- a/libc/inet/resolv.c
++++ b/libc/inet/resolv.c
+@@ -2399,13 +2399,15 @@ int gethostbyaddr_r(const void *addr, socklen_t addrlen,
+ 	buf += i;
+ 	buflen -= i;
+ 	/* Layout in buf:
+-	 * char *alias[ALIAS_DIM];
++	 * char *alias[2];
+ 	 * struct in[6]_addr* addr_list[2];
+ 	 * struct in[6]_addr in;
+ 	 * char scratch_buffer[256+];
+ 	 */
+ #define in6 ((struct in6_addr *)in)
+ 	alias = (char **)buf;
++	buf += sizeof(*alias) * 2;
++	buflen -= sizeof(*alias) * 2;
+ 	addr_list = (struct in_addr**)buf;
+ 	buf += sizeof(*addr_list) * 2;
+ 	buflen -= sizeof(*addr_list) * 2;
+--

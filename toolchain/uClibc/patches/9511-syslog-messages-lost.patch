@@ -1,0 +1,52 @@
+From 8ba825b23828d0775e75b76934ab299a74cb63ab Mon Sep 17 00:00:00 2001
+From: Vladislav Grishenko <themiron@mail.ru>
+Date: Wed, 12 Sep 2012 18:04:48 +0600
+Subject: Fix syslog messages lost if syslogd is temporary busy
+
+Commit 4139fe5aec935ba3f462dcaf6aafb6e5eadf1ab9 fixes SIGSTOPed syslogd issue.
+but introduced new one - messages will be lost when socket buffer gets full,
+not only if syslogd is stalled, but even if it accepts message slower than
+someone sends and possibly leads to security hole, when important messages get
+lost as result of attacker flooding.
+
+Patch adds 1 second waiting for socket buffer can accept the message, helps
+when syslogd is working hard. If it's stalled/SIGSTOPed, message will be sent
+to errout as before. After that, further non-blocking /dev/log connect attempts
+will fail immediately with EAGAIN error until syslogd reads some from it.
+
+function                                             old     new   delta
+openlog_intern                                       259     355     +96
+static.tv                                              -       8      +8
+.rodata                                              151     159      +8
+------------------------------------------------------------------------------
+(add/remove: 1/0 grow/shrink: 2/0 up/down: 112/0)             Total: 112 bytes
+
+Signed-off-by: Vladislav Grishenko <themiron@mail.ru>
+---
+ libc/misc/syslog/syslog.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/libc/misc/syslog/syslog.c b/libc/misc/syslog/syslog.c
+--- a/libc/misc/syslog/syslog.c
++++ b/libc/misc/syslog/syslog.c
+@@ -126,6 +126,7 @@ openlog_intern(void)
+ {
+ 	int fd;
+ 	int logType = SOCK_DGRAM;
++	static const struct timeval tv = { 1, 0 };
+ 
+ 	fd = LogFile;
+ 	if (fd == -1) {
+@@ -143,6 +144,9 @@ openlog_intern(void)
+ 
+ 	if (fd != -1 && !connected) {
+ 		if (connect(fd, &SyslogAddr, sizeof(SyslogAddr)) != -1) {
++			/* We want to block send if e.g. syslogd is SIGSTOPed */
++			fcntl(fd, F_SETFL, ~O_NONBLOCK & fcntl(fd, F_GETFL));
++			setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+ 			connected = 1;
+ 		} else {
+ 			if (fd != -1) {
+-- 
+1.7.2.5
+

@@ -1,0 +1,28 @@
+1) Avoid unnececary rebuilds due to compiler flag changes
+
+
+Signed-off-by: Leonid Lisovskiy <lly.dev@gmail.com>
+
+diff --git a/Rules.mak b/Rules.mak
+--- a/Rules.mak
++++ b/Rules.mak
+@@ -308,6 +308,9 @@
+ PICFLAG := $(PICFLAG-y)
+ PIEFLAG_NAME:=-fPIE
+ 
++$(eval $(call check-gcc-var,-fdata-sections))
++$(eval $(call check-gcc-var,-ffunction-sections))
++
+ # Some nice CPU specific optimizations
+ ifeq ($(TARGET_ARCH),i386)
+ $(eval $(call check-gcc-var,-fomit-frame-pointer))
+@@ -648,9 +651,6 @@
+ #$(eval $(call check-ld-var,--gc-sections))
+ #LDFLAGS_NOSTRIP += $(LDFLAG_--gc-sections)
+ 
+-$(eval $(call check-gcc-var,-fdata-sections))
+-$(eval $(call check-gcc-var,-ffunction-sections))
+-
+ ifeq ($(UCLIBC_BUILD_RELRO),y)
+ LDFLAGS_NOSTRIP+=-Wl,-z,relro
+ endif

@@ -1,0 +1,79 @@
+From: Steve Ellcey <sellcey@mips.com>
+Date: Wed, 7 May 2014 13:10:48 -0700
+Subject: glibc [BZ# 16922]
+
+	* sysdeps/mips/sys/asm.h (INT_SUB): Fix definition.
+	(LONG_SUB): Ditto.
+	(PTR_SUB): Ditto.
+
+glibc commit 5057ad3b50
+
+---
+
+diff --git a/libc/sysdeps/linux/mips/sys/asm.h b/libc/sysdeps/linux/mips/sys/asm.h
+--- a/libc/sysdeps/linux/mips/sys/asm.h
++++ b/libc/sysdeps/linux/mips/sys/asm.h
+@@ -326,7 +326,7 @@ symbol		=	value
+ # define INT_ADDI	addi
+ # define INT_ADDU	addu
+ # define INT_ADDIU	addiu
+-# define INT_SUB	add
++# define INT_SUB	sub
+ # define INT_SUBI	subi
+ # define INT_SUBU	subu
+ # define INT_SUBIU	subu
+@@ -339,7 +339,7 @@ symbol		=	value
+ # define INT_ADDI	daddi
+ # define INT_ADDU	daddu
+ # define INT_ADDIU	daddiu
+-# define INT_SUB	dadd
++# define INT_SUB	dsub
+ # define INT_SUBI	dsubi
+ # define INT_SUBU	dsubu
+ # define INT_SUBIU	dsubu
+@@ -355,7 +355,7 @@ symbol		=	value
+ # define LONG_ADDI	addi
+ # define LONG_ADDU	addu
+ # define LONG_ADDIU	addiu
+-# define LONG_SUB	add
++# define LONG_SUB	sub
+ # define LONG_SUBI	subi
+ # define LONG_SUBU	subu
+ # define LONG_SUBIU	subu
+@@ -374,7 +374,7 @@ symbol		=	value
+ # define LONG_ADDI	daddi
+ # define LONG_ADDU	daddu
+ # define LONG_ADDIU	daddiu
+-# define LONG_SUB	dadd
++# define LONG_SUB	dsub
+ # define LONG_SUBI	dsubi
+ # define LONG_SUBU	dsubu
+ # define LONG_SUBIU	dsubu
+@@ -396,7 +396,7 @@ symbol		=	value
+ # define PTR_ADDI	addi
+ # define PTR_ADDU	addu
+ # define PTR_ADDIU	addiu
+-# define PTR_SUB	add
++# define PTR_SUB	sub
+ # define PTR_SUBI	subi
+ # define PTR_SUBU	subu
+ # define PTR_SUBIU	subu
+@@ -418,7 +418,7 @@ symbol		=	value
+ # define PTR_ADDI	addi
+ # define PTR_ADDU	add /* no u */
+ # define PTR_ADDIU	addi /* no u */
+-# define PTR_SUB	add
++# define PTR_SUB	sub
+ # define PTR_SUBI	subi
+ # define PTR_SUBU	sub /* no u */
+ # define PTR_SUBIU	sub /* no u */
+@@ -441,7 +441,7 @@ symbol		=	value
+ # define PTR_ADDI	daddi
+ # define PTR_ADDU	daddu
+ # define PTR_ADDIU	daddiu
+-# define PTR_SUB	dadd
++# define PTR_SUB	dsub
+ # define PTR_SUBI	dsubi
+ # define PTR_SUBU	dsubu
+ # define PTR_SUBIU	dsubu
+-- 

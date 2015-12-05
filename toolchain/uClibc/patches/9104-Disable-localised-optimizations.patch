@@ -1,0 +1,26 @@
+From 31785c544abe8b215dbb2264fb11ee7051515797
+From: Khem Raj <raj.khem@gmail.com>
+Date: Sun, 16 Aug 2015 20:58:59 -0700
+Subject: Dont support localised optimizations this helps to have a global -O level
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+Upstream-Status: Pending
+
+ libpthread/nptl/pthread_mutex_timedlock.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/libpthread/nptl/pthread_mutex_timedlock.c b/libpthread/nptl/pthread_mutex_timedlock.c
+--- a/libpthread/nptl/pthread_mutex_timedlock.c
++++ b/libpthread/nptl/pthread_mutex_timedlock.c
+@@ -28,7 +28,9 @@
+  * error: can't find a register in class ‘GENERAL_REGS’ while reloading ‘asm’
+  */
+ int
++#ifndef  __OPTIMIZE__
+ attribute_optimize("Os")
++#endif
+ pthread_mutex_timedlock (
+      pthread_mutex_t *mutex,
+      const struct timespec *abstime)
+-- 

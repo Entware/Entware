@@ -1,0 +1,94 @@
+Simple workaround to prevent crash of host ldd when it try to find/check
+shared libraries from different architecture.
+
+Signed-off-by: Leonid Lisovskiy <lly.dev@gmail.com>
+
+---
+Fix patchlevel of hosttools patch (refs http://freetz.org/ticket/842 )
+ Modified to use of $(ARCH_NATIVE_BIT) - lly.
+
+Signed-off-by: Letzte Anderung
+
+---
+ utils/Makefile.in |    1 +
+ utils/ldd.c       |   13 +++++++++----
+ utils/porting.h   |   10 ++++++++++
+ 3 files changed, 20 insertions(+), 4 deletions(-)
+
+diff --git a/utils/Makefile.in b/utils/Makefile.in
+--- a/utils/Makefile.in
++++ b/utils/Makefile.in
+@@ -52,6 +52,7 @@
+     -I$(top_srcdir)ldso/include \
+     -DUCLIBC_RUNTIME_PREFIX=\"$(RUNTIME_PREFIX)\" \
+     -DUCLIBC_LDSO=\"$(UCLIBC_LDSO)\" \
++    -DARCH_NATIVE_BIT=$(ARCH_NATIVE_BIT) \
+     -I$(top_srcdir)/$(KERNEL_HEADERS) \
+     -DNOT_IN_libc \
+     -B$(top_builddir)lib \
+diff --git a/utils/ldd.c b/utils/ldd.c
+--- a/utils/ldd.c
++++ b/utils/ldd.c
+@@ -157,10 +157,10 @@
+ 	}
+ }
+ 
+-#if ELFCLASSM == ELFCLASS32
+-# define byteswap_to_host(x) byteswap32_to_host(x)
+-#else
++#if __WORDSIZE == 64
+ # define byteswap_to_host(x) byteswap64_to_host(x)
++#else
++# define byteswap_to_host(x) byteswap32_to_host(x)
+ #endif
+ 
+ static ElfW(Shdr) *elf_find_section_type(uint32_t key, ElfW(Ehdr) *ehdr)
+@@ -222,7 +222,8 @@
+ static int check_elf_header(ElfW(Ehdr) *const ehdr)
+ {
+ 	if (!ehdr || *(uint32_t*)ehdr != ELFMAG_U32
+-	 || ehdr->e_ident[EI_CLASS] != ELFCLASSM
++	 /* Use __WORDSIZE, not ELFCLASSM which depends on the host */
++	 || ehdr->e_ident[EI_CLASS] != (__WORDSIZE >> 5)
+ 	 || ehdr->e_ident[EI_VERSION] != EV_CURRENT
+ 	) {
+ 		return 1;
+@@ -496,6 +497,8 @@ static int add_library(ElfW(Ehdr) *ehdr,
+ 	for (cur = lib_list; cur; cur = cur->next) {
+ 		/* Check if this library is already in the list */
+ 		tmp1 = tmp2 = cur->name;
++		if (!cur->name)
++			continue;
+ 		while (*tmp1) {
+ 			if (*tmp1 == '/')
+ 				tmp2 = tmp1 + 1;
+@@ -572,6 +575,8 @@ static struct library *find_elf_interpre
+ 		}
+ 		for (cur = lib_list; cur; cur = cur->next) {
+ 			/* Check if this library is already in the list */
++			if (!tmp1 || !cur->name)
++				return NULL;
+ 			if (strcmp(cur->name, tmp1) == 0) {
+ 				/*printf("find_elf_interpreter is replacing '%s' (already in list)\n", cur->name); */
+ 				newlib = cur;
+diff --git a/utils/porting.h b/utils/porting.h
+--- a/utils/porting.h
++++ b/utils/porting.h
+@@ -41,6 +41,16 @@
+ #include "dl-defs.h"
+ #endif
+ 
++/* __WORDSIZE ist used for __ELF_NATIVE_CLASS, which is used for ElfW().
++  We want to provide the wordsize of the target, not of the host, when
++   compiling readelf.host
++ */
++#include <link.h>
++#ifdef ARCH_NATIVE_BIT
++#undef __WORDSIZE
++#define __WORDSIZE ARCH_NATIVE_BIT
++#endif
++
+ #ifdef DMALLOC
+ #include <dmalloc.h>
+ #endif
+-- 

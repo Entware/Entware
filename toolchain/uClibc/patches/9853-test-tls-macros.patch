@@ -1,0 +1,176 @@
+test/tls: tls-macros*.h fixes from glibc
+
+glibc commits
+ 4822a2a520 Add x32 support to TLS_LE/TLS_IE/TLS_GD
+ 63fb881a04 tls-macros-mips.h: Load $gp as required.
+            Merge 32-bit and 64-bit versions.
+
+---
+diff --git a/test/tls/tls-macros-mips.h b/test/tls/tls-macros-mips.h
+--- a/test/tls/tls-macros-mips.h
++++ b/test/tls/tls-macros-mips.h
+@@ -1,44 +1,56 @@
+ /* Macros to support TLS testing in times of missing compiler support.  */
+ 
+-#if _MIPS_SIM != _ABI64
++#include <sys/cdefs.h>
++#include <sys/asm.h>
+ 
+-/* These versions are for o32 and n32.  */
++#define __STRING2(X) __STRING(X)
++#define ADDU __STRING2(PTR_ADDU)
++#define ADDIU __STRING2(PTR_ADDIU)
++#define LW __STRING2(PTR_L)
+ 
+-# define TLS_GD(x)					\
+-  ({ void *__result;					\
+-     extern void *__tls_get_addr (void *);		\
+-     __asm__ ("addiu %0, $28, %%tlsgd(" #x ")"		\
+-	  : "=r" (__result));				\
+-     (int *)__tls_get_addr (__result); })
++/* Load the GOT pointer, which may not be in $28 in a non-PIC
++   (abicalls pic0) function.  */
++#ifndef __PIC__
++# if _MIPS_SIM != _ABI64
++#  define LOAD_GP "move %[tmp], $28\n\tla $28, __gnu_local_gp\n\t"
++# else
++#  define LOAD_GP "move %[tmp], $28\n\tdla $28, __gnu_local_gp\n\t"
++# endif
++# define UNLOAD_GP "\n\tmove $28, %[tmp]"
+ #else
++# define LOAD_GP
++# define UNLOAD_GP
++#endif
++
+ # define TLS_GD(x)					\
+-  ({ void *__result;					\
++  ({ void *__result, *__tmp;				\
+      extern void *__tls_get_addr (void *);		\
+-     __asm__ ("daddiu %0, $28, %%tlsgd(" #x ")"		\
+-	  : "=r" (__result));				\
++     __asm__ (LOAD_GP ADDIU " %0, $28, %%tlsgd(" #x ")"	\
++	  UNLOAD_GP					\
++	  : "=r" (__result), [tmp] "=&r" (__tmp));	\
+      (int *)__tls_get_addr (__result); })
+-#endif
+-
+-#if _MIPS_SIM != _ABI64
+ # define TLS_LD(x)					\
+-  ({ void *__result;					\
++  ({ void *__result, *__tmp;				\
+      extern void *__tls_get_addr (void *);		\
+-     __asm__ ("addiu %0, $28, %%tlsldm(" #x ")"		\
+-	  : "=r" (__result));				\
++     __asm__ (LOAD_GP ADDIU " %0, $28, %%tlsldm(" #x ")"	\
++	  UNLOAD_GP					\
++	  : "=r" (__result), [tmp] "=&r" (__tmp));	\
+      __result = __tls_get_addr (__result);		\
+      __asm__ ("lui $3,%%dtprel_hi(" #x ")\n\t"		\
+ 	  "addiu $3,$3,%%dtprel_lo(" #x ")\n\t"		\
+-	  "addu %0,%0,$3"				\
++	  ADDU " %0,%0,$3"				\
+ 	  : "+r" (__result) : : "$3");			\
+      __result; })
+ # define TLS_IE(x)					\
+-  ({ void *__result;					\
++  ({ void *__result, *__tmp;				\
+      __asm__ (".set push\n\t.set mips32r2\n\t"		\
+ 	  "rdhwr\t%0,$29\n\t.set pop"			\
+ 	  : "=v" (__result));				\
+-     __asm__ ("lw $3,%%gottprel(" #x ")($28)\n\t"		\
+-	  "addu %0,%0,$3"				\
+-	  : "+r" (__result) : : "$3");			\
++     __asm__ (LOAD_GP LW " $3,%%gottprel(" #x ")($28)\n\t"	\
++	  ADDU " %0,%0,$3"				\
++	  UNLOAD_GP					\
++	  : "+r" (__result), [tmp] "=&r" (__tmp)	\
++	  : : "$3");					\
+      __result; })
+ # define TLS_LE(x)					\
+   ({ void *__result;					\
+@@ -47,42 +59,6 @@
+ 	  : "=v" (__result));				\
+      __asm__ ("lui $3,%%tprel_hi(" #x ")\n\t"		\
+ 	  "addiu $3,$3,%%tprel_lo(" #x ")\n\t"		\
+-	  "addu %0,%0,$3"				\
++	  ADDU " %0,%0,$3"				\
+ 	  : "+r" (__result) : : "$3");			\
+      __result; })
+-
+-#else
+-
+-/* These versions are for n64.  */
+-
+-# define TLS_LD(x)					\
+-  ({ void *__result;					\
+-     extern void *__tls_get_addr (void *);		\
+-     __asm__ ("daddiu %0, $28, %%tlsldm(" #x ")"		\
+-	  : "=r" (__result));				\
+-     __result = __tls_get_addr (__result);		\
+-     __asm__ ("lui $3,%%dtprel_hi(" #x ")\n\t"		\
+-	  "daddiu $3,$3,%%dtprel_lo(" #x ")\n\t"	\
+-	  "daddu %0,%0,$3"				\
+-	  : "+r" (__result) : : "$3");			\
+-     __result; })
+-# define TLS_IE(x)					\
+-  ({ void *__result;					\
+-     __asm__ (".set push\n\t.set mips32r2\n\t"		\
+-	  "rdhwr\t%0,$29\n\t.set pop"			\
+-	  : "=v" (__result));				\
+-     __asm__ ("ld $3,%%gottprel(" #x ")($28)\n\t"		\
+-	  "daddu %0,%0,$3"				\
+-	  : "+r" (__result) : : "$3");			\
+-     __result; })
+-# define TLS_LE(x)					\
+-  ({ void *__result;					\
+-     __asm__ (".set push\n\t.set mips32r2\n\t"		\
+-	  "rdhwr\t%0,$29\n\t.set pop"			\
+-	  : "=v" (__result));				\
+-     __asm__ ("lui $3,%%tprel_hi(" #x ")\n\t"		\
+-	  "daddiu $3,$3,%%tprel_lo(" #x ")\n\t"		\
+-	  "daddu %0,%0,$3"				\
+-	  : "+r" (__result) : : "$3");			\
+-     __result; })
+-#endif
+
+diff --git a/test/tls/tls-macros.h b/test/tls/tls-macros.h
+--- a/test/tls/tls-macros.h
++++ b/test/tls/tls-macros.h
+@@ -101,15 +101,15 @@
+ 
+ # define TLS_LE(x) \
+   ({ int *__l;								      \
+-     __asm__ ("movq %%fs:0,%0\n\t"						      \
+-	  "leaq " #x "@tpoff(%0), %0"					      \
++     __asm__ ("mov %%fs:0,%0\n\t"						      \
++	  "lea " #x "@tpoff(%0), %0"					      \
+ 	  : "=r" (__l));						      \
+      __l; })
+ 
+ # define TLS_IE(x) \
+   ({ int *__l;								      \
+-     __asm__ ("movq %%fs:0,%0\n\t"						      \
+-	  "addq " #x "@gottpoff(%%rip),%0"				      \
++     __asm__ ("mov %%fs:0,%0\n\t"						      \
++	  "add " #x "@gottpoff(%%rip),%0"				      \
+ 	  : "=r" (__l));						      \
+      __l; })
+ 
+@@ -122,9 +122,15 @@
+ 	  : : "rdi", "rsi", "r8", "r9", "r10", "r11"); 			      \
+      __l; })
+ 
++# ifdef __ILP32__
++#  define TLS_GD_PREFIX
++# else
++#  define TLS_GD_PREFIX	".byte 0x66\n\t"
++# endif
++
+ # define TLS_GD(x) \
+   ({ int *__l, __c, __d;						      \
+-     __asm__ (".byte 0x66\n\t"						      \
++     __asm__ (TLS_GD_PREFIX							      \
+ 	  "leaq " #x "@tlsgd(%%rip),%%rdi\n\t"				      \
+ 	  ".word 0x6666\n\t"						      \
+ 	  "rex64\n\t"							      \
+-- 

@@ -1,0 +1,114 @@
+From d95be2c82baf17019ab112532968e2f312d60b08 Mon Sep 17 00:00:00 2001
+From: Vladislav Grishenko <themiron@mail.ru>
+Date: Wed, 12 Sep 2012 17:13:55 +0600
+Subject: Fix syslog messages lost after syslogd restarts
+
+If syslogd is stopped and restarted while a process has the log open, the next
+message that process produces will be logged to the console and not to the new
+instance of syslogd. Further messages will be routed correctly, but not the
+first one.
+
+Based on original patch
+Bug 3889 - syslog loses messages when syslogd restarted
+https://bugs.busybox.net/show_bug.cgi?id=3889
+
+function                                             old     new   delta
+openlog                                               33      68     +35
+__vsyslog                                            851     848      -3
+openlog_intern                                       318     259     -59
+------------------------------------------------------------------------------
+(add/remove: 0/0 grow/shrink: 1/2 up/down: 35/-62)            Total: -27 bytes
+
+Signed-off-by: Vladislav Grishenko <themiron@mail.ru>
+---
+ libc/misc/syslog/syslog.c |   42 +++++++++++++++++++++++++++---------------
+ 1 files changed, 27 insertions(+), 15 deletions(-)
+
+diff --git a/libc/misc/syslog/syslog.c b/libc/misc/syslog/syslog.c
+--- a/libc/misc/syslog/syslog.c
++++ b/libc/misc/syslog/syslog.c
+@@ -122,23 +122,15 @@ closelog_intern(int sig)
+ }
+ 
+ static void
+-openlog_intern(const char *ident, int logstat, int logfac)
++openlog_intern(void)
+ {
+ 	int fd;
+ 	int logType = SOCK_DGRAM;
+ 
+-	if (ident != NULL)
+-		LogTag = ident;
+-	LogStat = logstat;
+-	/* (we were checking also for logfac != 0, but it breaks
+-	 * openlog(xx, LOG_KERN) since LOG_KERN == 0) */
+-	if ((logfac & ~LOG_FACMASK) == 0) /* if we don't have invalid bits */
+-		LogFacility = (unsigned)logfac >> 3;
+-
+ 	fd = LogFile;
+ 	if (fd == -1) {
+  retry:
+-		if (logstat & LOG_NDELAY) {
++		if (1) { /* if statement left in to make .diff cleaner */
+ 			LogFile = fd = socket(AF_UNIX, logType, 0);
+ 			if (fd == -1) {
+ 				return;
+@@ -172,7 +164,18 @@ void
+ openlog(const char *ident, int logstat, int logfac)
+ {
+ 	__UCLIBC_MUTEX_LOCK(mylock);
+-	openlog_intern(ident, logstat, logfac);
++
++	if (ident != NULL)
++		LogTag = ident;
++	LogStat = logstat;
++	/* (we were checking also for logfac != 0, but it breaks
++	 * openlog(xx, LOG_KERN) since LOG_KERN == 0) */
++	if ((logfac & ~LOG_FACMASK) == 0) /* if we don't have invalid bits */
++		LogFacility = (unsigned)logfac >> 3;
++
++	if (logstat & LOG_NDELAY)
++		openlog_intern();
++
+ 	__UCLIBC_MUTEX_UNLOCK(mylock);
+ }
+ 
+@@ -206,7 +209,7 @@ __vsyslog(int pri, const char *fmt, va_list ap)
+ 	if ((LogMask & LOG_MASK(LOG_PRI(pri))) == 0)
+ 		goto getout;
+ 	if (LogFile < 0 || !connected)
+-		openlog_intern(NULL, LogStat | LOG_NDELAY, (int)LogFacility << 3);
++		openlog_intern();
+ 
+ 	/* Set default facility if none specified. */
+ 	if ((pri & LOG_FACMASK) == 0)
+@@ -266,14 +269,23 @@ __vsyslog(int pri, const char *fmt, va_list ap)
+ 	/* Output the message to the local logger using NUL as a message delimiter. */
+ 	p = tbuf;
+ 	*last_chr = '\0';
++ retry:
+ 	if (LogFile >= 0) {
+ 		do {
+ 			/* can't just use write, it can result in SIGPIPE */
+ 			rc = send(LogFile, p, last_chr + 1 - p, MSG_NOSIGNAL);
+ 			if (rc < 0) {
+-				/* I don't think looping forever on EAGAIN is a good idea.
+-				 * Imagine that syslogd is SIGSTOPed... */
+-				if (/* (errno != EAGAIN) && */ (errno != EINTR)) {
++				switch (errno) {
++				case EINTR:
++					break;
++				case ECONNRESET:
++					/* syslogd restarted, reopen log */
++					closelog_intern(1);
++					openlog_intern();
++					goto retry;
++				case EAGAIN:
++					/* syslogd stalled, noting we can do */
++				default:
+ 					closelog_intern(1); /* 1: do not reset LogXXX globals to default */
+ 					goto write_err;
+ 				}
+-- 
+1.7.2.5
+

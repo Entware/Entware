@@ -1,0 +1,43 @@
+Make malloc_stats() GNU compatible
+
+ This fix commit 76dfc7ce8c "Some requested additional malloc entry points"
+ from 2004's.
+
+diff --git a/include/malloc.h b/include/malloc.h
+--- a/include/malloc.h
++++ b/include/malloc.h
+@@ -154,9 +154,8 @@ libc_hidden_proto(mallinfo)
+ extern int malloc_trim(size_t pad);
+ 
+ #include <stdio.h>
+-/* Prints brief summary statistics to the specified file.
+- * Writes to stderr if file is NULL. */
+-extern void malloc_stats(FILE *file);
++/* Prints brief summary statistics on the stderr. */
++extern void malloc_stats(void);
+ 
+ /* SVID2/XPG mallopt options */
+ #ifndef M_MXFAST
+diff --git a/libc/stdlib/malloc-standard/mallinfo.c b/libc/stdlib/malloc-standard/mallinfo.c
+--- a/libc/stdlib/malloc-standard/mallinfo.c
++++ b/libc/stdlib/malloc-standard/mallinfo.c
+@@ -81,16 +81,12 @@ struct mallinfo mallinfo(void)
+ }
+ libc_hidden_def(mallinfo)
+ 
+-void malloc_stats(FILE *file)
++void malloc_stats(void)
+ {
+     struct mallinfo mi;
+ 
+-    if (file==NULL) {
+-	file = stderr;
+-    }
+-
+     mi = mallinfo();
+-    fprintf(file,
++    fprintf(stderr,
+ 	    "total bytes allocated             = %10u\n"
+ 	    "total bytes in use bytes          = %10u\n"
+ 	    "total non-mmapped bytes allocated = %10d\n"
+-- 

@@ -1,0 +1,678 @@
+libc/stdio: Rework custom streams interface similar to glibc.
+
+ Save 20 bytes per FILE structure, avoid indirect call for
+ read/write/seek/close operations for normal streams.
+ Additionally, custom streams has fileno = -2 now, like in glibc.
+
+ bloat-o-meter report (UCLIBC_HAS_GLIBC_CUSTOM_STREAMS=y):
+function                                             old     new   delta
+fopencookie                                           69     131     +62
+ftello64                                             233     260     +27
+fseeko64                                             298     319     +21
+fclose                                               423     442     +19
+.rodata                                            16696   16708     +12
+fileno_unlocked                                       53      45      -8
+__ns_name_pack                                       859     851      -8
+vswscanf                                             184     144     -40
+vdprintf                                             231     187     -44
+vsscanf                                              210     151     -59
+vswprintf                                            269     201     -68
+vsnprintf                                            249     181     -68
+------------------------------------------------------------------------------
+(add/remove: 0/0 grow/shrink: 5/7 up/down: 141/-295)         Total: -154 bytes
+
+Signed-off-by: Leonid Lisovskiy <lly.dev@gmail.com>
+
+diff --git a/libc/stdio/_READ.c b/libc/stdio/_READ.c
+--- a/libc/stdio/_READ.c
++++ b/libc/stdio/_READ.c
+@@ -27,7 +27,7 @@ size_t attribute_hidden __stdio_READ(register FILE *stream,
+ 	ssize_t rv = 0;
+ 
+ 	__STDIO_STREAM_VALIDATE(stream);
+-	assert(stream->__filedes >= -1);
++	assert(stream->__filedes >= -2);
+ 	assert(__STDIO_STREAM_IS_READING(stream));
+ 	assert(!__STDIO_STREAM_BUFFER_RAVAIL(stream)); /* Buffer must be empty. */
+ 	assert(!(stream->__modeflags & __FLAG_UNGOT));
+diff --git a/libc/stdio/_WRITE.c b/libc/stdio/_WRITE.c
+--- a/libc/stdio/_WRITE.c
++++ b/libc/stdio/_WRITE.c
+@@ -36,7 +36,7 @@ size_t attribute_hidden __stdio_WRITE(register FILE *stream,
+ 	ssize_t rv, stodo;
+ 
+ 	__STDIO_STREAM_VALIDATE(stream);
+-	assert(stream->__filedes >= -1);
++	assert(stream->__filedes >= -2);
+ 	assert(__STDIO_STREAM_IS_WRITING(stream));
+ 	assert(!__STDIO_STREAM_BUFFER_WUSED(stream)); /* Buffer must be empty. */
+ 
+diff --git a/libc/stdio/_cs_funcs.c b/libc/stdio/_cs_funcs.c
+--- a/libc/stdio/_cs_funcs.c
++++ b/libc/stdio/_cs_funcs.c
+@@ -8,46 +8,6 @@
+ #include "_stdio.h"
+ 
+ /**********************************************************************/
+-#ifdef __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__
+-/**********************************************************************/
+-
+-ssize_t attribute_hidden _cs_read(void *cookie, char *buf, size_t bufsize)
+-{
+-	return read(*((int *) cookie), buf, bufsize);
+-}
+-
+-/**********************************************************************/
+-
+-ssize_t attribute_hidden _cs_write(void *cookie, const char *buf, size_t bufsize)
+-{
+-	return write(*((int *) cookie), (char *) buf, bufsize);
+-}
+-
+-/**********************************************************************/
+-
+-int attribute_hidden _cs_seek(void *cookie, register __offmax_t *pos, int whence)
+-{
+-	__offmax_t res;
+-
+-#ifdef __UCLIBC_HAS_LFS__
+-	res = lseek64(*((int *) cookie), *pos, whence);
+-#else
+-	res = lseek(*((int *) cookie), *pos, whence);
+-#endif
+-
+-	return (res >= 0) ? ((*pos = res), 0) : ((int) res);
+-}
+-
+-/**********************************************************************/
+-
+-int attribute_hidden _cs_close(void *cookie)
+-{
+-	return close(*((int *) cookie));
+-}
+-
+-/**********************************************************************/
+-#else
+-/**********************************************************************/
+ 
+ int attribute_hidden __stdio_seek(FILE *stream, register __offmax_t *pos, int whence)
+ {
+@@ -63,5 +23,3 @@ int attribute_hidden __stdio_seek(FILE *stream, register __offmax_t *pos, int wh
+ }
+ 
+ /**********************************************************************/
+-#endif
+-/**********************************************************************/
+diff --git a/libc/stdio/_fopen.c b/libc/stdio/_fopen.c
+--- a/libc/stdio/_fopen.c
++++ b/libc/stdio/_fopen.c
+@@ -192,8 +192,6 @@ FILE attribute_hidden *_stdio_fopen(intptr_t fname_or_mode,
+ 	__STDIO_STREAM_INIT_BUFREAD_BUFPOS(stream);
+ #endif
+ 
+-	__STDIO_STREAM_RESET_GCS(stream);
+-
+ #ifdef __UCLIBC_HAS_WCHAR__
+ 	stream->__ungot_width[0] = 0;
+ #endif
+diff --git a/libc/stdio/_rfill.c b/libc/stdio/_rfill.c
+--- a/libc/stdio/_rfill.c
++++ b/libc/stdio/_rfill.c
+@@ -24,7 +24,7 @@ size_t attribute_hidden __stdio_rfill(register FILE *__restrict stream)
+ 	size_t rv;
+ 
+ 	__STDIO_STREAM_VALIDATE(stream);
+-	assert(stream->__filedes >= -1);
++	assert(stream->__filedes >= -2);
+ 	assert(__STDIO_STREAM_IS_READING(stream));
+ 	assert(!__STDIO_STREAM_BUFFER_RAVAIL(stream)); /* Buffer must be empty. */
+ 	assert(__STDIO_STREAM_BUFFER_SIZE(stream));	/* Must have a buffer. */
+diff --git a/libc/stdio/_scanf.c b/libc/stdio/_scanf.c
+--- a/libc/stdio/_scanf.c
++++ b/libc/stdio/_scanf.c
+@@ -213,15 +213,6 @@ int vsscanf(__const char *sp, __const char *fmt, va_list ap)
+ {
+ 	FILE f;
+ 
+-/* 	__STDIO_STREAM_RESET_GCS(&f); */
+-#ifdef __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__
+-	f.__cookie = &(f.__filedes);
+-	f.__gcs.read = NULL;
+-	f.__gcs.write = NULL;
+-	f.__gcs.seek = NULL;
+-	f.__gcs.close = NULL;
+-#endif
+-
+ 	f.__filedes = __STDIO_STREAM_FAKE_VSSCANF_FILEDES;
+ 	f.__modeflags = (__FLAG_NARROW|__FLAG_READONLY|__FLAG_READING);
+ 
+@@ -260,15 +251,6 @@ int vsscanf(__const char *sp, __const char *fmt, va_list ap)
+ 	f.bufpos = (unsigned char *) ((void *) sp);
+ 	f.bufread = f.bufpos + strlen(sp);
+ 
+-/* 	__STDIO_STREAM_RESET_GCS(&f.f); */
+-#ifdef __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__
+-	f.f.__cookie = &(f.f.__filedes);
+-	f.f.__gcs.read = NULL;
+-	f.f.__gcs.write = NULL;
+-	f.f.__gcs.seek = NULL;
+-	f.f.__gcs.close = NULL;
+-#endif
+-
+ 	f.f.__filedes = __STDIO_STREAM_FAKE_VSSCANF_FILEDES_NB;
+ 	f.f.__modeflags = (__FLAG_NARROW|__FLAG_READONLY|__FLAG_READING);
+ 
+@@ -394,15 +376,6 @@ int vswscanf(const wchar_t * __restrict str, const wchar_t * __restrict format,
+ 	__STDIO_STREAM_DISABLE_GETC(&f);
+ 	__STDIO_STREAM_DISABLE_PUTC(&f);
+ 
+-/* 	__STDIO_STREAM_RESET_GCS(&f); */
+-#ifdef __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__
+-	f.__cookie = &(f.__filedes);
+-	f.__gcs.read = NULL;
+-	f.__gcs.write = NULL;
+-	f.__gcs.seek = NULL;
+-	f.__gcs.close = NULL;
+-#endif
+-
+ 	f.__filedes = __STDIO_STREAM_FAKE_VSWSCANF_FILEDES;
+ 	f.__modeflags = (__FLAG_WIDE|__FLAG_READONLY|__FLAG_READING);
+ 
+diff --git a/libc/stdio/_stdio.c b/libc/stdio/_stdio.c
+--- a/libc/stdio/_stdio.c
++++ b/libc/stdio/_stdio.c
+@@ -52,13 +52,6 @@
+ #define __STDIO_FILE_INIT_BUFFERS(buf,bufsize)
+ #endif
+ 
+-#ifdef __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__
+-#define __STDIO_FILE_INIT_CUSTOM_STREAM(stream) \
+-	&((stream).__filedes), { _cs_read, _cs_write, _cs_seek, _cs_close },
+-#else
+-#define __STDIO_FILE_INIT_CUSTOM_STREAM(stream)
+-#endif
+-
+ #ifdef __STDIO_MBSTATE
+ #define __STDIO_FILE_INIT_MBSTATE \
+ 	{ 0, 0 },
+@@ -93,7 +86,6 @@
+ 	__STDIO_FILE_INIT_BUFGETC((buf)) \
+ 	__STDIO_FILE_INIT_BUFPUTC((buf)) \
+ 	__STDIO_FILE_INIT_NEXT(next) \
+-	__STDIO_FILE_INIT_CUSTOM_STREAM(stream) \
+ 	__STDIO_FILE_INIT_WUNGOT \
+ 	__STDIO_FILE_INIT_MBSTATE \
+ 	__STDIO_FILE_INIT_UNUSED \
+@@ -242,7 +234,7 @@ void attribute_hidden _stdio_term(void)
+ #endif
+ #ifdef __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__
+ 		/* Actually close all custom streams to perform any special cleanup. */
+-		if (ptr->__cookie != &ptr->__filedes) {
++		if (__STDIO_STREAM_IS_CUSTOM(ptr)) {
+ 			__CLOSE(ptr);
+ 		}
+ #endif
+@@ -290,14 +282,9 @@ void attribute_hidden _stdio_validate_FILE(const FILE *stream)
+ #endif
+ 
+ #warning Define a constant for minimum possible valid __filedes?
+-	assert(stream->__filedes >= -3);
++	assert(stream->__filedes >= -4);
+ 
+ 	if (stream->__filedes < 0) {
+-/* 		assert((stream->__filedes != -1) */
+-/* #ifdef __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__ */
+-/* 			   || (stream->__cookie == &stream->__filedes) /\* custom *\/ */
+-/* #endif */
+-/* 			   ); */
+ /* 		assert((stream->__filedes == -1) || __STDIO_STREAM_IS_FBF(stream)); */
+ 
+ 		assert(!__STDIO_STREAM_IS_FAKE_VSNPRINTF(stream)
+@@ -314,12 +301,6 @@ void attribute_hidden _stdio_validate_FILE(const FILE *stream)
+ #endif
+ 	}
+ 
+-#ifdef __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__
+-	if (stream->__cookie != &stream->__filedes) { /* custom */
+-		assert(stream->__filedes == -1);
+-	}
+-#endif
+-
+ 	/* Can not be both narrow and wide oriented at the same time. */
+ 	assert(!(__STDIO_STREAM_IS_NARROW(stream)
+ 			 && __STDIO_STREAM_IS_WIDE(stream)));
+diff --git a/libc/stdio/_stdio.h b/libc/stdio/_stdio.h
+--- a/libc/stdio/_stdio.h
++++ b/libc/stdio/_stdio.h
+@@ -4,6 +4,8 @@
+  *
+  * Dedicated to Toni.  See uClibc/DEDICATION.mjn3 for details.
+  */
++#ifndef __STDIO_H_I
++#define __STDIO_H_I 1
+ 
+ #include <features.h>
+ #include <assert.h>
+@@ -92,48 +94,61 @@ do { \
+ /**********************************************************************/
+ #ifdef __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__
+ 
+-extern __ssize_t _cs_read(void *cookie, char *buf, size_t bufsize) attribute_hidden;
+-extern __ssize_t _cs_write(void *cookie, const char *buf, size_t bufsize) attribute_hidden;
+-extern int _cs_seek(void *cookie, __offmax_t *pos, int whence) attribute_hidden;
+-extern int _cs_close(void *cookie) attribute_hidden;
+-
+-#define __STDIO_STREAM_RESET_GCS(S) \
+-	(S)->__cookie = &((S)->__filedes); \
+-	(S)->__gcs.read = _cs_read; \
+-	(S)->__gcs.write = _cs_write; \
+-	(S)->__gcs.seek = _cs_seek; \
+-	(S)->__gcs.close = _cs_close
+-
+-
+-#define __READ(STREAMPTR,BUF,SIZE) \
+-	((((STREAMPTR)->__gcs.read) == NULL) ? -1 : \
+-	(((STREAMPTR)->__gcs.read)((STREAMPTR)->__cookie,(BUF),(SIZE))))
+-#define __WRITE(STREAMPTR,BUF,SIZE) \
+-	((((STREAMPTR)->__gcs.write) == NULL) ? -1 : \
+-	(((STREAMPTR)->__gcs.write)((STREAMPTR)->__cookie,(BUF),(SIZE))))
+-#define __SEEK(STREAMPTR,PPOS,WHENCE) \
+-	((((STREAMPTR)->__gcs.seek) == NULL) ? -1 : \
+-	(((STREAMPTR)->__gcs.seek)((STREAMPTR)->__cookie,(PPOS),(WHENCE))))
+-#define __CLOSE(STREAMPTR) \
+-	((((STREAMPTR)->__gcs.close) == NULL) ? 0 : \
+-	(((STREAMPTR)->__gcs.close)((STREAMPTR)->__cookie)))
++#define __STDIO_STREAM_GLIBC_CUSTOM_FILEDES		(-2)
++
++#define __STDIO_STREAM_IS_CUSTOM(S) \
++	((S)->__filedes == __STDIO_STREAM_GLIBC_CUSTOM_FILEDES)
++
++#define __STDIO_STREAM_CUSTOM_IO_FUNC(S, NAME, RC, ARGS...) \
++ if (__STDIO_STREAM_IS_CUSTOM((S))) { \
++	_IO_cookie_file_t *cfile = (_IO_cookie_file_t *) (S); \
++	return (cfile->__gcs.NAME == NULL) ? (RC) : \
++		cfile->__gcs.NAME(cfile->__cookie, ##ARGS); \
++ }
++
++typedef struct {
++  struct __STDIO_FILE_STRUCT __fp;
++  void *__cookie;
++  _IO_cookie_io_functions_t __gcs;
++} _IO_cookie_file_t;
+ 
+ #else  /* __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__ */
+ 
++#undef __STDIO_STREAM_GLIBC_CUSTOM_FILEDES
++#define __STDIO_STREAM_IS_CUSTOM(S)	(0)
++#define __STDIO_STREAM_CUSTOM_IO_FUNC(S, NAME, RC, ARGS...)
++
++#endif /* __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__ */
++
+ extern int __stdio_seek(FILE *stream, register __offmax_t *pos, int whence) attribute_hidden;
+ 
+-#define __STDIO_STREAM_RESET_GCS(S) ((void)0)
++static inline ssize_t __READ(FILE *stream, char *buf, size_t bufsize)
++{
++	__STDIO_STREAM_CUSTOM_IO_FUNC(stream, read, -1, buf, bufsize);
+ 
+-#define __READ(STREAMPTR,BUF,SIZE) \
+-	(read((STREAMPTR)->__filedes,(BUF),(SIZE)))
+-#define __WRITE(STREAMPTR,BUF,SIZE) \
+-	(write((STREAMPTR)->__filedes,(BUF),(SIZE)))
+-#define __SEEK(STREAMPTR,PPOS,WHENCE) \
+-	(__stdio_seek((STREAMPTR),(PPOS),(WHENCE)))
+-#define __CLOSE(STREAMPTR) \
+-	(close((STREAMPTR)->__filedes))
++	return read(stream->__filedes, buf, bufsize);
++}
+ 
+-#endif /* __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__ */
++static inline ssize_t __WRITE(FILE *stream, const char *buf, size_t bufsize)
++{
++	__STDIO_STREAM_CUSTOM_IO_FUNC(stream, write, -1, buf, bufsize);
++
++	return write(stream->__filedes, buf, bufsize);
++}
++
++static inline int __SEEK(FILE *stream, register __offmax_t *pos, int whence)
++{
++	__STDIO_STREAM_CUSTOM_IO_FUNC(stream, seek, -1, pos, whence);
++
++	return __stdio_seek(stream, pos, whence);
++}
++
++static inline int __CLOSE(FILE *stream)
++{
++	__STDIO_STREAM_CUSTOM_IO_FUNC(stream, close, 0);
++
++	return close(stream->__filedes);
++}
+ 
+ /**********************************************************************/
+ #ifdef __UCLIBC_HAS_WCHAR__
+@@ -250,12 +265,6 @@ extern int __stdio_seek(FILE *stream, register __offmax_t *pos, int whence) attr
+ # define __STDIO_STREAM_CAN_USE_BUFFER_ADD(S)		(0)
+ #endif
+ 
+-#ifdef __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__
+-#define __STDIO_STREAM_IS_CUSTOM(S)		((S)->__cookie != &((S)->__filedes))
+-#else
+-#define __STDIO_STREAM_IS_CUSTOM(S)			(0)
+-#endif
+-
+ /**********************************************************************/
+ 
+ #ifdef __STDIO_BUFFERS
+@@ -339,10 +348,10 @@ extern int __stdio_trans2w_o(FILE *__restrict stream, int oflag) attribute_hidde
+ 	(S)->__bufread = (S)->__bufpos = (S)->__bufstart
+ 
+ 
+-#define __STDIO_STREAM_FAKE_VSNPRINTF_FILEDES		(-2)
+-#define __STDIO_STREAM_FAKE_VSSCANF_FILEDES		(-2)
+-#define __STDIO_STREAM_FAKE_VSWPRINTF_FILEDES		(-3)
+-#define __STDIO_STREAM_FAKE_VSWSCANF_FILEDES		(-3)
++#define __STDIO_STREAM_FAKE_VSNPRINTF_FILEDES		(-3)
++#define __STDIO_STREAM_FAKE_VSSCANF_FILEDES		(-3)
++#define __STDIO_STREAM_FAKE_VSWPRINTF_FILEDES		(-4)
++#define __STDIO_STREAM_FAKE_VSWSCANF_FILEDES		(-4)
+ 
+ #define __STDIO_STREAM_IS_FAKE_VSNPRINTF(S) \
+ 	((S)->__filedes == __STDIO_STREAM_FAKE_VSNPRINTF_FILEDES)
+@@ -379,6 +388,7 @@ extern int __stdio_trans2w_o(FILE *__restrict stream, int oflag) attribute_hidde
+ #define __STDIO_STREAM_IS_FAKE_VSNPRINTF(S)			(0)
+ #define __STDIO_STREAM_IS_FAKE_VSSCANF(S)			(0)
+ #undef __STDIO_STREAM_IS_FAKE_VSWPRINTF
++#undef __STDIO_STREAM_IS_FAKE_VSWSCANF
+ 
+ # ifdef __USE_OLD_VFPRINTF__
+ #  define __STDIO_STREAM_FAKE_VSNPRINTF_FILEDES_NB		(-2)
+@@ -454,3 +464,5 @@ extern int _vfwprintf_internal (FILE * __restrict stream,
+ #if defined(__STDIO_BUFFERS) || defined(__USE_OLD_VFPRINTF__) || defined(__UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__)
+ #define __STDIO_HAS_VSNPRINTF 1
+ #endif
++
++#endif /* __STDIO_H_I */
+diff --git a/libc/stdio/fclose.c b/libc/stdio/fclose.c
+--- a/libc/stdio/fclose.c
++++ b/libc/stdio/fclose.c
+@@ -69,8 +69,6 @@ int fclose(register FILE *stream)
+ 	stream->__modeflags |= (__FLAG_READONLY|__FLAG_WRITEONLY);
+ 
+ #ifndef NDEBUG
+-	__STDIO_STREAM_RESET_GCS(stream);
+-
+ 	/* Reinitialize everything (including putc since fflush could fail). */
+ 	__STDIO_STREAM_DISABLE_GETC(stream);
+ 	__STDIO_STREAM_DISABLE_PUTC(stream);
+diff --git a/libc/stdio/fopencookie.c b/libc/stdio/fopencookie.c
+--- a/libc/stdio/fopencookie.c
++++ b/libc/stdio/fopencookie.c
+@@ -39,21 +39,34 @@ FILE *_fopencookie(void * __restrict cookie, const char * __restrict mode,
+ #endif
+ {
+ 	FILE *stream;
++	_IO_cookie_file_t *new_f;
+ 
++	new_f = malloc(sizeof(_IO_cookie_file_t));
++	if (new_f == NULL) {
++		return NULL;
++	}
++	new_f->__fp.__modeflags = __FLAG_FREEFILE;
++#ifdef __STDIO_BUFFERS
++	new_f->__fp.__bufstart = NULL; /* We allocate a buffer below. */
++#endif
++#ifdef __UCLIBC_HAS_THREADS__
++	/* We only initialize the mutex in the non-freopen case. */
++	STDIO_INIT_MUTEX(new_f->__fp.__lock);
++#endif
+ 	/* Fake an fdopen guaranteed to pass the _stdio_fopen basic agreement
+ 	 * check without an fcntl call. */
+-	stream = _stdio_fopen(((intptr_t)(INT_MAX-1)), mode, NULL, INT_MAX);
++	stream = _stdio_fopen(((intptr_t)(INT_MAX-1)), mode, &new_f->__fp, INT_MAX);
+ 	if (stream) {
+-		stream->__filedes = -1;
++		stream->__filedes = __STDIO_STREAM_GLIBC_CUSTOM_FILEDES;
+ #ifndef __BCC__
+-		stream->__gcs = io_functions;
++		new_f->__gcs = io_functions;
+ #else
+-		stream->__gcs.read  = io_functions->read;
+-		stream->__gcs.write = io_functions->write;
+-		stream->__gcs.seek  = io_functions->seek;
+-		stream->__gcs.close = io_functions->close;
++		new_f->__gcs.read  = io_functions->read;
++		new_f->__gcs.write = io_functions->write;
++		new_f->__gcs.seek  = io_functions->seek;
++		new_f->__gcs.close = io_functions->close;
+ #endif
+-		stream->__cookie = cookie;
++		new_f->__cookie = cookie;
+ 
+ 		__STDIO_STREAM_VALIDATE(stream);
+ 	}
+diff --git a/libc/stdio/fread.c b/libc/stdio/fread.c
+--- a/libc/stdio/fread.c
++++ b/libc/stdio/fread.c
+@@ -15,7 +15,7 @@ size_t fread_unlocked(void * __restrict ptr, size_t size, size_t nmemb,
+ 						FILE * __restrict stream)
+ {
+ 	__STDIO_STREAM_VALIDATE(stream);
+-	assert(stream->__filedes >= -1);
++	assert(stream->__filedes >= -2);
+ 
+ 	/* Note: If nmbem * size > SIZE_MAX then there is an application
+ 	 * bug since no array can be larger than SIZE_MAX in size. */
+diff --git a/libc/stdio/vdprintf.c b/libc/stdio/vdprintf.c
+--- a/libc/stdio/vdprintf.c
++++ b/libc/stdio/vdprintf.c
+@@ -26,15 +26,6 @@ int vdprintf(int filedes, const char * __restrict format, va_list arg)
+ 	__STDIO_STREAM_INIT_BUFREAD_BUFPOS(&f);
+ #endif
+ 
+-/* 	__STDIO_STREAM_RESET_GCS(&f); */
+-#ifdef __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__
+-	f.__cookie = &(f.__filedes);
+-	f.__gcs.read = NULL;
+-	f.__gcs.write = _cs_write;
+-	f.__gcs.seek = NULL;
+-	f.__gcs.close = NULL;
+-#endif
+-
+ 	f.__filedes = filedes;
+ 	f.__modeflags = (__FLAG_NARROW|__FLAG_WRITEONLY|__FLAG_WRITING);
+ 
+diff --git a/libc/stdio/vsnprintf.c b/libc/stdio/vsnprintf.c
+--- a/libc/stdio/vsnprintf.c
++++ b/libc/stdio/vsnprintf.c
+@@ -22,15 +22,6 @@ int vsnprintf(char *__restrict buf, size_t size,
+ 	FILE f;
+ 	int rv;
+ 
+-/* 	__STDIO_STREAM_RESET_GCS(&f); */
+-#ifdef __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__
+-	f.__cookie = &(f.__filedes);
+-	f.__gcs.read = NULL;
+-	f.__gcs.write = NULL;
+-	f.__gcs.seek = NULL;
+-	f.__gcs.close = NULL;
+-#endif
+-
+ 	f.__filedes = __STDIO_STREAM_FAKE_VSNPRINTF_FILEDES;
+ 	f.__modeflags = (__FLAG_NARROW|__FLAG_WRITEONLY|__FLAG_WRITING);
+ 
+@@ -96,15 +87,6 @@ int vsnprintf(char *__restrict buf, size_t size,
+ 	}
+ 	f.bufend = buf + size;
+ 
+-/* 	__STDIO_STREAM_RESET_GCS(&f.f); */
+-#ifdef __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__
+-	f.f.__cookie = &(f.f.__filedes);
+-	f.f.__gcs.read = NULL;
+-	f.f.__gcs.write = NULL;
+-	f.f.__gcs.seek = NULL;
+-	f.f.__gcs.close = NULL;
+-#endif
+-
+ 	f.f.__filedes = __STDIO_STREAM_FAKE_VSNPRINTF_FILEDES_NB;
+ 	f.f.__modeflags = (__FLAG_NARROW|__FLAG_WRITEONLY|__FLAG_WRITING);
+ 
+@@ -119,7 +119,7 @@ libc_hidden_def(vsnprintf)
+ typedef struct {
+ 	size_t pos;
+ 	size_t len;
+-	unsigned char *buf;
++	char *buf;
+ 	FILE *fp;
+ } __snpf_cookie;
+ 
+@@ -175,34 +157,34 @@ static ssize_t snpf_write(register void *cookie, const char *buf,
+ int vsnprintf(char *__restrict buf, size_t size,
+ 			  const char * __restrict format, va_list arg)
+ {
+-	FILE f;
++	_IO_cookie_file_t cf;
+ 	__snpf_cookie cookie;
+ 	int rv;
+ 
+ 	cookie.buf = buf;
+ 	cookie.len = size;
+ 	cookie.pos = 0;
+-	cookie.fp = &f;
++	cookie.fp = &cf.__fp;
+ 
+-	f.__cookie = &cookie;
+-	f.__gcs.write = snpf_write;
+-	f.__gcs.read = NULL;
+-	f.__gcs.seek = NULL;
+-	f.__gcs.close = NULL;
++	cf.__cookie = &cookie;
++	cf.__gcs.write = snpf_write;
++	cf.__gcs.read = NULL;
++	cf.__gcs.seek = NULL;
++	cf.__gcs.close = NULL;
+ 
+-	f.__filedes = -1;			/* For debugging. */
+-	f.__modeflags = (__FLAG_NARROW|__FLAG_WRITEONLY|__FLAG_WRITING);
++	cf.__fp.__filedes = __STDIO_STREAM_GLIBC_CUSTOM_FILEDES;
++	cf.__fp.__modeflags = (__FLAG_NARROW|__FLAG_WRITEONLY|__FLAG_WRITING);
+ 
+ #ifdef __UCLIBC_HAS_WCHAR__
+-	f.__ungot_width[0] = 0;
++	cf.__fp.__ungot_width[0] = 0;
+ #endif /* __UCLIBC_HAS_WCHAR__ */
+ #ifdef __STDIO_MBSTATE
+-	__INIT_MBSTATE(&(f.__state));
++	__INIT_MBSTATE(&(cf.__fp.__state));
+ #endif /* __STDIO_MBSTATE */
+ 
+-	f.__nextopen = NULL;
++	cf.__fp.__nextopen = NULL;
+ 
+-	rv = _vfprintf_internal(&f, format, arg);
++	rv = _vfprintf_internal(&cf.__fp, format, arg);
+ 
+ 	return rv;
+ }
+diff --git a/libc/stdio/vswprintf.c b/libc/stdio/vswprintf.c
+--- a/libc/stdio/vswprintf.c
++++ b/libc/stdio/vswprintf.c
+@@ -22,15 +22,6 @@ int vswprintf(wchar_t *__restrict buf, size_t size,
+ 	FILE f;
+ 	int rv;
+ 
+-/* 	__STDIO_STREAM_RESET_GCS(&f); */
+-#ifdef __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__
+-	f.__cookie = &(f.__filedes);
+-	f.__gcs.read = NULL;
+-	f.__gcs.write = NULL;
+-	f.__gcs.seek = NULL;
+-	f.__gcs.close = NULL;
+-#endif
+-
+ 	f.__filedes = __STDIO_STREAM_FAKE_VSWPRINTF_FILEDES;
+ 	f.__modeflags = (__FLAG_WIDE|__FLAG_WRITEONLY|__FLAG_WRITING);
+ 
+diff --git a/libc/sysdeps/linux/common/bits/uClibc_stdio.h b/libc/sysdeps/linux/common/bits/uClibc_stdio.h
+--- a/libc/sysdeps/linux/common/bits/uClibc_stdio.h
++++ b/libc/sysdeps/linux/common/bits/uClibc_stdio.h
+@@ -268,10 +268,6 @@ struct __STDIO_FILE_STRUCT {
+ #ifdef __STDIO_HAS_OPENLIST
+ 	struct __STDIO_FILE_STRUCT *__nextopen;
+ #endif
+-#ifdef __UCLIBC_HAS_GLIBC_CUSTOM_STREAMS__
+-	void *__cookie;
+-	_IO_cookie_io_functions_t __gcs;
+-#endif
+ #ifdef __UCLIBC_HAS_WCHAR__
+ 	wchar_t __ungot[2];
+ #endif
+diff --git a/test/stdio/Makefile.in b/test/stdio/Makefile.in
+--- a/test/stdio/Makefile.in
++++ b/test/stdio/Makefile.in
+@@ -2,3 +2,7 @@
+ # Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
+ 
+ DODIFF_64bit := 1
++
++ifeq ($(UCLIBC_HAS_GLIBC_CUSTOM_STREAMS),)
++TESTS_DISABLED += tst-fmemopen
++endif
+diff --git b/test/stdio/tst-fmemopen.c b/test/stdio/tst-fmemopen.c
+new file mode 100644
+--- /dev/null
++++ b/test/stdio/tst-fmemopen.c
+@@ -0,0 +1,53 @@
++#include <string.h>
++#include <stdio.h>
++#include <stdlib.h>
++
++static char *text_input = "1 23 43";
++
++static const char *good_answer = "1 529 1849 ";
++
++
++static int
++do_test (void)
++{
++    FILE *out, *in;
++    int v, s;
++    size_t size;
++    char *ptr;
++
++    in = fmemopen(text_input, strlen(text_input), "r");
++    if (in == NULL) {
++        perror("fmemopen");
++	return 1;
++    }
++
++    out = open_memstream(&ptr, &size);
++    if (out == NULL) {
++        perror("open_memstream");
++	return 1;
++    }
++
++    for (;;) {
++        s = fscanf(in, "%d", &v);
++        if (s <= 0)
++            break;
++
++        s = fprintf(out, "%d ", v * v);
++        if (s == -1) {
++            puts("fprintf failed");
++	    exit(1);
++	}
++    }
++    fclose(in);
++    fclose(out);
++
++    if (size != strlen(good_answer) || strcmp(good_answer, ptr) != 0) {
++	printf("failed: size=%zu; ptr=%s\n", size, ptr);
++	exit(1);
++    }
++    free(ptr);
++    exit(0);
++}
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
+-- 

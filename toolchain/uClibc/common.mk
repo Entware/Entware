@@ -13,10 +13,10 @@ PKG_NAME:=uClibc-ng
 PKG_SOURCE_URL = http://downloads.uclibc-ng.org/releases/$(PKG_VERSION)/
 PATCH_DIR:=$(PATH_PREFIX)/patches
 CONFIG_DIR:=$(PATH_PREFIX)/config
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 LIBC_SO_VERSION:=$(PKG_VERSION)
 
-PKG_MD5SUM=d7dbc8ddb0274beacbb48e6928d7b097
+PKG_MD5SUM=64bbe13301ffa6ba30c5c1ddec335583
 
 HOST_BUILD_DIR:=$(BUILD_DIR_TOOLCHAIN)/$(PKG_NAME)-$(PKG_VERSION)
 
@@ -69,9 +69,6 @@ define Host/Prepare
 		fi
 	)
 	ln -snf $(PKG_NAME)-$(PKG_VERSION) $(BUILD_DIR_TOOLCHAIN)/$(PKG_NAME)
-	$(RM) $(BUILD_DIR_TOOLCHAIN)/$(PKG_NAME)/include/sys/fanotify.h
-	$(RM) $(BUILD_DIR_TOOLCHAIN)/$(PKG_NAME)/libc/sysdeps/linux/common/sys/fanotify.h
-	$(RM) $(BUILD_DIR_TOOLCHAIN)/$(PKG_NAME)/libc/sysdeps/linux/common/fanotify.c
 endef
 
 define Host/Configure
