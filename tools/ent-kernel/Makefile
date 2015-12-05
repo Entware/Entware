@@ -7,23 +7,32 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ent-kernel
-PKG_VERSION:=1
+PKG_VERSION:=20151205
+PKG_REV:=4424ebabf6ea50f5b2296f95d4471a51a1ce5430
 
-PKG_SOURCE:=kernel-a449bfd2b99a2b19fa64c176d385b29432327a12.tgz
-PKG_SOURCE_URL:=http://entware.wl500g.info/sources
-PKG_MD5SUM:=922640cfbe281688ff61197418f9784f
-HOST_BUILD_DIR:=$(BUILD_DIR_HOST)/linux-2.6.22.19
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE_URL:=https://github.com/wl500g/wl500g.git
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_VERSION:=$(PKG_REV)
 
 include $(INCLUDE_DIR)/host-build.mk
 
+define Host/Prepare
+	$(call Host/Prepare/Default)
+	sed -i -e 's|^\(TOOLCHAINDIR\)=.*|\1=$(TOOLCHAIN_DIR)|g' $(HOST_BUILD_DIR)/gateway/config/defconfig
+endef
+
 define Host/Compile
-	$(CP) ./files/utsrelease.h $(HOST_BUILD_DIR)/include/linux
+	$(MAKE) -C "$(HOST_BUILD_DIR)/gateway" config
 endef
 
 define Host/Install
+	$(CP) $(HOST_BUILD_DIR)/linux/linux-2.6.22.19 $(BUILD_DIR_HOST)
 endef
 
 define Host/Clean
+	rm -fr $(BUILD_DIR_HOST)/linux-2.6.22.19
 endef
 
 $(eval $(call HostBuild))
