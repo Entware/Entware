@@ -1,0 +1,40 @@
+From b0e805fa0d6fea33745952df7b7f5442ca4c374f Mon Sep 17 00:00:00 2001
+From: Mike Frysinger <vapier@gentoo.org>
+Date: Fri, 28 Aug 2015 17:08:49 -0400
+Subject: [PATCH] getmntent: fix memory corruption w/blank lines [BZ #18887]
+
+The fix for BZ #17273 introduced a single byte of memory corruption when
+the line is entirely blank.  It would walk back past the start of the
+buffer if the heap happened to be 0x20 or 0x09 and then write a NUL byte.
+       buffer = '\n';
+       end_ptr = buffer;
+       while (end_ptr[-1] == ' ' || end_ptr[-1] == '\t')
+       	     end_ptr--;
+	     *end_ptr = '\0';
+
+Fix that and rework the tests.  Adding the testcase for BZ #17273 to the
+existing \040 parser does not really make sense as it's unrelated, and
+leads to confusing behavior: it implicitly relies on the new entry being
+longer than the previous entry (since it just rewinds the FILE*).  Split
+it out into its own dedicated testcase instead.
+
+The original patch is at link https://sourceware.org/git/gitweb.cgi?p=glibc.git;a=patch;h=b0e805fa0d6fea33745952df7b7f5442ca4c374f.
+Only code to mntent_r.c is kept in this patch, Change log, NEWS, Makefile, and test cases are excluded.
+
+Upstream-Status: Backport (upstreamed to 2.23)
+Signed-off-by: Baoshan Pang <baoshan.pang@windriver.com>
+
+diff --git a/misc/mntent_r.c b/misc/mntent_r.c
+index 6159873..19af8a8 100644
+--- a/misc/mntent_r.c
++++ b/misc/mntent_r.c
+@@ -136,7 +136,8 @@ __getmntent_r (FILE *stream, struct mntent *mp, char *buffer, int bufsiz)
+       end_ptr = strchr (buffer, '\n');
+       if (end_ptr != NULL)	/* chop newline */
+ 	{
+-	  while (end_ptr[-1] == ' ' || end_ptr[-1] == '\t')
++	  while (end_ptr != buffer
++		 && (end_ptr[-1] == ' ' || end_ptr[-1] == '\t'))
+             end_ptr--;
+ 	  *end_ptr = '\0';
+ 	}

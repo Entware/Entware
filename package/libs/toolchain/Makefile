@@ -9,6 +9,10 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=toolchain
 PKG_RELEASE:=1
 
+ifeq ($(CONFIG_USE_GLIBC),y)
+	PKG_RELEASE=2
+endif
+
 PKG_MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
 PKG_LICENSE:=GPL-3.0-with-GCC-exception
 
@@ -476,9 +480,9 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
 	$(CP) $(TOOLCHAIN_DIR)/lib/libstdc++.so.* $(1)/opt/lib/
   endef
 
-  use_libutil=$(if $(CONFIG_GLIBC_USE_VERSION_2_22),libutil)
-  use_libnsl=$(if $(CONFIG_GLIBC_USE_VERSION_2_22),libnsl)
-  use_nsswitch=$(if $(CONFIG_GLIBC_USE_VERSION_2_22),libnss_dns libnss_files libnss_compat libnss_nisplus libnss_hesiod libnss_db libnss_nis)
+  use_libutil=$(if $(CONFIG_USE_GLIBC),libutil)
+  use_libnsl=$(if $(CONFIG_USE_GLIBC),libnsl)
+  use_nsswitch=$(if $(CONFIG_USE_GLIBC),libnss_dns libnss_files libnss_compat libnss_nisplus libnss_hesiod libnss_db libnss_nis)
 
   define Package/glibc/install
 	$(INSTALL_DIR) $(1)/opt/etc

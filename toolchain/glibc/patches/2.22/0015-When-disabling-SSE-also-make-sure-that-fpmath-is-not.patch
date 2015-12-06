@@ -1,0 +1,32 @@
+From f058c884dd26d10c94550ca5252ed6576614d659 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Thu, 19 Feb 2015 03:23:45 +0000
+Subject: [PATCH 15/27] When disabling SSE also make sure that fpmath is not
+ set to use SSE as well
+
+This fixes errors when we inject sse options through CFLAGS and now
+that we have -Werror turned on by default this warning turns to become
+error on x86
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+
+Upstream-Status: Pending
+---
+ sysdeps/x86/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sysdeps/x86/Makefile b/sysdeps/x86/Makefile
+index 19f5eca..827ea71 100644
+--- a/sysdeps/x86/Makefile
++++ b/sysdeps/x86/Makefile
+@@ -1,6 +1,6 @@
+ ifeq ($(subdir),elf)
+ CFLAGS-.os += $(if $(filter $(@F),$(patsubst %,%.os,$(all-rtld-routines))),\
+-		   -mno-sse -mno-mmx)
++		   -mno-sse -mno-mmx -mfpmath=387)
+ 
+ tests-special += $(objpfx)tst-ld-sse-use.out
+ $(objpfx)tst-ld-sse-use.out: ../sysdeps/x86/tst-ld-sse-use.sh $(objpfx)ld.so
+-- 
+2.1.4
+

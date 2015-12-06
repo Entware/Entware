@@ -1,0 +1,84 @@
+From cadaf1336332ca7bcdfe4a400776e5782a20e26d Mon Sep 17 00:00:00 2001
+From: "H.J. Lu" <hjl.tools@gmail.com>
+Date: Wed, 28 Oct 2015 07:49:44 -0700
+Subject: [PATCH] Keep only ELF_RTYPE_CLASS_{PLT|COPY} bits for prelink
+
+prelink runs ld.so with the environment variable LD_TRACE_PRELINKING
+set to dump the relocation type class from _dl_debug_bindings.  prelink
+has the following relocation type classes:
+
+ #define RTYPE_CLASS_VALID       8
+ #define RTYPE_CLASS_PLT         (8|1)
+ #define RTYPE_CLASS_COPY        (8|2)
+ #define RTYPE_CLASS_TLS         (8|4)
+
+where ELF_RTYPE_CLASS_EXTERN_PROTECTED_DATA has a conflict with
+RTYPE_CLASS_TLS.
+
+Since prelink only uses ELF_RTYPE_CLASS_PLT and ELF_RTYPE_CLASS_COPY
+bits, we should clear the other bits when the DL_DEBUG_PRELINK bit is
+set.
+
+	[BZ #19178]
+	* elf/dl-lookup.c (RTYPE_CLASS_VALID): New.
+	(RTYPE_CLASS_PLT): Likewise.
+	(RTYPE_CLASS_COPY): Likewise.
+	(RTYPE_CLASS_TLS): Likewise.
+	(_dl_debug_bindings): Use RTYPE_CLASS_TLS and RTYPE_CLASS_VALID
+	to set relocation type class for DL_DEBUG_PRELINK.  Keep only
+	ELF_RTYPE_CLASS_PLT and ELF_RTYPE_CLASS_COPY bits for
+	DL_DEBUG_PRELINK.
+
+Upstream-Status: submitted (https://sourceware.org/bugzilla/show_bug.cgi?id=19178)
+
+Signed-off-by: Mark Hatle <mark.hatle@windriver.com>
+---
+ elf/dl-lookup.c | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/elf/dl-lookup.c b/elf/dl-lookup.c
+index 581fb20..6ae6cc3 100644
+--- a/elf/dl-lookup.c
++++ b/elf/dl-lookup.c
+@@ -1016,6 +1016,18 @@ _dl_debug_bindings (const char *undef_name, struct link_map *undef_map,
+ #ifdef SHARED
+   if (GLRO(dl_debug_mask) & DL_DEBUG_PRELINK)
+     {
++/* ELF_RTYPE_CLASS_XXX must match RTYPE_CLASS_XXX used by prelink with
++   LD_TRACE_PRELINKING.  */
++#define RTYPE_CLASS_VALID	8
++#define RTYPE_CLASS_PLT		(8|1)
++#define RTYPE_CLASS_COPY	(8|2)
++#define RTYPE_CLASS_TLS		(8|4)
++#if ELF_RTYPE_CLASS_PLT != 0 && ELF_RTYPE_CLASS_PLT != 1
++# error ELF_RTYPE_CLASS_PLT must be 0 or 1!
++#endif
++#if ELF_RTYPE_CLASS_COPY != 0 && ELF_RTYPE_CLASS_COPY != 2
++# error ELF_RTYPE_CLASS_COPY must be 0 or 2!
++#endif
+       int conflict = 0;
+       struct sym_val val = { NULL, NULL };
+ 
+@@ -1071,12 +1083,17 @@ _dl_debug_bindings (const char *undef_name, struct link_map *undef_map,
+ 
+       if (value->s)
+ 	{
++	  /* Keep only ELF_RTYPE_CLASS_PLT and ELF_RTYPE_CLASS_COPY
++	     bits since since prelink only uses them.  */
++	  type_class &= ELF_RTYPE_CLASS_PLT | ELF_RTYPE_CLASS_COPY;
+ 	  if (__glibc_unlikely (ELFW(ST_TYPE) (value->s->st_info)
+ 				== STT_TLS))
+-	    type_class = 4;
++	    /* Clear the RTYPE_CLASS_VALID bit in RTYPE_CLASS_TLS.  */
++	    type_class = RTYPE_CLASS_TLS & ~RTYPE_CLASS_VALID;
+ 	  else if (__glibc_unlikely (ELFW(ST_TYPE) (value->s->st_info)
+ 				     == STT_GNU_IFUNC))
+-	    type_class |= 8;
++	    /* Set the RTYPE_CLASS_VALID bit.  */
++	    type_class |= RTYPE_CLASS_VALID;
+ 	}
+ 
+       if (conflict
+-- 
+1.9.3
+

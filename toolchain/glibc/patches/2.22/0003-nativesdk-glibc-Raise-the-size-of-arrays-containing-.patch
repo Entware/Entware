@@ -1,0 +1,126 @@
+From fd595a5ec885bcb4c14417daa21c2e61c5b72e42 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Wed, 18 Mar 2015 01:51:38 +0000
+Subject: [PATCH 03/27] nativesdk-glibc: Raise the size of arrays containing dl
+ paths
+
+This patch puts the dynamic loader path in the binaries, SYSTEM_DIRS strings
+and lengths as well as ld.so.cache path in the dynamic loader to specific
+sections in memory. The sections that contain paths have been allocated a 4096
+byte section, which is the maximum path length in linux. This will allow the
+relocating script to parse the ELF binary, detect the section and easily replace
+the strings in a certain path.
+
+Upstream-Status: Inappropriate [SDK specific]
+
+Signed-off-by: Laurentiu Palcu <laurentiu.palcu@intel.com>
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ elf/dl-cache.c             | 4 ++++
+ elf/dl-load.c              | 4 ++--
+ elf/interp.c               | 2 +-
+ elf/ldconfig.c             | 3 +++
+ elf/rtld.c                 | 5 +++--
+ sysdeps/generic/dl-cache.h | 4 ----
+ 6 files changed, 13 insertions(+), 9 deletions(-)
+
+diff --git a/elf/dl-cache.c b/elf/dl-cache.c
+index dec49bc..862f1d8 100644
+--- a/elf/dl-cache.c
++++ b/elf/dl-cache.c
+@@ -132,6 +132,10 @@ do									      \
+ while (0)
+ 
+ 
++const char LD_SO_CACHE[4096] __attribute__ ((section (".ldsocache"))) =
++		SYSCONFDIR "/ld.so.cache";
++
++
+ int
+ internal_function
+ _dl_cache_libcmp (const char *p1, const char *p2)
+diff --git a/elf/dl-load.c b/elf/dl-load.c
+index f1eb5ed..f664f50 100644
+--- a/elf/dl-load.c
++++ b/elf/dl-load.c
+@@ -104,8 +104,8 @@ static size_t max_capstrlen attribute_relro;
+ /* Get the generated information about the trusted directories.  */
+ #include "trusted-dirs.h"
+ 
+-static const char system_dirs[] = SYSTEM_DIRS;
+-static const size_t system_dirs_len[] =
++static const char system_dirs[4096] __attribute__ ((section (".sysdirs"))) = SYSTEM_DIRS;
++volatile static const size_t system_dirs_len[] __attribute__ ((section (".sysdirslen"))) =
+ {
+   SYSTEM_DIRS_LEN
+ };
+diff --git a/elf/interp.c b/elf/interp.c
+index 422ea95e..6d61a36 100644
+--- a/elf/interp.c
++++ b/elf/interp.c
+@@ -18,5 +18,5 @@
+ 
+ #include <runtime-linker.h>
+ 
+-const char __invoke_dynamic_linker__[] __attribute__ ((section (".interp")))
++const char __invoke_dynamic_linker__[4096] __attribute__ ((section (".interp")))
+   = RUNTIME_LINKER;
+diff --git a/elf/ldconfig.c b/elf/ldconfig.c
+index f54ec22..0e78a83 100644
+--- a/elf/ldconfig.c
++++ b/elf/ldconfig.c
+@@ -167,6 +167,9 @@ static struct argp argp =
+   options, parse_opt, NULL, doc, NULL, more_help, NULL
+ };
+ 
++
++extern const char LD_SO_CACHE[4096] __attribute__ ((section (".ldsocache")));
++
+ /* Check if string corresponds to an important hardware capability or
+    a platform.  */
+ static int
+diff --git a/elf/rtld.c b/elf/rtld.c
+index 69873c2..6d3add7 100644
+--- a/elf/rtld.c
++++ b/elf/rtld.c
+@@ -99,6 +99,7 @@ uintptr_t __pointer_chk_guard_local
+ strong_alias (__pointer_chk_guard_local, __pointer_chk_guard)
+ #endif
+ 
++extern const char LD_SO_CACHE[4096] __attribute__ ((section (".ldsocache")));
+ 
+ /* List of auditing DSOs.  */
+ static struct audit_list
+@@ -877,12 +878,12 @@ of this helper program; chances are you did not intend to run this program.\n\
+   --list                list all dependencies and how they are resolved\n\
+   --verify              verify that given object really is a dynamically linked\n\
+ 			object we can handle\n\
+-  --inhibit-cache       Do not use " LD_SO_CACHE "\n\
++  --inhibit-cache       Do not use %s\n\
+   --library-path PATH   use given PATH instead of content of the environment\n\
+ 			variable LD_LIBRARY_PATH\n\
+   --inhibit-rpath LIST  ignore RUNPATH and RPATH information in object names\n\
+ 			in LIST\n\
+-  --audit LIST          use objects named in LIST as auditors\n");
++  --audit LIST          use objects named in LIST as auditors\n", LD_SO_CACHE);
+ 
+       ++_dl_skip_args;
+       --_dl_argc;
+diff --git a/sysdeps/generic/dl-cache.h b/sysdeps/generic/dl-cache.h
+index 4b49869..1800d03 100644
+--- a/sysdeps/generic/dl-cache.h
++++ b/sysdeps/generic/dl-cache.h
+@@ -27,10 +27,6 @@
+   ((flags) == 1 || (flags) == _DL_CACHE_DEFAULT_ID)
+ #endif
+ 
+-#ifndef LD_SO_CACHE
+-# define LD_SO_CACHE SYSCONFDIR "/ld.so.cache"
+-#endif
+-
+ #ifndef add_system_dir
+ # define add_system_dir(dir) add_dir (dir)
+ #endif
+-- 
+2.1.4
+

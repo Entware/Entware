@@ -1,0 +1,34 @@
+From 2560b564b5674bf2990e5607f6342c1647a5dc4f Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Sun, 8 Mar 2015 04:01:01 +0000
+Subject: [PATCH 04/27] Backport
+ https://sourceware.org/ml/libc-ports/2007-12/msg00000.html
+
+Upstream-Status: Pending
+
+2007-12-03  Kristian Van Der Vliet  <vanders@liqwyd.com>
+
+        * bits/stdio-lock.h (_IO_acquire_lock_clear_flags2): Define
+
+Signed-off-by: Kristian Van Der Vliet <vanders@liqwyd.com>
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ bits/stdio-lock.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/bits/stdio-lock.h b/bits/stdio-lock.h
+index 0c5bb65..66304a6 100644
+--- a/bits/stdio-lock.h
++++ b/bits/stdio-lock.h
+@@ -49,6 +49,8 @@ __libc_lock_define_recursive (typedef, _IO_lock_t)
+   _IO_cleanup_region_start ((void (*) (void *)) _IO_funlockfile, (_fp));      \
+   _IO_flockfile (_fp)
+ 
++# define _IO_acquire_lock_clear_flags2(_fp) _IO_acquire_lock (_fp)
++
+ # define _IO_release_lock(_fp) \
+   _IO_funlockfile (_fp);						      \
+   _IO_cleanup_region_end (0)
+-- 
+2.1.4
+

@@ -1,0 +1,1436 @@
+From aa7c5fe86d04584a9aed4dc40ba856c65a1ef9c4 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Wed, 18 Mar 2015 00:45:18 +0000
+Subject: [PATCH 19/27] eglibc: Bring Eglibc option group infrastructure to
+ glibc
+
+Upstream-Status: Pending
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ EGLIBC.option-groups              | 122 ++++++
+ Makefile                          |   1 +
+ config.make.in                    |   2 +
+ configure                         |  13 +
+ configure.ac                      |  10 +
+ option-groups.def                 | 868 ++++++++++++++++++++++++++++++++++++++
+ option-groups.defaults            |  47 +++
+ option-groups.mak                 |  41 ++
+ options-config/Makefile           |  55 +++
+ options-config/config-postproc.pl |  58 +++
+ options-config/config-preproc.pl  |   8 +
+ scripts/option-groups.awk         |  63 +++
+ 12 files changed, 1288 insertions(+)
+ create mode 100644 EGLIBC.option-groups
+ create mode 100644 option-groups.def
+ create mode 100644 option-groups.defaults
+ create mode 100644 option-groups.mak
+ create mode 100644 options-config/Makefile
+ create mode 100644 options-config/config-postproc.pl
+ create mode 100644 options-config/config-preproc.pl
+ create mode 100644 scripts/option-groups.awk
+
+diff --git a/EGLIBC.option-groups b/EGLIBC.option-groups
+new file mode 100644
+index 0000000..6a50b8d
+--- /dev/null
++++ b/EGLIBC.option-groups
+@@ -0,0 +1,122 @@
++                                                        -*- mode: text -*-
++
++              The EGLIBC Component Configuration System
++                  Jim Blandy <jimb@codesourcery.com>
++
++Introduction
++
++The GNU C library (GLIBC) provides a broad range of functionality,
++ranging from internationalization support to transcendental
++mathematical functions.  Its website boasts that "nearly all known and
++useful functions from any other C library are available."  This
++exhaustive approach has been one of GLIBC's strengths on desktop and
++server systems, but it has also given GLIBC a large footprint, both in
++memory and on disk, making it a challenge to use in embedded systems
++with limited resources.
++
++The Embedded GNU C library (EGLIBC) is a variant of the GNU C library
++designed to work well on embedded systems.  In particular, EGLIBC's
++component configuration system allows embedded developers to build
++customized versions of the library that include only the features
++their application uses, reducing its space requirements.
++
++EGLIBC's component configuration system categorizes the library's
++functions into "option groups", and allows you to include or exclude
++option groups individually.  Some option groups depend on others;
++EGLIBC tracks these relationships, and ensures that the selected
++configuration yields a functioning library.
++
++
++Consistent and Predictable Behavior
++
++A flexible configuration system is a mixed blessing: if the options
++offered are poorly designed, it can be hard to see which choices will
++have the desired effects, and choices with obscure consequences can
++make debugging difficult.  EGLIBC's configuration follows some general
++principles to reduce these risks:
++
++- EGLIBC has a single default configuration for each target
++  architecture.
++
++- In the default configuration, all option groups are enabled, and
++  EGLIBC is upwardly API- and ABI-compatible with GLIBC.
++
++- As much as possible, configurations only affect what functions are
++  present, not how they behave.  If the system works with an option
++  group disabled, it will still work with it enabled.
++
++- As much as possible, configurations only select option groups ---
++  they do not describe characteristics of the target architecture.
++
++These rules mean that you have a simple debugging strategy available
++if you suspect that your EGLIBC configuration might be the source of a
++problem: fall back to the default configuration, re-test, and then
++disable option groups one by one, until the problem reappears.
++
++
++The Option Groups
++
++To see the current full list of implemented option groups, refer to the
++file 'option-groups.def' at the top of the source tree, or run
++'make menuconfig' from the top-level build directory.
++
++The POSIX.1-2001 specification includes a suggested partition of all
++the functions in the POSIX C API into option groups: math functions
++like 'sin' and 'cos'; networking functions like 'socket' and
++'connect'; and so on.  EGLIBC could use this partitioning as the basis
++for future option groups.
++
++
++Implementation
++
++The EGLIBC component configuration system resembles the approach used
++by the Linux kernel to select device drivers, network protocols, and
++other features.  A file named 'option-groups.config' in the top-level
++build directory contains assignments to Make variables, each of which
++enables or disables a particular option group.  If the variable's
++value is set to 'y', then the option group is enabled; if it set to
++anything else, the option group is omitted.  The file
++'option-groups.defaults', at the top of the source tree, establishes
++default values for all variables; all option groups are enabled by
++default.
++
++For example, the following 'option-groups.config' would omit locale
++data, but include mathematical functions, and everything else:
++
++   OPTION_EGLIBC_LOCALES = n
++   OPTION_EGLIBC_LIBM = y
++
++Like the Linux kernel, EGLIBC supports a similar set of '*config' make
++targets to make it easier to create 'option-groups.config', with all
++dependencies between option groups automatically satisfied.  Run
++'make help' to see the list of supported make config targets.  For
++example, 'make menuconfig' will update the current config utilising a
++menu based program.
++
++The option group names and their type (boolean, int, hex, string), help
++description, and dependencies with other option groups, are described by
++'option-groups.def' at the top of the source tree, analogous to the
++'Kconfig' files in the Linux kernel.
++
++In general, each option group variable controls whether a given set of
++object files in EGLIBC is compiled and included in the final
++libraries, or omitted from the build.
++
++Each subdirectory's Makefile categorizes its routines, libraries, and
++executables by option group.  For example, EGLIBC's 'math/Makefile'
++places the 'libm' library in the OPTION_EGLIBC_LIBM group as follows:
++
++   extra-libs-$(OPTION_EGLIBC_LIBM) := libm
++
++Finally, common code in 'Makerules' cites the value of the variable
++'extra-libs-y', selecting only those libraries that belong to enabled
++option groups to be built.
++
++
++Current Status and Future Directions
++
++The EGLIBC component configuration system described here is still
++under development.
++
++We have used the system to subset some portions of EGLIBC's
++Index: libc/configure.ac
+diff --git a/Makefile b/Makefile
+index 658ccfa..f906391 100644
+--- a/Makefile
++++ b/Makefile
+@@ -24,6 +24,7 @@ endif
+ 
+ include Makeconfig
+ 
++include options-config/Makefile
+ 
+ # This is the default target; it makes everything except the tests.
+ .PHONY: all
+diff --git a/config.make.in b/config.make.in
+index a9f5696..294f8d1 100644
+--- a/config.make.in
++++ b/config.make.in
+@@ -47,6 +47,8 @@ c++-sysincludes = @CXX_SYSINCLUDES@
+ all-warnings = @all_warnings@
+ enable-werror = @enable_werror@
+ 
++kconfig_tools = @KCONFIG_TOOLS@
++
+ have-z-combreloc = @libc_cv_z_combreloc@
+ have-z-execstack = @libc_cv_z_execstack@
+ have-Bgroup = @libc_cv_Bgroup@
+diff --git a/configure b/configure
+index 7d7299a..4116404 100755
+--- a/configure
++++ b/configure
+@@ -641,6 +641,7 @@ INSTALL_INFO
+ PERL
+ BASH_SHELL
+ libc_cv_gcc_static_libgcc
++KCONFIG_TOOLS
+ CXX_SYSINCLUDES
+ SYSINCLUDES
+ AUTOCONF
+@@ -755,6 +756,7 @@ with_fp
+ with_binutils
+ with_selinux
+ with_headers
++with_kconfig
+ with_default_link
+ enable_sanity_checks
+ enable_shared
+@@ -1459,6 +1461,9 @@ Optional Packages:
+   --with-selinux          if building with SELinux support
+   --with-headers=PATH     location of system headers to use (for example
+                           /usr/src/linux/include) [default=compiler default]
++  --with-kconfig=PATH     location of kconfig tools to use (from Linux kernel
++                          builds) to re-use for configuring EGLIBC option
++                          groups
+   --with-default-link     do not use explicit linker scripts
+   --with-cpu=CPU          select code for CPU variant
+ 
+@@ -3517,6 +3522,14 @@ fi
+ 
+ 
+ 
++# Check whether --with-kconfig was given.
++if test "${with_kconfig+set}" = set; then
++  withval=$with_kconfig; KCONFIG_TOOLS=$withval
++else
++  KCONFIG_TOOLS=''
++fi
++
++
+ 
+ # Check whether --with-default-link was given.
+ if test "${with_default_link+set}" = set; then :
+diff --git a/configure.ac b/configure.ac
+index a467a69..fc0ed4d 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -136,6 +136,16 @@ AC_ARG_WITH([headers],
+ 	    [sysheaders=''])
+ AC_SUBST(sysheaders)
+ 
++AC_ARG_WITH([kconfig],
++	    AC_HELP_STRING([--with-kconfig=PATH],
++			   [location of kconfig tools to use (from Linux
++			    kernel builds) to re-use for configuring EGLIBC
++			    option groups]),
++	    [KCONFIG_TOOLS=$withval],
++	    [KCONFIG_TOOLS=''])
++AC_SUBST(KCONFIG_TOOLS)
++
++
+ AC_SUBST(use_default_link)
+ AC_ARG_WITH([default-link],
+ 	    AC_HELP_STRING([--with-default-link],
+diff --git a/option-groups.def b/option-groups.def
+new file mode 100644
+index 0000000..6aebd94
+--- /dev/null
++++ b/option-groups.def
+@@ -0,0 +1,868 @@
++# This file documents the option groups EGLIBC currently supports, in
++# a format akin to the Linux Kconfig system's.  The syntax may change
++# over time.
++#
++# An entry of the form:
++#
++#   config GROUP_NAME
++#       bool "one-line explanation of what this option group controls"
++#       help
++#           Multi-line help explaining the option group's meaning in
++#           some detail, terminated by indentation level.
++#
++# defines an option group whose variable is GROUP_NAME, with
++# meaningful values 'y' (enabled) and 'n' (disabled).  The
++# documentation is formatted to be consumed by some sort of
++# interactive configuration interface, but EGLIBC doesn't have such an
++# interface yet.
++#
++# An option may have a 'depends on' line, indicating which other options
++# must also be enabled if this option is.  At present, EGLIBC doesn't
++# check that these dependencies are satisfied.
++#
++# Option group variables get their default values from the file
++# 'option-groups.defaults', in the top directory of the EGLIBC source
++# tree.  By default, all EGLIBC option groups are enabled --- their
++# variables are set to 'y'.
++#
++# After including 'option-groups.defaults', the EGLIBC make machinery
++# includes the file 'option-groups.config' from the top of the build
++# tree, if it is present.  Developers can place assignments to option
++# group variables in that file to override the defaults.  For example,
++# to disable an option group, place a line of the form:
++#
++#    OPTION_GROUP_NAME = n
++#
++# in 'option-groups.config' at the top of your build tree.  To
++# explicitly enable an option group, you may also write:
++#
++#    OPTION_GROUP_NAME = y
++#
++# although this simply reestablishes the value already set by
++# 'option-groups.defaults'.
++
++config EGLIBC_ADVANCED_INET6
++   bool "IPv6 Advanced Sockets API support (RFC3542)"
++   depends on EGLIBC_INET
++   help
++       This option group includes the functions specified by RFC 3542,
++       "Advanced Sockets Application Program Interface (API) for
++       IPv6".
++
++       This option group includes the following functions:
++
++         inet6_opt_append
++         inet6_opt_find
++         inet6_opt_finish
++         inet6_opt_get_val
++         inet6_opt_init
++         inet6_option_alloc
++         inet6_option_append
++         inet6_option_find
++         inet6_option_init
++         inet6_option_next
++         inet6_option_space
++         inet6_opt_next
++         inet6_opt_set_val
++         inet6_rth_add
++         inet6_rth_getaddr
++         inet6_rth_init
++         inet6_rth_reverse
++         inet6_rth_segments
++         inet6_rth_space
++
++config EGLIBC_BACKTRACE
++   bool "Functions for producing backtraces"
++   help
++       This option group includes functions for producing a list of
++       the function calls that are currently active in a thread, from
++       within the thread itself.  These functions are often used
++       within signal handlers, to produce diagnostic output.
++
++       This option group includes the following functions:
++
++         backtrace
++         backtrace_symbols
++         backtrace_symbols_fd
++
++config EGLIBC_BIG_MACROS
++   bool "Use extensive inline code"
++   help
++       This option group specifies whether certain pieces of code
++       should be inlined to achieve maximum speed.  If this option
++       group is not selected, function calls will be used instead,
++       hence reducing the library footprint.
++
++config EGLIBC_BSD
++   bool "BSD-specific functions, and their compatibility stubs"
++   help
++       This option group includes functions specific to BSD kernels.
++       A number of these functions have stub versions that are also
++       included in libraries built for non-BSD systems for
++       compatibility.
++
++       This option group includes the following functions:
++
++         chflags
++         fchflags
++         lchmod
++         revoke
++         setlogin
++
++config EGLIBC_CXX_TESTS
++   bool "Tests that link against the standard C++ library."
++   depends on POSIX_WIDE_CHAR_DEVICE_IO && EGLIBC_LIBM
++   help
++       This option group does not include any C library functions;
++       instead, it controls which EGLIBC tests an ordinary 'make
++       tests' runs.  With this group disabled, tests that would
++       normally link against the standard C++ library are not
++       run.
++
++       The standard C++ library depends on the math library 'libm' and
++       the wide character I/O functions included in EGLIBC.  So those
++       option groups must be enabled if this test is enabled.
++
++config EGLIBC_CATGETS
++   bool "Functions for accessing message catalogs"
++   depends on EGLIBC_LOCALE_CODE
++   help
++       This option group includes functions for accessing message
++       catalogs: catopen, catclose, and catgets.
++
++       This option group depends on the EGLIBC_LOCALE_CODE
++       option group.
++
++config EGLIBC_CHARSETS
++   bool "iconv/gconv character set conversion libraries"
++   help
++       This option group includes support for character sets other
++       than ASCII (ANSI_X3.4-1968) and Unicode and ISO-10646 in their
++       various encodings.  This affects both the character sets
++       supported by the wide and multibyte character functions, and
++       those supported by the 'iconv' functions.
++
++       With this option group disabled, EGLIBC supports only the
++       following character sets:
++
++          ANSI_X3.4         - ASCII
++          ANSI_X3.4-1968
++          ANSI_X3.4-1986
++          ASCII
++          CP367
++          CSASCII
++          IBM367
++          ISO-IR-6
++          ISO646-US
++          ISO_646.IRV:1991
++          OSF00010020
++          US
++          US-ASCII
++
++          10646-1:1993      - ISO 10646, in big-endian UCS4 form
++          10646-1:1993/UCS4
++          CSUCS4
++          ISO-10646
++          ISO-10646/UCS4
++          OSF00010104
++          OSF00010105
++          OSF00010106
++          UCS-4
++          UCS-4BE
++          UCS4
++
++          UCS-4LE           - ISO 10646, in little-endian UCS4 form
++
++          ISO-10646/UTF-8   - ISO 10646, in UTF-8 form
++          ISO-10646/UTF8
++          ISO-IR-193
++          OSF05010001
++          UTF-8
++          UTF8
++
++          ISO-10646/UCS2    - ISO 10646, in target-endian UCS2 form
++          OSF00010100
++          OSF00010101
++          OSF00010102
++          UCS-2
++          UCS2
++
++          UCS-2BE           - ISO 10646, in big-endian UCS2 form
++          UNICODEBIG
++
++          UCS-2LE           - ISO 10646, in little-endian UCS2 form
++          UNICODELITTLE
++
++          WCHAR_T           - EGLIBC's internal form (target-endian,
++                              32-bit ISO 10646)
++
++config EGLIBC_CRYPT
++   bool "Encryption library"
++   help
++       This option group includes the `libcrypt' library which
++       provides functions for one-way encryption.  Supported
++       encryption algorithms include MD5, SHA-256, SHA-512 and DES.
++
++config EGLIBC_CRYPT_UFC
++   bool "Ultra fast `crypt' implementation"
++   depends on EGLIBC_CRYPT
++   help
++       This option group provides ultra fast DES-based implementation of
++       the `crypt' function.  When this option group is disabled,
++       (a) the library will not provide the setkey[_r] and encrypt[_r]
++       functions and (b) the crypt[_r] function will return NULL and set the
++       errno to ENOSYS if /salt/ passed does not correspond to either MD5,
++       SHA-256 or SHA-512 algorithm.
++
++config EGLIBC_DB_ALIASES
++   bool "Functions for accessing the mail aliases database"
++   help
++       This option group includues functions for looking up mail
++       aliases in '/etc/aliases' or using nsswitch.  It includes the
++       following functions:
++
++         endaliasent
++         getaliasbyname
++         getaliasbyname_r
++         getaliasent
++         getaliasent_r
++         setaliasent
++
++       When this option group is disabled, the NSS service libraries
++       also lack support for querying their mail alias tables.
++
++config EGLIBC_ENVZ
++   bool "Functions for handling envz-style environment vectors."
++   help
++       This option group contains functions for creating and operating
++       on envz vectors.  An "envz vector" is a vector of strings in a
++       contiguous block of memory, where each element is a name-value
++       pair, and elements are separated from their neighbors by null
++       characters.
++
++       This option group includes the following functions:
++
++        envz_add        envz_merge
++        envz_entry      envz_remove
++        envz_get        envz_strip
++
++config EGLIBC_FCVT
++   bool "Functions for converting floating-point numbers to strings"
++   help
++       This option group includes functions for converting
++       floating-point numbers to strings.
++
++       This option group includes the following functions:
++
++         ecvt           qecvt
++	 ecvt_r		qecvt_r
++         fcvt		qfcvt
++	 fcvt_r		qfcvt_r
++         gcvt		qgcvt
++
++config EGLIBC_FMTMSG
++   bool "Functions for formatting messages"
++   help
++       This option group includes the following functions:
++
++         addseverity    fmtmsg
++
++config EGLIBC_FSTAB
++   bool "Access functions for 'fstab'"
++   help
++       This option group includes functions for reading the mount
++       point specification table, '/etc/fstab'.  These functions are
++       not included in the POSIX standard, which provides the
++       'getmntent' family of functions instead.
++
++       This option group includes the following functions:
++
++         endfsent       getfsspec
++         getfsent       setfsent
++         getfsfile
++
++config EGLIBC_FTRAVERSE
++   bool "Functions for traversing file hierarchies"
++   help
++       This option group includes functions for traversing file
++       UNIX file hierachies.
++
++       This option group includes the following functions:
++
++         fts_open       ftw
++	 fts_read	nftw
++         fts_children	ftw64
++	 fts_set	nftw64
++         fts_close
++
++config EGLIBC_GETLOGIN
++   bool "The getlogin function"
++   depends on EGLIBC_UTMP
++   help
++       This function group includes the 'getlogin' and 'getlogin_r'
++       functions, which return the user name associated by the login
++       activity with the current process's controlling terminal.
++
++       With this option group disabled, the 'glob' function will not
++       fall back on 'getlogin' to find the user's login name for tilde
++       expansion when the 'HOME' environment variable is not set.
++
++config EGLIBC_IDN
++   bool "International domain names support"
++   help
++       This option group includes the `libcidn' library which
++       provides support for international domain names.
++
++config EGLIBC_INET
++   bool "Networking support"
++   help
++       This option group includes networking-specific functions and
++       data.  With EGLIBC_INET disabled, the EGLIBC
++       installation and API changes as follows:
++
++       - The following libraries are not installed:
++
++         libnsl
++         libnss_compat
++         libnss_dns
++         libnss_hesiod
++         libnss_nis
++         libnss_nisplus
++         libresolv
++
++       - The following functions and variables are omitted from libc:
++
++         authdes_create           hstrerror              svc_fdset
++         authdes_getucred         htonl                  svc_getreq
++         authdes_pk_create        htons                  svc_getreq_common
++         authnone_create          if_freenameindex       svc_getreq_poll
++         authunix_create          if_indextoname         svc_getreqset
++         authunix_create_default  if_nameindex           svc_max_pollfd
++         bindresvport             if_nametoindex         svc_pollfd
++         callrpc                  in6addr_any            svcraw_create
++         cbc_crypt                in6addr_loopback       svc_register
++         clnt_broadcast           inet6_opt_append       svc_run
++         clnt_create              inet6_opt_find         svc_sendreply
++         clnt_pcreateerror        inet6_opt_finish       svctcp_create
++         clnt_perrno              inet6_opt_get_val      svcudp_bufcreate
++         clnt_perror              inet6_opt_init         svcudp_create
++         clntraw_create           inet6_option_alloc     svcudp_enablecache
++         clnt_spcreateerror       inet6_option_append    svcunix_create
++         clnt_sperrno             inet6_option_find      svcunixfd_create
++         clnt_sperror             inet6_option_init      svc_unregister
++         clnttcp_create           inet6_option_next      user2netname
++         clntudp_bufcreate        inet6_option_space     xdecrypt
++         clntudp_create           inet6_opt_next         xdr_accepted_reply
++         clntunix_create          inet6_opt_set_val      xdr_array
++         des_setparity            inet6_rth_add          xdr_authdes_cred
++         ecb_crypt                inet6_rth_getaddr      xdr_authdes_verf
++         endaliasent              inet6_rth_init         xdr_authunix_parms
++         endhostent               inet6_rth_reverse      xdr_bool
++         endnetent                inet6_rth_segments     xdr_bytes
++         endnetgrent              inet6_rth_space        xdr_callhdr
++         endprotoent              inet_addr              xdr_callmsg
++         endrpcent                inet_aton              xdr_char
++         endservent               inet_lnaof             xdr_cryptkeyarg
++         ether_aton               inet_makeaddr          xdr_cryptkeyarg2
++         ether_aton_r             inet_netof             xdr_cryptkeyres
++         ether_hostton            inet_network           xdr_des_block
++         ether_line               inet_nsap_addr         xdr_double
++         ether_ntoa               inet_nsap_ntoa         xdr_enum
++         ether_ntoa_r             inet_ntoa              xdr_float
++         ether_ntohost            inet_ntop              xdr_free
++         freeaddrinfo             inet_pton              xdr_getcredres
++         freeifaddrs              innetgr                xdr_hyper
++         gai_strerror             iruserok               xdr_int
++         getaddrinfo              iruserok_af            xdr_int16_t
++         getaliasbyname           key_decryptsession     xdr_int32_t
++         getaliasbyname_r         key_decryptsession_pk  xdr_int64_t
++         getaliasent              key_encryptsession     xdr_int8_t
++         getaliasent_r            key_encryptsession_pk  xdr_keybuf
++         gethostbyaddr            key_gendes             xdr_key_netstarg
++         gethostbyaddr_r          key_get_conv           xdr_key_netstres
++         gethostbyname            key_secretkey_is_set   xdr_keystatus
++         gethostbyname2           key_setnet             xdr_long
++         gethostbyname2_r         key_setsecret          xdr_longlong_t
++         gethostbyname_r          netname2host           xdrmem_create
++         gethostent               netname2user           xdr_netnamestr
++         gethostent_r             ntohl                  xdr_netobj
++         getifaddrs               ntohs                  xdr_opaque
++         getipv4sourcefilter      passwd2des             xdr_opaque_auth
++         get_myaddress            pmap_getmaps           xdr_pmap
++         getnameinfo              pmap_getport           xdr_pmaplist
++         getnetbyaddr             pmap_rmtcall           xdr_pointer
++         getnetbyaddr_r           pmap_set               xdr_quad_t
++         getnetbyname             pmap_unset             xdrrec_create
++         getnetbyname_r           rcmd                   xdrrec_endofrecord
++         getnetent                rcmd_af                xdrrec_eof
++         getnetent_r              registerrpc            xdrrec_skiprecord
++         getnetgrent              res_init               xdr_reference
++         getnetgrent_r            rexec                  xdr_rejected_reply
++         getnetname               rexec_af               xdr_replymsg
++         getprotobyname           rexecoptions           xdr_rmtcall_args
++         getprotobyname_r         rpc_createerr          xdr_rmtcallres
++         getprotobynumber         rresvport              xdr_short
++         getprotobynumber_r       rresvport_af           xdr_sizeof
++         getprotoent              rtime                  xdrstdio_create
++         getprotoent_r            ruserok                xdr_string
++         getpublickey             ruserok_af             xdr_u_char
++         getrpcbyname             ruserpass              xdr_u_hyper
++         getrpcbyname_r           setaliasent            xdr_u_int
++         getrpcbynumber           sethostent             xdr_uint16_t
++         getrpcbynumber_r         setipv4sourcefilter    xdr_uint32_t
++         getrpcent                setnetent              xdr_uint64_t
++         getrpcent_r              setnetgrent            xdr_uint8_t
++         getrpcport               setprotoent            xdr_u_long
++         getsecretkey             setrpcent              xdr_u_longlong_t
++         getservbyname            setservent             xdr_union
++         getservbyname_r          setsourcefilter        xdr_unixcred
++         getservbyport            svcauthdes_stats       xdr_u_quad_t
++         getservbyport_r          svcerr_auth            xdr_u_short
++         getservent               svcerr_decode          xdr_vector
++         getservent_r             svcerr_noproc          xdr_void
++         getsourcefilter          svcerr_noprog          xdr_wrapstring
++         h_errlist                svcerr_progvers        xencrypt
++         h_errno                  svcerr_systemerr       xprt_register
++         herror                   svcerr_weakauth        xprt_unregister
++         h_nerr                   svc_exit
++         host2netname             svcfd_create
++
++       - The rpcgen, nscd, and rpcinfo commands are not installed.
++
++       - The 'rpc' file (a text file listing RPC services) is not installed.
++
++       Socket-related system calls do not fall in this option group,
++       because many are also used for other inter-process
++       communication mechanisms.  For example, the 'syslog' routines
++       use Unix-domain sockets to communicate with the syslog daemon;
++       syslog is valuable in non-networked contexts.
++
++config EGLIBC_INET_ANL
++   bool "Asynchronous name lookup"
++   depends on EGLIBC_INET
++   help
++       This option group includes the `libanl' library which
++       provides support for asynchronous name lookup.
++
++config EGLIBC_LIBM
++   bool "libm (math library)"
++   help
++       This option group includes the 'libm' library, containing
++       mathematical functions.  If this option group is omitted, then
++       an EGLIBC installation does not include shared or unshared versions
++       of the math library.
++
++       Note that this does not remove all floating-point related
++       functionality from EGLIBC; for example, 'printf' and 'scanf'
++       can still print and read floating-point values with this option
++       group disabled.
++
++       Note that the ISO Standard C++ library 'libstdc++' depends on
++       EGLIBC's math library 'libm'.  If you disable this option
++       group, you will not be able to build 'libstdc++' against the
++       resulting EGLIBC installation.
++
++config EGLIBC_LOCALES
++   bool "Locale definitions"
++   help
++       This option group includes all locale definitions other than
++       that for the "C" locale.  If this option group is omitted, then
++       only the "C" locale is supported.
++
++
++config EGLIBC_LOCALE_CODE
++   bool "Locale functions"
++   depends on POSIX_C_LANG_WIDE_CHAR
++   help
++       This option group includes locale support functions, programs,
++       and libraries.  With EGLIBC_LOCALE_CODE disabled,
++       EGLIBC supports only the 'C' locale (also known as 'POSIX'),
++       and ignores the settings of the 'LANG' and 'LC_*' environment
++       variables.
++
++       With EGLIBC_LOCALE_CODE disabled, the following
++       functions are omitted from libc:
++
++         duplocale   localeconv  nl_langinfo    rpmatch  strfmon_l
++         freelocale  newlocale   nl_langinfo_l  strfmon  uselocale
++
++       Furthermore, only the LC_CTYPE and LC_TIME categories of the
++       standard "C" locale are available.
++
++       The EGLIBC_CATGETS option group depends on this option group.
++
++
++config EGLIBC_MEMUSAGE
++   bool "Memory profiling library"
++   help
++       This option group includes the `libmemusage' library and
++       the `memusage' and `memusagestat' utilities.
++       These components provide memory profiling functions.
++
++config EGLIBC_MEMUSAGE_DEFAULT_BUFFER_SIZE
++   int "Memory profiling library buffer size"
++   depends on EGLIBC_MEMUSAGE
++   default "32768"
++   help
++       Libmemusage library buffers the profiling data in memory
++       before writing it out to disk.  By default, the library
++       allocates 1.5M buffer, which can be substantial for some
++       systems.  EGLIBC_MEMUSAGE_DEFAULT_BUFFER_SIZE option
++       allows to change the default buffer size.  It specifies
++       the number of entries the buffer should have.
++       On most architectures one buffer entry amounts to 48 bytes,
++       so setting this option to the value of 512 will reduce the size of
++       the memory buffer to 24K.
++
++config EGLIBC_NIS
++   bool "Support for NIS, NIS+, and the special 'compat' services."
++   depends on EGLIBC_INET && EGLIBC_SUNRPC
++   help
++       This option group includes the NIS, NIS+, and 'compat' Name
++       Service Switch service libraries.  When it is disabled, those
++       services libraries are not installed; you should remove any
++       references to them from your 'nsswitch.conf' file.
++
++       This option group depends on the EGLIBC_INET option
++       group; you must enable that to enable this option group.
++
++config EGLIBC_NSSWITCH
++   bool "Name service switch (nsswitch) support"
++   help
++       This option group includes support for the 'nsswitch' facility.
++       With this option group enabled, all EGLIBC functions for
++       accessing various system databases (passwords and groups;
++       networking; aliases; public keys; and so on) consult the
++       '/etc/nsswitch.conf' configuration file to decide how to handle
++       queries.
++
++       With this option group disabled, EGLIBC uses a fixed list of
++       services to satisfy queries on each database, as requested by
++       configuration files specified when EGLIBC is built.  Your
++       'option-groups.config' file must set the following two
++       variables:
++
++config EGLIBC_NSSWITCH_FIXED_CONFIG
++   string "Nsswitch fixed config filename"
++   depends on !EGLIBC_NSSWITCH
++   default ""
++   help
++          Set this to the name of a file whose contents observe the
++          same syntax as an ordinary '/etc/nsswitch.conf' file.  The
++          EGLIBC build process parses this file just as EGLIBC would
++          at run time if EGLIBC_NSSWITCH were enabled, and
++          produces a C library that uses the nsswitch service
++          libraries to search for database entries as this file
++          specifies, instead of consulting '/etc/nsswitch.conf' at run
++          time.
++
++          This should be an absolute filename.  The EGLIBC build
++          process may use it from several different working
++          directories.  It may include references to Makefile
++          variables like 'common-objpfx' (the top of the build tree,
++          with a trailing slash), or '..' (the top of the source tree,
++          with a trailing slash).
++
++          The EGLIBC source tree includes a sample configuration file
++          named 'nss/fixed-nsswitch.conf'; for simple configurations,
++          you will probably want to delete references to databases not
++          needed on your system.
++
++config EGLIBC_NSSWITCH_FIXED_FUNCTIONS
++   string "Nsswitch fixed functions filename"
++   depends on !EGLIBC_NSSWITCH
++   default ""
++   help
++          The EGLIBC build process uses this file to decide which
++          functions to make available from which service libraries.
++          The file 'nss/fixed-nsswitch.functions' serves as a sample
++          configuration file for this setting, and explains its syntax
++          and meaning in more detail.
++
++          This should be an absolute file name.  The EGLIBC build
++          process may use it from several different working
++          directories.  It may include references to Makefile
++          variables like 'common-objpfx' (the top of the build tree,
++          with a trailing slash), or '..' (the top of the source tree,
++          with a trailing slash).
++
++          Be sure to mention each function in each service you wish to
++          use.  If you do not mention a service's function here, the
++          EGLIBC database access functions will not find it, even if
++          it is listed in the EGLIBC_NSSWITCH_FIXED_CONFIG
++          file.
++
++          In this arrangement, EGLIBC will not use the 'dlopen' and
++          'dlsym' functions to find database access functions.  Instead,
++          libc hard-codes references to the service libraries' database
++          access functions.  You must explicitly link your program
++          against the name service libraries (those whose names start
++          with 'libnss_', in the sysroot's '/lib' directory) whose
++          functions you intend to use.  This arrangement helps
++          system-wide static analysis tools decide which functions a
++          system actually uses.
++
++          Note that some nsswitch service libraries require other option
++          groups to be enabled; for example, the EGLIBC_INET
++          option group must be enabled to use the 'libnss_dns.so.2'
++          service library, which uses the Domain Name System network
++          protocol to answer queries.
++
++config EGLIBC_RCMD
++   bool "Support for 'rcmd' and related library functions"
++   depends on EGLIBC_INET
++   help
++      This option group includes functions for running commands on
++      remote machines via the 'rsh' protocol, and doing authentication
++      related to those functions.  This also includes functions that
++      use the 'rexec' protocol.
++
++      This option group includes the following functions:
++
++        rcmd            ruserok
++        rcmd_af         ruserok_af
++        rexec           iruserok
++        rexec_af        iruserok_af
++        rresvport       ruserpass
++        rresvport_af
++
++config EGLIBC_RTLD_DEBUG
++   bool "Runtime linker debug print outs"
++   help
++      This option group enables debug output of the runtime linker
++      which is activated via LD_DEBUG and LD_TRACE_PRELINKING
++      environment variables.  Disabling this option group yields
++      a smaller runtime linker binary.
++      BEWARE: Disabling this option group is likely to break
++      the `ldd' utility which may also be used by the prelinker.
++      In particular, the `--unused' ldd option will not work correctly.
++
++config EGLIBC_SPAWN
++   bool "Support for POSIX posix_spawn functions"
++   help
++      This option group includes the POSIX functions for executing
++      programs in child processes without using 'fork' or 'vfork'.
++
++      This option group includes the following functions:
++
++        posix_spawn
++        posix_spawnattr_destroy
++        posix_spawnattr_getflags
++        posix_spawnattr_getpgroup
++        posix_spawnattr_getschedparam
++        posix_spawnattr_getschedpolicy
++        posix_spawnattr_getsigdefault
++        posix_spawnattr_getsigmask
++        posix_spawnattr_init
++        posix_spawnattr_setflags
++        posix_spawnattr_setpgroup
++        posix_spawnattr_setschedparam
++        posix_spawnattr_setschedpolicy
++        posix_spawnattr_setsigdefault
++        posix_spawnattr_setsigmask
++        posix_spawn_file_actions_addclose
++        posix_spawn_file_actions_adddup2
++        posix_spawn_file_actions_addopen
++        posix_spawn_file_actions_destroy
++        posix_spawn_file_actions_init
++        posix_spawnp
++
++      This option group also provides the ability for the iconv,
++      localedef, and locale programs to operate transparently on
++      compressed charset definitions.  When this option group is
++      disabled, those programs will only operate on uncompressed
++      charmap files.
++
++config EGLIBC_STREAMS
++   bool "Support for accessing STREAMS."
++   help
++      This option group includes functions for reading and writing
++      messages to and from STREAMS.  The STREAMS interface provides a
++      uniform mechanism for implementing networking services and other
++      character-based I/O.  (STREAMS are not to be confused with
++      <stdio.h> FILE objects, also called 'streams'.)
++
++      This option group includes the following functions:
++
++        getmsg          putpmsg
++        getpmsg         fattach
++        isastream       fdetach
++        putmsg
++
++config EGLIBC_SUNRPC
++   bool "Support for the Sun 'RPC' protocol."
++   depends on EGLIBC_INET
++   help
++      This option group includes support for the Sun RPC protocols,
++      including the 'rpcgen' and 'rpcinfo' programs.
++
++config EGLIBC_UTMP
++    bool "Older access functions for 'utmp' login records"
++    help
++       This option group includes the older 'utent' family of
++       functions for accessing user login records in the 'utmp' file.
++       POSIX omits these functions in favor of the 'utxent' family,
++       and they are obsolete on systems other than Linux.
++
++       This option group includes the following functions:
++
++         endutent
++         getutent
++         getutent_r
++         getutid
++         getutid_r
++         getutline
++         getutline_r
++         logwtmp
++         pututline
++         setutent
++         updwtmp
++         utmpname
++
++       This option group includes the following libraries:
++
++         libutil.so (and libutil.a)
++
++config EGLIBC_UTMPX
++    bool "POSIX access functions for 'utmp' login records"
++    depends on EGLIBC_UTMP
++    help
++       This option group includes the POSIX functions for reading and
++       writing user login records in the 'utmp' file (usually
++       '/var/run/utmp').  The POSIX functions operate on 'struct
++       utmpx' structures, as opposed to the family of older 'utent'
++       functions, which operate on 'struct utmp' structures.
++
++       This option group includes the following functions:
++
++         endutxent
++         getutmp
++         getutmpx
++         getutxent
++         getutxid
++         getutxline
++         pututxline
++         setutxent
++         updwtmpx
++         utmpxname
++
++config EGLIBC_WORDEXP
++    bool "Shell-style word expansion"
++    help
++        This option group includes the 'wordexp' function for
++        performing word expansion in the manner of the shell, and the
++        accompanying 'wordfree' function.
++
++config POSIX_C_LANG_WIDE_CHAR
++    bool "ISO C library wide character functions, excluding I/O"
++    help
++        This option group includes the functions defined by the ISO C
++        standard for working with wide and multibyte characters in
++        memory.  Functions for reading and writing wide and multibyte
++        characters from and to files call in the
++        POSIX_WIDE_CHAR_DEVICE_IO option group.
++
++        This option group includes the following functions:
++
++          btowc         mbsinit       wcscspn       wcstoll
++          iswalnum      mbsrtowcs     wcsftime      wcstombs
++          iswalpha      mbstowcs      wcslen        wcstoul
++          iswblank      mbtowc        wcsncat       wcstoull
++          iswcntrl      swprintf      wcsncmp       wcstoumax
++          iswctype      swscanf       wcsncpy       wcsxfrm
++          iswdigit      towctrans     wcspbrk       wctob
++          iswgraph      towlower      wcsrchr       wctomb
++          iswlower      towupper      wcsrtombs     wctrans
++          iswprint      vswprintf     wcsspn        wctype
++          iswpunct      vswscanf      wcsstr        wmemchr
++          iswspace      wcrtomb       wcstod        wmemcmp
++          iswupper      wcscat        wcstof        wmemcpy
++          iswxdigit     wcschr        wcstoimax     wmemmove
++          mblen         wcscmp        wcstok        wmemset
++          mbrlen        wcscoll       wcstol
++          mbrtowc       wcscpy        wcstold
++
++config POSIX_REGEXP
++    bool "Regular expressions"
++    help
++        This option group includes the POSIX regular expression
++        functions, and the associated non-POSIX extensions and
++        compatibility functions.
++
++        With POSIX_REGEXP disabled, the following functions are
++        omitted from libc:
++
++          re_comp                 re_max_failures         regcomp
++          re_compile_fastmap      re_search               regerror
++          re_compile_pattern      re_search_2             regexec
++          re_exec                 re_set_registers        regfree
++          re_match                re_set_syntax           rpmatch
++          re_match_2              re_syntax_options
++
++        Furthermore, the compatibility regexp interface defined in the
++        <regexp.h> header file, 'compile', 'step', and 'advance', is
++        omitted.
++
++config POSIX_REGEXP_GLIBC
++    bool "Regular expressions from GLIBC"
++    depends on POSIX_REGEXP
++    help
++	This option group specifies which regular expression
++        library to use.  The choice is between regex
++        implementation from GLIBC and regex implementation from
++        libiberty.  The GLIBC variant is fully POSIX conformant and
++        optimized for speed; regex from libiberty is more than twice
++        as small while still is enough for most practical purposes.
++
++config POSIX_WIDE_CHAR_DEVICE_IO
++    bool "Input and output functions for wide characters"
++    depends on POSIX_C_LANG_WIDE_CHAR
++    help
++        This option group includes functions for reading and writing
++        wide characters to and from <stdio.h> streams.
++
++        This option group includes the following functions:
++
++          fgetwc        fwprintf      putwchar      vwscanf
++          fgetws        fwscanf       ungetwc       wprintf
++          fputwc        getwc         vfwprintf     wscanf
++          fputws        getwchar      vfwscanf
++          fwide         putwc         vwprintf
++
++        This option group further includes the following unlocked
++        variants of the above functions:
++
++          fgetwc_unlocked           getwc_unlocked
++          fgetws_unlocked           getwchar_unlocked
++          fputwc_unlocked           putwc_unlocked
++          fputws_unlocked           putwchar_unlocked
++
++        Note that the GNU standard C++ library, 'libstdc++.so', uses
++        some of these functions; you will not be able to link or run
++        C++ programs if you disable this option group.
++
++        This option group also affects the behavior of the following
++        functions:
++
++          fdopen
++          fopen
++          fopen64
++          freopen
++          freopen64
++
++        These functions all take an OPENTYPE parameter which may
++        contain a string of the form ",ccs=CHARSET", indicating that
++        the underlying file uses the character set named CHARSET.
++        This produces a wide-oriented stream, which is only useful
++        when the functions included in this option group are present.
++        If the user attempts to open a file specifying a character set
++        in the OPENTYPE parameter, and EGLIBC was built with this
++        option group disabled, the function returns NULL, and sets
++        errno to EINVAL.
++
++
++# This helps Emacs users browse this file using the page motion commands
++# and commands like 'pages-directory'.
++# Local Variables:
++# page-delimiter: "^config\\s-"
++# End:
+diff --git a/option-groups.defaults b/option-groups.defaults
+new file mode 100644
+index 0000000..8141201
+--- /dev/null
++++ b/option-groups.defaults
+@@ -0,0 +1,47 @@
++# This file sets default values for all option group variables
++# mentioned in option-groups.def; see that file for a description of
++# each option group.
++#
++# Subdirectory makefiles include this file before including the user's
++# settings from option-groups.config at the top of the build tree;
++# that file need only refer to those options whose default settings
++# are to be changed.
++#
++# By default, all option groups are enabled.
++OPTION_EGLIBC_ADVANCED_INET6 = y
++OPTION_EGLIBC_BACKTRACE = y
++OPTION_EGLIBC_BIG_MACROS = y
++OPTION_EGLIBC_BSD = y
++OPTION_EGLIBC_CXX_TESTS = y
++OPTION_EGLIBC_CATGETS = y
++OPTION_EGLIBC_CHARSETS = y
++OPTION_EGLIBC_CRYPT = y
++OPTION_EGLIBC_CRYPT_UFC = y
++OPTION_EGLIBC_DB_ALIASES = y
++OPTION_EGLIBC_ENVZ = y
++OPTION_EGLIBC_FCVT = y
++OPTION_EGLIBC_FMTMSG = y
++OPTION_EGLIBC_FSTAB = y
++OPTION_EGLIBC_FTRAVERSE = y
++OPTION_EGLIBC_GETLOGIN = y
++OPTION_EGLIBC_IDN = y
++OPTION_EGLIBC_INET = y
++OPTION_EGLIBC_INET_ANL = y
++OPTION_EGLIBC_LIBM = y
++OPTION_EGLIBC_LOCALES = y
++OPTION_EGLIBC_LOCALE_CODE = y
++OPTION_EGLIBC_MEMUSAGE = y
++OPTION_EGLIBC_NIS = y
++OPTION_EGLIBC_NSSWITCH = y
++OPTION_EGLIBC_RCMD = y
++OPTION_EGLIBC_RTLD_DEBUG = y
++OPTION_EGLIBC_SPAWN = y
++OPTION_EGLIBC_STREAMS = y
++OPTION_EGLIBC_SUNRPC = y
++OPTION_EGLIBC_UTMP = y
++OPTION_EGLIBC_UTMPX = y
++OPTION_EGLIBC_WORDEXP = y
++OPTION_POSIX_C_LANG_WIDE_CHAR = y
++OPTION_POSIX_REGEXP = y
++OPTION_POSIX_REGEXP_GLIBC = y
++OPTION_POSIX_WIDE_CHAR_DEVICE_IO = y
+diff --git a/option-groups.mak b/option-groups.mak
+new file mode 100644
+index 0000000..f83e0c1
+--- /dev/null
++++ b/option-groups.mak
+@@ -0,0 +1,41 @@
++# Setup file for subdirectory Makefiles that define EGLIBC option groups.
++
++# EGLIBC shouldn't need to override this.  However, the
++# cross-build-friendly localedef includes this makefile to get option
++# group variable definitions; it uses a single build tree for all the
++# multilibs, and needs to be able to specify a different option group
++# configuration file for each multilib.
++option_group_config_file ?= $(objdir)/option-groups.config
++
++# Read the default settings for all options.
++# We're included before ../Rules, so we can't assume $(..) is set.
++include $(firstword $(..) ../)option-groups.defaults
++
++# Read the developer's option group selections, overriding the
++# defaults from option-groups.defaults.
++-include $(option_group_config_file)
++
++# $(call option-disabled, VAR) is 'y' if VAR is not 'y', or 'n' otherwise.
++# VAR should be a variable name, not a variable reference; this is
++# less general, but more terse for the intended use.
++# You can use it to add a file to a list if an option group is
++# disabled, like this:
++#   routines-$(call option-disabled, OPTION_POSIX_C_LANG_WIDE_CHAR) += ...
++define option-disabled
++$(firstword $(subst y,n,$(filter y,$($(strip $(1))))) y)
++endef
++
++# Establish 'routines-y', etc. as simply-expanded variables.
++aux-y	       	    :=
++extra-libs-others-y :=
++extra-libs-y   	    :=
++extra-objs-y   	    :=
++install-bin-y  	    :=
++install-others-y    :=
++install-sbin-y 	    :=
++others-y       	    :=
++others-pie-y   	    :=
++routines-y     	    :=
++test-srcs-y    	    :=
++tests-y        	    :=
++xtests-y       	    :=
+diff --git a/options-config/Makefile b/options-config/Makefile
+new file mode 100644
+index 0000000..db00708
+--- /dev/null
++++ b/options-config/Makefile
+@@ -0,0 +1,55 @@
++# ===========================================================================
++# EGLIBC option-groups configuration targets
++# These targets are included from top-level makefile
++
++ifneq ($(kconfig_tools),)
++ifneq (no,$(PERL))
++
++ocdir := options-config
++
++OconfigDefaults     := option-groups.defaults
++OconfigDefaults_tmp := $(common-objpfx).tmp.defconfig
++OconfigDef          := option-groups.def
++Oconfig             := $(common-objpfx)option-groups.config
++Oconfig_tmp         := $(common-objpfx).tmp.config
++
++conf  := $(kconfig_tools)/conf
++mconf := $(kconfig_tools)/mconf
++
++preproc  := $(PERL) $(ocdir)/config-preproc.pl
++postproc := $(PERL) $(ocdir)/config-postproc.pl
++
++PHONY += defconfig config menuconfig
++
++defconfig: $(conf) $(OconfigDefaults) $(OconfigDef)
++	rm -f $(OconfigDefaults_tmp)
++	rm -f $(Oconfig_tmp)
++	$(preproc) $(OconfigDefaults) > $(OconfigDefaults_tmp)
++	KCONFIG_CONFIG=$(Oconfig_tmp) $< --defconfig=$(OconfigDefaults_tmp) \
++				$(OconfigDef)
++	$(postproc) $(OconfigDefaults) $(Oconfig_tmp) > $(Oconfig)
++	rm $(Oconfig_tmp)
++	rm $(OconfigDefaults_tmp)
++
++config: $(conf) $(OconfigDefaults) $(OconfigDef)
++	rm -f $(Oconfig_tmp)
++	$(preproc) $(wildcard $(Oconfig)) > $(Oconfig_tmp)
++	KCONFIG_CONFIG=$(Oconfig_tmp) $< --oldaskconfig $(OconfigDef)
++	$(postproc) $(OconfigDefaults) $(Oconfig_tmp) > $(Oconfig)
++	rm $(Oconfig_tmp)
++
++menuconfig: $(mconf) $(OconfigDefaults) $(OconfigDef)
++	rm -f $(Oconfig_tmp)
++	$(preproc) $(wildcard $(Oconfig)) > $(Oconfig_tmp)
++	KCONFIG_CONFIG=$(Oconfig_tmp) $< $(OconfigDef)
++	$(postproc) $(OconfigDefaults) $(Oconfig_tmp) > $(Oconfig)
++	rm $(Oconfig_tmp)
++
++# Help text used by make help
++help:
++	@echo  '  defconfig	  - New config with default from default config'
++	@echo  '  config	  - Update current config utilising a line-oriented program'
++	@echo  '  menuconfig	  - Update current config utilising a menu based program'
++
++endif
++endif
+diff --git a/options-config/config-postproc.pl b/options-config/config-postproc.pl
+new file mode 100644
+index 0000000..4dd1c63
+--- /dev/null
++++ b/options-config/config-postproc.pl
+@@ -0,0 +1,58 @@
++#!/usr/bin/perl
++
++$usage = "usage: $0 <default config file> <config file>\n";
++
++die "$usage" unless @ARGV;
++$defaults = shift @ARGV;
++die "$usage" unless @ARGV;
++die "Could not open $ARGV[0]" unless -T $ARGV[0];
++
++sub yank {
++    @option = grep(!($_ =~ /$_[0]\s*=/), @option);
++}
++
++open(DEFAULTS, $defaults) || die "Could not open $defaults\n";
++
++# get the full list of available options using the default config file
++$i = 0;
++while (<DEFAULTS>) {
++    if (/^\s*OPTION_(\w+\s*=.*$)/) {
++	$option[$i++] = $1;
++    }
++}
++
++# now go through the config file, making the necessary changes
++while (<>) {
++    if (/Linux Kernel Configuration/) {
++	# change title
++	s/Linux Kernel/Option Groups/;
++	print;
++    } elsif (/^\s*CONFIG_(\w+)\s*=/) {
++	# this is an explicit option set line, change CONFIG_ to OPTION_
++	# before printing and remove this option from option list
++	$opt = $1;
++	yank($opt);
++	s/CONFIG_/OPTION_/g;
++	print;
++    } elsif (/^\s*#\s+CONFIG_(\w+) is not set/) {
++	# this is a comment line for an unset boolean option, change CONFIG_
++	# to OPTION_, remove this option from option list, and convert to
++	# explicit OPTION_FOO=n
++	$opt = $1;
++	yank($opt);
++	s/CONFIG_/OPTION_/g;
++	print "OPTION_$opt=n\n";
++    } else {
++	print;
++    }
++}
++
++# any boolean options left in @options, are options that were not mentioned in
++# the config file, and implicitly that means the option must be set =n,
++# so do that here.
++foreach $opt (@option) {
++    if ($opt =~ /=\s*[yn]/) {
++	$opt =~ s/=\s*[yn]/=n/;
++	print "OPTION_$opt\n";
++    }
++}
+diff --git a/options-config/config-preproc.pl b/options-config/config-preproc.pl
+new file mode 100644
+index 0000000..b83bb85
+--- /dev/null
++++ b/options-config/config-preproc.pl
+@@ -0,0 +1,8 @@
++#!/usr/bin/perl
++
++if (@ARGV) {
++    while (<>) {
++	s/OPTION_/CONFIG_/g;
++	print;
++    }
++}
+diff --git a/scripts/option-groups.awk b/scripts/option-groups.awk
+new file mode 100644
+index 0000000..533af0c
+--- /dev/null
++++ b/scripts/option-groups.awk
+@@ -0,0 +1,63 @@
++# option-groups.awk --- generate option group header file
++# Given input files containing makefile-style assignments to variables,
++# print out a header file that #defines an appropriate preprocessor
++# symbol for each variable left set to 'y'.
++
++BEGIN { FS="=" }
++
++# Trim spaces.
++{ gsub (/[[:blank:]]/, "") }
++
++# Skip comments.
++/^#/ { next }
++
++# Process assignments.
++NF == 2 {
++    vars[$1] = $2
++}
++
++# Print final values.
++END {
++    print "/* This file is automatically generated by scripts/option-groups.awk"
++    print "   in the EGLIBC source tree."
++    print ""
++    print "   It defines macros that indicate which EGLIBC option groups were"
++    print "   configured in 'option-groups.config' when this C library was"
++    print "   built.  For each option group named OPTION_foo, it #defines"
++    print "   __OPTION_foo to be 1 if the group is enabled, or #defines that"
++    print "   symbol to be 0 if the group is disabled.  */"
++    print ""
++    print "#ifndef __GNU_OPTION_GROUPS_H"
++    print "#define __GNU_OPTION_GROUPS_H"
++    print ""
++
++    # Produce a sorted list of variable names.
++    i=0
++    for (var in vars)
++        names[i++] = var
++    n = asort (names)
++
++    for (i = 1; i <= n; i++)
++    {
++        var = names[i]
++        if (var ~ /^OPTION_/)
++        {
++            if (vars[var] == "y")
++                print "#define __" var " 1"
++            else if (vars[var] == "n")
++                print "#define __" var " 0"
++	    else if (vars[var] ~ /^[0-9]+/ ||
++		     vars[var] ~ /^0x[0-9aAbBcCdDeEfF]+/ ||
++		     vars[var] ~ /^\"/)
++		 print "#define __" var " " vars[var]
++	    else
++		print "/* #undef __" var " */"
++            # Ignore variables that don't have boolean, int, hex, or
++	    # string values. Ideally, this would be driven by the types
++	    # given in option-groups.def.
++        }
++    }
++
++    print ""
++    print "#endif /* __GNU_OPTION_GROUPS_H */"
++}
+-- 
+2.1.4
+

@@ -1,0 +1,45 @@
+From c90306107fbbe2979012917e87747ce78c82ab88 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Wed, 18 Mar 2015 00:33:03 +0000
+Subject: [PATCH 17/27] timezone: re-written tzselect as posix sh
+
+To avoid the bash dependency.
+
+Upstream-Status: Pending
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ timezone/Makefile     | 2 +-
+ timezone/tzselect.ksh | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/timezone/Makefile b/timezone/Makefile
+index 24c93c6..886b06e 100644
+--- a/timezone/Makefile
++++ b/timezone/Makefile
+@@ -126,7 +126,7 @@ $(testdata)/XT%: testdata/XT%
+ 	cp $< $@
+ 
+ $(objpfx)tzselect: tzselect.ksh $(common-objpfx)config.make
+-	sed -e 's|/bin/bash|$(BASH)|' \
++	sed -e 's|/bin/bash|/bin/sh|' \
+ 	    -e 's|TZDIR=[^}]*|TZDIR=$(zonedir)|' \
+ 	    -e '/TZVERSION=/s|see_Makefile|"$(version)"|' \
+ 	    -e '/PKGVERSION=/s|=.*|="$(PKGVERSION)"|' \
+diff --git a/timezone/tzselect.ksh b/timezone/tzselect.ksh
+index 9d70691..25f45a8 100755
+--- a/timezone/tzselect.ksh
++++ b/timezone/tzselect.ksh
+@@ -35,7 +35,7 @@ REPORT_BUGS_TO=tz@iana.org
+ 
+ # Specify default values for environment variables if they are unset.
+ : ${AWK=awk}
+-: ${TZDIR=`pwd`}
++: ${TZDIR=$(pwd)}
+ 
+ # Check for awk Posix compliance.
+ ($AWK -v x=y 'BEGIN { exit 123 }') </dev/null >/dev/null 2>&1
+-- 
+2.1.4
+

@@ -1,6 +1,6 @@
 --- a/locale/Makefile
 +++ b/locale/Makefile
-@@ -76,6 +76,12 @@
+@@ -92,6 +92,12 @@
  	$(PERL) gen-translit.pl < $< > $@.tmp
  	mv -f $@.tmp $@
  
