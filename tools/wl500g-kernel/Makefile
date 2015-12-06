@@ -25,6 +25,7 @@ endef
 
 define Host/Compile
 	$(MAKE) -C "$(HOST_BUILD_DIR)/gateway" config
+	touch $(HOST_BUILD_DIR)/linux/linux-2.6.22.19/include/linux/utsrelease.h
 endef
 
 define Host/Install
