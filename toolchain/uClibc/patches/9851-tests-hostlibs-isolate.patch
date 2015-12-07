@@ -1,10 +1,6 @@
 test: Isolate from host standart libraries if TEST_INSTALLED_UCLIBC not set
 
-Additionally, provide:
-1. Ability to suppress ld flag -z,now for shared libraries by define 
- <target>.so_no-z-now := yes
-
-2. Allow to build separate glibc shared objects(*.so.glibc).
+Additionally, allow to build separate glibc shared objects(*.so.glibc).
  Pass -D_GLIBC_TEST compiler flag for host builds, define _SO_EXT for use
  in application code in testsuite.h
 
@@ -65,23 +61,17 @@ diff --git a/test/Test.mak b/test/Test.mak
  	$(Q)$(HOSTCC) $(HOST_LDFLAGS) $@.o -o $@ $(EXTRA_LDFLAGS) $(LDFLAGS_$(patsubst %_glibc,%,$@)) $(LDFLAGS_$@)
  
  
-@@ -118,18 +118,31 @@ shell_%:
- 	$(Q)$(SHELL) $(patsubst shell_%,%.sh,$(binary_name))
- 	$(Q)$(if $(POST_RUN_$(@)),$(POST_RUN_$(@)))
- 
-+define iff_no-z-now
-+$(if $($(1)_no-z-now),$(filter-out -Wl$(comma)-z$(comma)now,$(2)),$(2))
-+endef
-+
+@@ -121,15 +121,24 @@ shell_%:
  %.so: %.c
  	$(showlink)
  	$(Q)$(CC) \
- 		$(filter-out $(CFLAGS-OMIT-$<),$(CFLAGS)) $(EXTRA_CFLAGS) \
+-		$(filter-out $(CFLAGS-OMIT-$<),$(CFLAGS)) $(EXTRA_CFLAGS) \
++		$(filter-out $(CFLAGS-OMIT-$@),$(CFLAGS)) $(EXTRA_CFLAGS) \
  		$(CFLAGS_$(patsubst %_glibc,%,$@)) \
  		-fPIC -shared $< -o $@ -Wl,-soname,$@ \
 -		$(filter-out $(LDFLAGS-OMIT-$<),$(LDFLAGS)) $(EXTRA_LIBS) \
 -		$(LDFLAGS_$(patsubst %_glibc,%,$@))
-+		$(call iff_no-z-now,$(@F),$(filter-out $(LDFLAGS-OMIT-$<),$(LDFLAGS))) $(EXTRA_LIBS) \
++		$(filter-out $(LDFLAGS-OMIT-$@),$(LDFLAGS)) $(EXTRA_LIBS) \
 +		$(LDFLAGS_$(patsubst %_glibc,%,$@)) -lc
 +
 +%.so.glibc: %.c
@@ -90,7 +80,7 @@ diff --git a/test/Test.mak b/test/Test.mak
 + 		$(filter-out $(HOST_CFLAGS-OMIT-$(patsubst %_glibc,%,$@)),$(HOST_CFLAGS)) \
 +		-D_GLIBC_TEST $(CFLAGS_$(patsubst %.glibc,%,$@)) \
 +		-fPIC -shared $< -o $@ -Wl,-soname,$@ \
-+		$(call iff_no-z-now,$(@F),$(filter-out $(HOST_LDFLAGS-OMIT-$<),$(HOST_LDFLAGS))) $(EXTRA_LIBS) \
++		$(filter-out $(HOST_LDFLAGS-OMIT-$(patsubst %_glibc,%,$@)),$(HOST_LDFLAGS)) $(EXTRA_LIBS) \
 +		$(patsubst %.so,%.so.glibc,$(LDFLAGS_$(patsubst %.glibc,%,$@)))
  
  clean:
