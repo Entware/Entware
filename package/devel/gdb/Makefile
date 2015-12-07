@@ -62,7 +62,7 @@ CONFIGURE_VARS+= \
 
 
 
-# if binutils 2.4 are compiled befor gdb - then ansidecl.h in opt/include (from binutils) will make compilation fail
+# if binutils 2.4 are compiled before gdb - then ansidecl.h in opt/include (from binutils) will make compilation fail
 # no -I or iquote options helped. So we rename the file before compilation and rename back after
 
 define Build/Compile

@@ -4,6 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+# Downgraded from 3.2.21. The newer versions is incompatible with k2.6.22
 
 include $(TOPDIR)/rules.mk
 

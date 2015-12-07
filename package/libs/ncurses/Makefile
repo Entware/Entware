@@ -4,6 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+# Upgraded from 5.9. ncurses-bin package added.
 
 include $(TOPDIR)/rules.mk
 
@@ -14,7 +15,7 @@ PKG_RELEASE:=1
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@GNU/ncurses
-#PKG_MD5SUM:=8cb9c412e5f2d96bc6f459aa8c6282a1
+PKG_MD5SUM:=ee13d052e1ead260d7c28071f46eefb1
 
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=README
