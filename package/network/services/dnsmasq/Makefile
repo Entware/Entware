@@ -51,8 +51,7 @@ endef
 define Package/dnsmasq-full
 $(call Package/dnsmasq/Default)
   TITLE += (with DNSSEC, DHCPv6, Auth DNS, IPset enabled by default)
-  DEPENDS:=+PACKAGE_dnsmasq_full_dnssec:libnettle \
-	+PACKAGE_dnsmasq_full_ipset:kmod-ipt-ipset
+  DEPENDS:=+PACKAGE_dnsmasq_full_dnssec:libnettle
   VARIANT:=full
 endef
 
@@ -69,13 +68,12 @@ endef
 define Package/dnsmasq-full/description
 $(call Package/dnsmasq/description)
 
-This is a fully configurable variant with DHCPv6, DNSSEC, Authroitative DNS and
+This is a fully configurable variant with DHCPv6, Authroitative DNS and
 IPset support enabled by default.
 endef
 
 define Package/dnsmasq/conffiles
-/etc/config/dhcp
-/etc/dnsmasq.conf
+/opt/etc/dnsmasq.conf
 endef
 
 define Package/dnsmasq-full/config
@@ -99,9 +97,6 @@ endef
 Package/dnsmasq-dhcpv6/conffiles = $(Package/dnsmasq/conffiles)
 Package/dnsmasq-full/conffiles = $(Package/dnsmasq/conffiles)
 
-TARGET_CFLAGS += -ffunction-sections -fdata-sections
-TARGET_LDFLAGS += -Wl,--gc-sections
-
 COPTS = $(if $(CONFIG_IPV6),,-DNO_IPV6)
 
 ifeq ($(BUILD_VARIANT),nodhcpv6)
@@ -122,19 +117,16 @@ MAKE_FLAGS := \
 	$(TARGET_CONFIGURE_OPTS) \
 	CFLAGS="$(TARGET_CFLAGS)" \
 	LDFLAGS="$(TARGET_LDFLAGS)" \
-	COPTS="$(COPTS)" \
-	PREFIX="/usr"
+	COPTS="-DHAVE_BROKEN_RTC -DNO_INOTIFY $(COPTS)" \
+	PREFIX="/opt"
 
 define Package/dnsmasq/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/dnsmasq $(1)/usr/sbin/
-	$(INSTALL_DIR) $(1)/etc/config
-	$(INSTALL_DATA) ./files/dhcp.conf $(1)/etc/config/dhcp
-	$(INSTALL_DATA) ./files/dnsmasq.conf $(1)/etc/dnsmasq.conf
-	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/dnsmasq.init $(1)/etc/init.d/dnsmasq
-	$(INSTALL_DIR) $(1)/etc/hotplug.d/iface
-	$(INSTALL_DATA) ./files/dnsmasq.hotplug $(1)/etc/hotplug.d/iface/25-dnsmasq
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(CP) $(PKG_INSTALL_DIR)/opt/sbin/dnsmasq $(1)/opt/sbin/
+	$(INSTALL_DIR) $(1)/opt/etc
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/dnsmasq.conf.example $(1)/opt/etc/dnsmasq.conf
+	$(INSTALL_DIR) $(1)/opt/etc/init.d
+	$(INSTALL_BIN) ./files/S56dnsmasq $(1)/opt/etc/init.d/
 endef
 
 Package/dnsmasq-dhcpv6/install = $(Package/dnsmasq/install)
@@ -142,8 +134,8 @@ Package/dnsmasq-dhcpv6/install = $(Package/dnsmasq/install)
 define Package/dnsmasq-full/install
 $(call Package/dnsmasq/install,$(1))
 ifneq ($(CONFIG_PACKAGE_dnsmasq_full_dnssec),)
-	$(INSTALL_DIR) $(1)/usr/share/dnsmasq
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/trust-anchors.conf $(1)/usr/share/dnsmasq
+	$(INSTALL_DIR) $(1)/opt/share/dnsmasq
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/trust-anchors.conf $(1)/opt/share/dnsmasq
 endif
 endef
 
