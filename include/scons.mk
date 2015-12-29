@@ -13,7 +13,7 @@ define Build/Configure/Default
 	(cd $(PKG_BUILD_DIR); \
 		$(SCONS_VARS) \
 		scons \
-			prefix=/usr \
+			prefix=/opt \
 			$(SCONS_OPTIONS) \
 		install \
 	)
