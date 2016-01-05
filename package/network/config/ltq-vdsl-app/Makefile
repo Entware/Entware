@@ -26,7 +26,7 @@ define Package/ltq-vdsl-app
   CATEGORY:=Network
   TITLE:=Lantiq VDSL userland tool
   URL:=http://www.lantiq.com/
-  DEPENDS:=@TARGET_lantiq_xrx200 +libpthread +librt
+  DEPENDS:=@TARGET_lantiq_xrx200 +libpthread +librt +atm-esi
 endef
 
 define Package/ltq-vdsl-app/description
@@ -34,30 +34,25 @@ define Package/ltq-vdsl-app/description
 endef
 
 CONFIGURE_ARGS += \
-	--with-max-device="1" \
-	--with-lines-per-device="1" \
-	--with-channels-per-line="1" \
 	--enable-vrx \
+	--enable-vrx-device=vr9 \
 	--enable-driver-include="-I$(STAGING_DIR)/usr/include/drv_vdsl_cpe_api" \
 	--enable-device-driver-include="-I$(STAGING_DIR)/usr/include/vdsl/" \
-	--enable-add-appl-cflags="-DMAX_CLI_PIPES=1"  \
 	--enable-ifxos \
 	--enable-ifxos-include="-I$(STAGING_DIR)/usr/include/ifxos" \
 	--enable-ifxos-library="-I$(STAGING_DIR)/usr/lib" \
-	--enable-dsl-ceoc=no \
-	--enable-vrx-device=vr9 \
+	--enable-add-appl-cflags="-DMAX_CLI_PIPES=1"  \
+	--enable-debug \
 	--disable-dti \
-	--enable-debug
+	--with-channels-per-line="1" \
 
-ifeq ($(CONFIG_IFX_CLI),y)
-CONFIGURE_ARGS += \
-	--enable-cli-support
-endif
-
-CONFIGURE_ARGS += --enable-model=full
+#CONFIGURE_ARGS += --enable-model=full
 #CONFIGURE_ARGS += --enable-model=lite
 #CONFIGURE_ARGS += --enable-model=footprint
-#CONFIGURE_ARGS += --enable-model=typical
+CONFIGURE_ARGS += \
+	--enable-model=typical \
+	--enable-dsl-pm-showtime \
+	--disable-dsl-ceoc
 #CONFIGURE_ARGS += --enable-model=debug
 
 define Package/ltq-vdsl-app/install

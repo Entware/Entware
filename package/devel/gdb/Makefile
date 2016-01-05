@@ -15,7 +15,7 @@ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/gdb
 PKG_MD5SUM:=2a35bac41fa8e10bf04f3a0dd7f7f363
 
-#PKG_BUILD_PARALLEL:=1
+PKG_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
 PKG_LICENSE:=GPL-3.0+
 
@@ -31,7 +31,7 @@ endef
 define Package/gdb
 $(call Package/gdb/Default)
   TITLE:=GNU Debugger
-  DEPENDS+=+libreadline +libncurses +zlib +liblzma
+  DEPENDS+=+libreadline +libncurses +zlib
 endef
 
 define Package/gdb/description
@@ -66,16 +66,10 @@ CONFIGURE_VARS+= \
 # no -I or iquote options helped. So we rename the file before compilation and rename back after
 
 define Build/Compile
-	if [ -f $(STAGING_DIR)/opt/include/ansidecl.h ]; then \
-		mv $(STAGING_DIR)/opt/include/ansidecl.h $(STAGING_DIR)/opt/include/ansidecl._h ;\
-	fi ;\
-	$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
+	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
 		DESTDIR="$(PKG_INSTALL_DIR)" \
 		CPPFLAGS="-iquote $(PKG_BUILD_DIR)/include $(TARGET_CPPFLAGS)" \
-		all ;\
-	if [ -f $(STAGING_DIR)/opt/include/ansidecl._h ]; then \
-		mv $(STAGING_DIR)/opt/include/ansidecl._h $(STAGING_DIR)/opt/include/ansidecl.h ;\
-	fi
+		all
 endef
 
 define Build/Install

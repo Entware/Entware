@@ -8,20 +8,18 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=binutils
-PKG_VERSION:=2.24
-PKG_RELEASE:=3
-
-PKG_BUILD_DEPENDS:=gbd
+PKG_VERSION:=2.25
+PKG_RELEASE:=1
 
 PKG_SOURCE_URL:=@GNU/binutils
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_VERSION:=$(PKG_VERSION)
-PKG_MD5SUM:=e0f71a7b2ddab0f8612336ac81d9636b
+PKG_MD5SUM:=d9f3303f802a5b6b0bb73a335ab89d66
 
 PKG_FIXUP:=autoreconf
 PKG_LIBTOOL_PATHS:=. gas bfd opcodes gprof binutils ld libiberty gold intl
 PKG_REMOVE_FILES:=libtool.m4
-#PKG_INSTALL:=1
+PKG_INSTALL:=1
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
 PKG_LICENSE:=GPL-3.0+
@@ -69,7 +67,7 @@ define Package/binutils/description
   The Binutils package contains a linker, an assembler, and other tools for handling object files
 endef
 
-TARGET_CFLAGS += $(FPIC) -Wno-unused-value -Wno-logical-not-parentheses
+TARGET_CFLAGS += $(FPIC) -Wno-unused-value
 
 CONFIGURE_ARGS += \
 	--host=$(REAL_GNU_TARGET_NAME) \

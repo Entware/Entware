@@ -16,9 +16,14 @@ override NO_TRACE_MAKE:=$(_SINGLE)$(NO_TRACE_MAKE)
 
 KDIR=$(KERNEL_BUILD_DIR)
 KDIR_TMP=$(KDIR)/tmp
-DTS_DIR:=$(LINUX_DIR)/arch/$(ARCH)/boot/dts/
+DTS_DIR:=$(LINUX_DIR)/arch/$(LINUX_KARCH)/boot/dts
 
-IMG_PREFIX:=openwrt-$(if $(CONFIG_VERSION_FILENAMES),$(VERSION_NUMBER)-)$(BOARD)$(if $(SUBTARGET),-$(SUBTARGET))
+sanitize = $(call tolower,$(subst _,-,$(1)))
+
+DIST_SANITIZED:=$(call sanitize,$(VERSION_DIST))
+EXTRA_NAME_SANITIZED=$(call sanitize,$(EXTRA_IMAGE_NAME))
+
+IMG_PREFIX:=$(DIST_SANITIZED)-$(if $(CONFIG_VERSION_FILENAMES),$(VERSION_NUMBER)-)$(if $(EXTRA_NAME_SANITIZED),$(EXTRA_NAME_SANITIZED)-)$(BOARD)$(if $(SUBTARGET),-$(SUBTARGET))
 
 MKFS_DEVTABLE_OPT := -D $(INCLUDE_DIR)/device_table.txt
 
@@ -85,18 +90,6 @@ define add_jffs2_mark
 	echo -ne '\xde\xad\xc0\xde' >> $(1)
 endef
 
-define toupper
-$(shell echo $(1) | tr '[:lower:]' '[:upper:]')
-endef
-
-define tolower
-$(shell echo $(1) | tr '[:upper:]' '[:lower:]')
-endef
-
-define sanitize
-$(shell echo $(call tolower,$(1)) | sed 's/_/-/g')
-endef
-
 PROFILE_SANITIZED := $(call sanitize,$(PROFILE))
 
 define split_args
@@ -142,9 +135,9 @@ endef
 # $(3) extra CPP flags
 # $(4) extra DTC flags
 define Image/BuildDTB
-	$(CPP) -nostdinc -x assembler-with-cpp \
-		-I$(LINUX_DIR)/arch/$(ARCH)/boot/dts \
-		-I$(LINUX_DIR)/arch/$(ARCH)/boot/dts/include \
+	$(TARGET_CROSS)cpp -nostdinc -x assembler-with-cpp \
+		-I$(DTS_DIR) \
+		-I$(DTS_DIR)/include \
 		-undef -D__DTS__ $(3) \
 		-o $(2).tmp $(1)
 	$(LINUX_DIR)/scripts/dtc/dtc -O dtb \

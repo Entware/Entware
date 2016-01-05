@@ -1,4 +1,4 @@
-commit 1bf0a7186bbb98664789e0df3f28558896894541
-Date:   Tue Dec 1 09:22:53 2015 +0000
-git-svn-id: svn://svn.openwrt.org/openwrt/trunk@47681 3c298f89-4303-0410-b956-a3cf2f4a3e73
+commit 57693a7c8f4961b77dc3a8b8bc3e4d4d10211130
+Date:   Mon Jan 4 01:33:32 2016 +0000
+git-svn-id: svn://svn.openwrt.org/openwrt/trunk@48110
 

@@ -97,7 +97,6 @@ HOST_CONFIGURE_ARGS+= \
 define Host/Install
 	$(INSTALL_DIR) $(STAGING_DIR_HOST)/bin/
 	$(MAKE) -C $(HOST_BUILD_DIR) PREFIX=$(STAGING_DIR_HOST)/usr/ install
-#	$(INSTALL_BIN) $(HOST_BUILD_DIR)/Parser/pgen $(STAGING_DIR_HOST)/bin/pgen2
 endef
 
 $(eval $(call HostBuild))

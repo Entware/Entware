@@ -3,11 +3,11 @@
 @@ -2,7 +2,7 @@
  # Makefile
  #
- 
+
 -CERTSDIR = /usr/share/ca-certificates
 +CERTSDIR = /opt/share/ca-certificates
- SUBDIRS = mozilla spi-inc.org
- 
+ SUBDIRS = mozilla
+
  all:
 --- a/sbin/Makefile
 +++ b/sbin/Makefile

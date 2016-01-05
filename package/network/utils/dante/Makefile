@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dante
-PKG_VERSION:=1.2.2
+PKG_VERSION:=1.4.1
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.inet.no/dante/files/
-PKG_MD5SUM:=69b9d6234154d7d6a91fcbd98c68e62a
+PKG_MD5SUM:=68c2ce12119e12cea11a90c7a80efa8f
 
 PKG_MAINTAINER:=Jo-Philipp Wich <jow@openwrt.org>
 PKG_LICENSE:=BSD-4-Clause
@@ -23,14 +23,15 @@ PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
-TARGET_CFLAGS += -D_GNU_SOURCE
+TARGET_CFLAGS += -D_GNU_SOURCE -std=gnu89
+
 CONFIGURE_ARGS += \
 	--without-upnp \
 	--without-pam \
 	--disable-libwrap
 
 CONFIGURE_VARS += \
-	CC="$(TARGET_CC) $(TARGET_CFLAGS)"
+	ac_cv_search_pam_start=""
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include
