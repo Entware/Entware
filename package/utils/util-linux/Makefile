@@ -534,7 +534,7 @@ endef
 
 define Package/losetup/install
 	$(INSTALL_DIR) $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/losetup $(1)/opt/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/.libs/losetup $(1)/opt/sbin/
 endef
 
 define Package/lsblk/install
