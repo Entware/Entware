@@ -25,7 +25,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/perf
   SECTION:=devel
   CATEGORY:=Development
-  DEPENDS:= @!USE_UCLIBC +libelf1 +libdw +libpthread +librt +objdump
+  DEPENDS:= +libelf1 +libdw +libpthread +librt +objdump
   TITLE:=Linux performance monitoring tool
   VERSION:=$(LINUX_VERSION)-$(PKG_RELEASE)
   URL:=http://www.kernel.org
@@ -59,7 +59,7 @@ MAKE_FLAGS = \
 	prefix=/usr
 
 ifdef CONFIG_USE_MUSL
- MAKE_FLAGS += EXTRA_CFLAGS="-include $(CURDIR)/musl-compat.h -D__UCLIBC__"
+ MAKE_FLAGS += EXTRA_CFLAGS="-I$(CURDIR)/musl-include -include $(CURDIR)/musl-compat.h -D__UCLIBC__"
 endif
 
 define Build/Compile

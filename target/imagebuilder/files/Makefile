@@ -43,7 +43,7 @@ Building images:
 	make image PACKAGES="<pkg1> [<pkg2> [<pkg3> ...]]" # include extra packages
 	make image FILES="<path>" # include extra files from <path>
 	make image BIN_DIR="<path>" # alternative output directory for the images
-
+	make image EXTRA_IMAGE_NAME="<string>" # Add this to the output image filename (sanitized)
 endef
 $(eval $(call shexport,Helptext))
 

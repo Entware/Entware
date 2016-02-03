@@ -1,11 +1,12 @@
 #ifndef __PERF_MUSL_COMPAT_H
 #define __PERF_MUSL_COMPAT_H
 
+#ifndef __ASSEMBLER__
+
 #include <sys/ioctl.h>
-#include <string.h>
+#include <asm/unistd.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <syscall.h>
 #include <sched.h>
 
 #undef _IOWR
@@ -13,10 +14,6 @@
 #undef _IOW
 #undef _IOC
 #undef _IO
-
-/* Change XSI compliant version into GNU extension hackery */
-#define strerror_r(err, buf, buflen) \
-	(strerror_r(err, buf, buflen) ? NULL : buf)
 
 #define _SC_LEVEL1_DCACHE_LINESIZE -1
 
@@ -59,4 +56,5 @@ static inline int compat_sched_getcpu(void)
 
 #define sched_getcpu compat_sched_getcpu
 
+#endif
 #endif

@@ -55,11 +55,14 @@ ARCH:=$(subst i486,i386,$(subst i586,i386,$(subst i686,i386,$(call qstrip,$(CONF
 ARCH_PACKAGES:=$(call qstrip,$(CONFIG_TARGET_ARCH_PACKAGES))
 BOARD:=$(call qstrip,$(CONFIG_TARGET_BOARD))
 TARGET_OPTIMIZATION:=$(call qstrip,$(CONFIG_TARGET_OPTIMIZATION))
-export EXTRA_OPTIMIZATION:=$(call qstrip,$(CONFIG_EXTRA_OPTIMIZATION))
+export EXTRA_OPTIMIZATION:=$(filter-out -fno-plt,$(call qstrip,$(CONFIG_EXTRA_OPTIMIZATION)))
 TARGET_SUFFIX=$(call qstrip,$(CONFIG_TARGET_SUFFIX))
 BUILD_SUFFIX:=$(call qstrip,$(CONFIG_BUILD_SUFFIX))
 SUBDIR:=$(patsubst $(TOPDIR)/%,%,${CURDIR})
+BUILD_SUBDIR:=$(patsubst $(TOPDIR)/%,%,${CURDIR})
 export SHELL:=/usr/bin/env bash
+
+IS_PACKAGE_BUILD := $(if $(filter package/%,$(BUILD_SUBDIR)),1)
 
 OPTIMIZE_FOR_CPU=$(subst i386,i486,$(ARCH))
 
@@ -94,8 +97,6 @@ BIN_DIR:=$(if $(call qstrip,$(CONFIG_BINARY_FOLDER)),$(call qstrip,$(CONFIG_BINA
 INCLUDE_DIR:=$(TOPDIR)/include
 SCRIPT_DIR:=$(TOPDIR)/scripts
 BUILD_DIR_BASE:=$(TOPDIR)/build_dir
-BUILD_DIR_HOST:=$(BUILD_DIR_BASE)/host
-STAGING_DIR_HOST:=$(TOPDIR)/staging_dir/host
 ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
   GCCV:=$(call qstrip,$(CONFIG_GCC_VERSION))
   LIBC:=$(call qstrip,$(CONFIG_LIBC))
@@ -130,8 +131,11 @@ STAGING_DIR_ROOT:=$(STAGING_DIR)/root-$(BOARD)
 BUILD_LOG_DIR:=$(TOPDIR)/logs
 PKG_INFO_DIR := $(STAGING_DIR)/pkginfo
 
+BUILD_DIR_HOST:=$(if $(IS_PACKAGE_BUILD),$(BUILD_DIR)/host,$(BUILD_DIR_BASE)/host)
+STAGING_DIR_HOST:=$(TOPDIR)/staging_dir/host
+
 TARGET_PATH:=$(subst $(space),:,$(filter-out .,$(filter-out ./,$(subst :,$(space),$(PATH)))))
-TARGET_CFLAGS:=$(TARGET_OPTIMIZATION)$(if $(CONFIG_DEBUG), -g3) $(EXTRA_OPTIMIZATION)
+TARGET_CFLAGS:=$(TARGET_OPTIMIZATION)$(if $(CONFIG_DEBUG), -g3) $(call qstrip,$(CONFIG_EXTRA_OPTIMIZATION))
 TARGET_CXXFLAGS = $(TARGET_CFLAGS)
 TARGET_ASFLAGS_DEFAULT = $(TARGET_CFLAGS)
 TARGET_ASFLAGS = $(TARGET_ASFLAGS_DEFAULT)
@@ -188,7 +192,7 @@ ifndef DUMP
     -include $(TOOLCHAIN_DIR)/info.mk
     export GCC_HONOUR_COPTS:=0
     TARGET_CROSS:=$(if $(TARGET_CROSS),$(TARGET_CROSS),$(OPTIMIZE_FOR_CPU)-openwrt-linux$(if $(TARGET_SUFFIX),-$(TARGET_SUFFIX))-)
-    TARGET_CFLAGS+= -fhonour-copts -Wno-error=unused-but-set-variable
+    TARGET_CFLAGS+= -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result
     TARGET_CPPFLAGS+= -I$(TOOLCHAIN_DIR)/usr/include
     ifeq ($(CONFIG_USE_MUSL),y)
       TARGET_CPPFLAGS+= -I$(TOOLCHAIN_DIR)/include/fortify
@@ -242,11 +246,11 @@ export PKG_CONFIG
 
 HOSTCC:=gcc
 HOSTCXX:=g++
-HOST_CPPFLAGS:=-I$(STAGING_DIR_HOST)/include -I$(STAGING_DIR_HOST)/usr/include
+HOST_CPPFLAGS:=-I$(STAGING_DIR_HOST)/include -I$(STAGING_DIR_HOST)/usr/include $(if $(IS_PACKAGE_BUILD),-I$(STAGING_DIR)/host/include)
 HOST_CFLAGS:=-O2 $(HOST_CPPFLAGS)
-HOST_LDFLAGS:=-L$(STAGING_DIR_HOST)/lib -L$(STAGING_DIR_HOST)/usr/lib
+HOST_LDFLAGS:=-L$(STAGING_DIR_HOST)/lib -L$(STAGING_DIR_HOST)/usr/lib $(if $(IS_PACKAGE_BUILD),-L$(STAGING_DIR)/host/lib)
 
-ifeq ($(CONFIG_GCC_VERSION_4_6)$(CONFIG_EXTERNAL_TOOLCHAIN),)
+ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
   TARGET_AR:=$(TARGET_CROSS)gcc-ar
   TARGET_RANLIB:=$(TARGET_CROSS)gcc-ranlib
   TARGET_NM:=$(TARGET_CROSS)gcc-nm
@@ -360,12 +364,16 @@ endef
 # Execute commands under flock
 # $(1) => The shell expression.
 # $(2) => The lock name. If not given, the global lock will be used.
-define locked
+ifneq ($(wildcard $(STAGING_DIR_HOST)/bin/flock),)
+  define locked
 	SHELL= \
-	$(STAGING_DIR_HOST)/bin/flock \
+	flock \
 		$(TMP_DIR)/.$(if $(2),$(strip $(2)),global).flock \
 		-c '$(subst ','\'',$(1))'
-endef
+  endef
+else
+  locked=$(1)
+endif
 
 # Recursively copy paths into another directory, purge dangling
 # symlinks before.

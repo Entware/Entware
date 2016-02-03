@@ -1,4 +1,5 @@
-commit 57693a7c8f4961b77dc3a8b8bc3e4d4d10211130
-Date:   Mon Jan 4 01:33:32 2016 +0000
-git-svn-id: svn://svn.openwrt.org/openwrt/trunk@48110
+commit d0c7accbeb078f8dbb03781b1d1c9cef32744aa5
+Author: hauke <hauke@3c298f89-4303-0410-b956-a3cf2f4a3e73>
+Date:   Mon Feb 1 22:38:28 2016 +0000
+git-svn-id: svn://svn.openwrt.org/openwrt/trunk@48616
 
