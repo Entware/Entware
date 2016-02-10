@@ -84,7 +84,7 @@ prereq: $(target/stamp-prereq) tmp/.prereq_packages
 	fi
 
 prepare: .config $(tools/stamp-install) $(toolchain/stamp-install)
-world: prepare $(target/stamp-compile) $(package/stamp-compile) $(package/stamp-install) $(target/stamp-install) FORCE
+world: prepare $(target/stamp-compile) $(package/stamp-compile) FORCE
 	$(_SINGLE)$(SUBMAKE) -r package/index
 
 .PHONY: clean dirclean prereq prepare world package/symlinks package/symlinks-install package/symlinks-clean
