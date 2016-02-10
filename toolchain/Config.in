@@ -235,7 +235,6 @@ endchoice
 
 source "toolchain/glibc/Config.in"
 source "toolchain/uClibc/Config.in"
-source "toolchain/musl/Config.in"
 
 comment "Debuggers"
 	depends on TOOLCHAINOPTS

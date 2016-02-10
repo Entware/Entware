@@ -21,7 +21,7 @@
  CFLAGS-iconv := $(CFLAGS-utils) \
 --- a/utils/ldd.c
 +++ b/utils/ldd.c
-@@ -467,9 +467,9 @@
+@@ -463,9 +463,9 @@
  
  	/* Lastly, search the standard list of paths for the library.
  	   This list must exactly match the list in uClibc/ldso/ldso/dl-elf.c */

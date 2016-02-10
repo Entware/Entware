@@ -1,0 +1,72 @@
+test: Isolate from host standart libraries if TEST_INSTALLED_UCLIBC not set
+
+
+Signed-off-by: Leonid Lisovskiy <lly.dev@gmail.com>
+
+diff --git a/test/Rules.mak b/test/Rules.mak
+--- a/test/Rules.mak
++++ b/test/Rules.mak
+@@ -83,6 +83,10 @@ CFLAGS         += $(OPTIMIZATION) $(CPU_CFLAGS) $(XWARNINGS)
+ # Can't add $(OPTIMIZATION) here, it may be target-specific.
+ # Just adding -Os for now.
+ HOST_CFLAGS    += $(XCOMMON_CFLAGS) -Os $(XWARNINGS) -std=gnu99
++ifeq ($(ARCH_NATIVE_BIT),32)
++	HOST_CFLAGS   += -m32
++	HOST_LDFLAGS  += -m32
++endif
+ 
+ LDFLAGS        := $(CPU_LDFLAGS-y) -Wl,-z,now
+ ifeq ($(DODEBUG),y)
+@@ -105,14 +109,23 @@ ifneq ($(HAVE_SHARED),y)
+ endif
+ 
+ ifndef TEST_INSTALLED_UCLIBC
++CC_CRT_PATH := $(dir $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o))
++CRT_START_E := $(UCLIBC_PATH)/crt[1i].o $(addprefix $(CC_CRT_PATH),crtbegin.o)
++CRT_END_E   := $(addprefix $(CC_CRT_PATH),crtend.o) $(UCLIBC_PATH)/crtn.o
++CRT_START_S := $(UCLIBC_PATH)/crti.o $(addprefix $(CC_CRT_PATH),crtbeginS.o)
++CRT_END_S   := $(addprefix $(CC_CRT_PATH),crtendS.o) $(UCLIBC_PATH)/crtn.o
++LDFLAGS += -nostdlib -L$(UCLIBC_PATH)
+ LDFLAGS += -B$(UCLIBC_PATH) -Wl,-rpath,$(UCLIBC_PATH):$(shell pwd) -Wl,-rpath-link,$(UCLIBC_PATH):$(shell pwd)
+-else
+-LDFLAGS += -Wl,-rpath,$(shell pwd)
+-endif
+-
+ ifeq ($(findstring -static,$(LDFLAGS)),)
+ LDFLAGS += -Wl,--dynamic-linker,$(UCLIBC_PATH)/$(UCLIBC_LDSO)
+ endif
++else
++CRT_START_E :=
++CRT_END_E   :=
++CRT_START_S :=
++CRT_END_S   :=
++LDFLAGS += -Wl,-rpath,$(shell pwd)
++endif
+ 
+ ifeq ($(LDSO_GNU_HASH_SUPPORT),y)
+ # Check for binutils support is done on root Rules.mak
+diff --git a/test/Test.mak b/test/Test.mak
+--- a/test/Test.mak
++++ b/test/Test.mak
+@@ -121,7 +121,7 @@ $(MAKE_SRCS): Makefile $(TESTDIR)Makefile $(TESTDIR)Rules.mak $(TESTDIR)Test.mak
+ $(U_TARGETS): $(U_TARGET_SRCS) $(MAKE_SRCS)
+ 	$(showlink)
+ 	$(Q)$(CC) $(filter-out $(CFLAGS-OMIT-$@),$(CFLAGS)) $(EXTRA_CFLAGS) $(CFLAGS_$(notdir $(CURDIR))) $(CFLAGS_$@) -c $@.c -o $@.o
+-	$(Q)$(CC) $(filter-out $(LDFLAGS-OMIT-$@),$(LDFLAGS)) $@.o -o $@ $(EXTRA_LDFLAGS) $(LDFLAGS_$@)
++	$(Q)$(CC) $(filter-out $(LDFLAGS-OMIT-$@),$(LDFLAGS)) $(CRT_START_E) $@.o -o $@ $(EXTRA_LDFLAGS) $(LDFLAGS_$@) -lc $(CRT_END_E)
+ 
+ $(G_TARGETS): $(U_TARGET_SRCS) $(MAKE_SRCS)
+ 	$(showlink)
+@@ -144,9 +144,9 @@ %.so: %.c
+ 	$(Q)$(CC) \
+ 		$(filter-out $(CFLAGS-OMIT-$<),$(CFLAGS)) $(EXTRA_CFLAGS) \
+ 		$(CFLAGS_$@) \
+-		-fPIC -shared $< -o $@ -Wl,-soname,$@ \
++		$(CRT_START_S) -fPIC -shared $< -o $@ -Wl,-soname,$@ \
+ 		$(filter-out $(LDFLAGS-OMIT-$@),$(LDFLAGS)) $(EXTRA_LIBS) \
+-		$(LDFLAGS_$@)
++		$(LDFLAGS_$@) -lc $(CRT_END_S)
+ 
+ %.so.glibc: %.c
+ 	$(showlink)
+-- 

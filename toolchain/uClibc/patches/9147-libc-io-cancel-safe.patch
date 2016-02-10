@@ -25,7 +25,7 @@ Trivial modifications to hide new symbol by Leonid Lisovskiy.
 diff --git a/libc/stdio/Makefile.in b/libc/stdio/Makefile.in
 --- a/libc/stdio/Makefile.in
 +++ b/libc/stdio/Makefile.in
-@@ -52,6 +52,9 @@ endif
+@@ -41,6 +41,9 @@ endif
  
  # pthread functions
  CSRC-y += flockfile.c ftrylockfile.c funlockfile.c
@@ -59,7 +59,7 @@ new file mode 100644
 diff --git a/libc/sysdeps/linux/common/bits/uClibc_mutex.h b/libc/sysdeps/linux/common/bits/uClibc_mutex.h
 --- a/libc/sysdeps/linux/common/bits/uClibc_mutex.h
 +++ b/libc/sysdeps/linux/common/bits/uClibc_mutex.h
-@@ -77,15 +78,21 @@
+@@ -79,15 +80,21 @@
  #define __UCLIBC_IO_MUTEX_INIT(M) 	_IO_lock_t M = _IO_lock_initializer
  #define __UCLIBC_IO_MUTEX_EXTERN(M)		extern _IO_lock_t M
  
@@ -92,7 +92,7 @@ diff --git a/libc/sysdeps/linux/common/bits/uClibc_mutex.h b/libc/sysdeps/linux/
 diff --git a/libpthread/nptl/sysdeps/pthread/bits/stdio-lock.h b/libpthread/nptl/sysdeps/pthread/bits/stdio-lock.h
 --- a/libpthread/nptl/sysdeps/pthread/bits/stdio-lock.h
 +++ b/libpthread/nptl/sysdeps/pthread/bits/stdio-lock.h
-@@ -29,6 +29,8 @@
+@@ -28,6 +28,8 @@
  
  typedef struct { int lock; int cnt; void *owner; } _IO_lock_t;
  

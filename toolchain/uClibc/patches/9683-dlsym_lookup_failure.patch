@@ -12,7 +12,7 @@ Signed-off-by: Timo Teräs <timo.teras@iki.fi>
 diff --git a/ldso/libdl/libdl.c b/ldso/libdl/libdl.c
 --- a/ldso/libdl/libdl.c
 +++ b/ldso/libdl/libdl.c
-@@ -543,15 +543,23 @@ static void *do_dlopen(const char *libname, int flag, ElfW(Addr) from)
+@@ -541,15 +541,23 @@ static void *do_dlopen(const char *libname, int flag, ElfW(Addr) from)
 
  #ifdef SHARED
 	/*
