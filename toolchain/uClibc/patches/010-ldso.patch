@@ -11,7 +11,7 @@
  #define LDSO_PRELOAD LDSO_BASE_PATH ".preload"
 --- a/ldso/ldso/dl-elf.c
 +++ b/ldso/ldso/dl-elf.c
-@@ -317,10 +317,9 @@
+@@ -319,10 +319,9 @@
  	   This list must exactly match the list in uClibc/ldso/util/ldd.c */
  	_dl_if_debug_dprint("\tsearching full lib path list\n");
  	tpnt1 = search_for_named_library(libname, rflags,
