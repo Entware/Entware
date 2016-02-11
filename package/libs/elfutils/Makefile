@@ -20,7 +20,7 @@ PKG_LICENSE_FILES:=COPYING COPYING-GPLV2 COPYING-LGPLV3
 PKG_INSTALL:=1
 PKG_USE_MIPS16:=0
 
-PKG_BUILD_DEPENDS:=USE_UCLIBC:argp-standalone USE_MUSL:argp-standalone
+PKG_BUILD_DEPENDS:=USE_MUSL:argp-standalone
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/nls.mk
@@ -56,7 +56,7 @@ endif
 
 ifdef CONFIG_USE_UCLIBC
 CONFIGURE_VARS += \
-	LIBS="-largp"
+	LIBS="-luargp"
 endif
 
 ifdef CONFIG_USE_MUSL
