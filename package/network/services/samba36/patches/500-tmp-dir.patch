@@ -1,0 +1,11 @@
+--- a/lib/util/util.c
++++ b/lib/util/util.c
+@@ -56,7 +56,7 @@
+ 	char *p;
+ 	if ((p = getenv("TMPDIR")))
+ 		return p;
+-	return "/tmp";
++	return "/opt/tmp";
+ }
+ 
+ 
