@@ -8,11 +8,7 @@
 
 include $(TOPDIR)/rules.mk
 PKG_NAME:=toolchain
-PKG_RELEASE:=1
-
-ifeq ($(CONFIG_USE_GLIBC),y)
-	PKG_RELEASE=2
-endif
+PKG_RELEASE:=2
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
 PKG_LICENSE:=GPL-3.0-with-GCC-exception
