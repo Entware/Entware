@@ -10,6 +10,10 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=toolchain
 PKG_RELEASE:=2
 
+ifeq ($(CONFIG_USE_GLIBC),y)
+        PKG_RELEASE=3
+endif
+
 PKG_MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
 PKG_LICENSE:=GPL-3.0-with-GCC-exception
 
@@ -498,6 +502,10 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
 			fi; \
 		done; \
 	done
+ifneq ($(CONFIG_TARGET_x86_64),)
+	$(CP) $(TOOLCHAIN_DIR)/lib/libmvec-$(LIBC_SO_VERSION).so $(1)/opt/lib
+	$(CP) $(TOOLCHAIN_DIR)/lib/libmvec.so.* $(1)/opt/lib
+endif
   endef
 
   define Package/uClibc/install
