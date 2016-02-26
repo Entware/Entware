@@ -41,6 +41,8 @@ BINUTILS_CONFIGURE:= \
 		--disable-multilib \
 		--disable-werror \
 		--disable-nls \
+		--disable-sim \
+		--disable-gdb \
 		$(GRAPHITE_CONFIGURE) \
 		$(SOFT_FLOAT_CONFIG_OPTION) \
 		$(call qstrip,$(CONFIG_EXTRA_BINUTILS_CONFIG_OPTIONS)) 
