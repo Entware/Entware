@@ -212,7 +212,6 @@ choice
 	prompt "C Library implementation" if TOOLCHAINOPTS
 	default LIBC_USE_GLIBC if mips64 || mips64el
 	default LIBC_USE_UCLIBC if arc
-	default LIBC_USE_MUSL
 	help
 	  Select the C library implementation.
 
@@ -225,11 +224,6 @@ choice
 		select USE_UCLIBC
 		bool "Use uClibc"
 		depends on !(aarch64 || aarch64_be)
-
-	config LIBC_USE_MUSL
-		select USE_MUSL
-		bool "Use musl"
-		depends on !(arc || mips64 || mips64el)
 
 endchoice
 
@@ -262,10 +256,6 @@ config USE_UCLIBC
 	default y if !TOOLCHAINOPTS && !EXTERNAL_TOOLCHAIN && !NATIVE_TOOLCHAIN && (arc || mips64 || mips64el)
 	bool
 
-config USE_MUSL
-	default y if !TOOLCHAINOPTS && !EXTERNAL_TOOLCHAIN && !NATIVE_TOOLCHAIN && !(arc || mips64 || mips64el)
-	bool
-
 config USE_EXTERNAL_LIBC
 	bool
 	default y if EXTERNAL_TOOLCHAIN || NATIVE_TOOLCHAIN
@@ -274,19 +264,16 @@ source "toolchain/gcc/Config.version"
 
 source "toolchain/glibc/Config.version"
 source "toolchain/uClibc/Config.version"
-source "toolchain/musl/Config.version"
 
 config LIBC
 	string
 	default "glibc"   if USE_GLIBC
 	default "uClibc"  if USE_UCLIBC
-	default "musl"	  if USE_MUSL
 
 config LIBC_VERSION
 	string
 	default GLIBC_VERSION   if USE_GLIBC
 	default UCLIBC_VERSION  if USE_UCLIBC
-	default MUSL_VERSION	if USE_MUSL
 
 config TARGET_SUFFIX
 	string
@@ -294,8 +281,6 @@ config TARGET_SUFFIX
 	default "gnu"             if USE_GLIBC && !(arm || armeb)
 	default "uclibcgnueabi"   if USE_UCLIBC && (arm || armeb)
 	default "uclibc"          if USE_UCLIBC && !(arm || armeb)
-	default "muslgnueabi"     if USE_MUSL && (arm || armeb)
-	default "musl"            if USE_MUSL && !(arm || armeb)
 
 config MIPS64_ABI
 	depends on mips64 || mips64el
