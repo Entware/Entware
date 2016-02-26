@@ -1,0 +1,24 @@
+--- gcc-5-5.3.1.orig/debian/patches/libgo-setcontext-config.diff
++++ gcc-5-5.3.1/debian/patches/libgo-setcontext-config.diff
+@@ -0,0 +1,21 @@
++# DP: libgo: Overwrite the setcontext_clobbers_tls check on mips*
++
++Index: b/src/libgo/configure.ac
++===================================================================
++--- a/src/libgo/configure.ac
+++++ b/src/libgo/configure.ac
++@@ -797,6 +797,14 @@ main ()
++ CFLAGS="$CFLAGS_hold"
++ LIBS="$LIBS_hold"
++ ])
+++dnl overwrite for the mips* 64bit multilibs, fails on some buildds
+++if test "$libgo_cv_lib_setcontext_clobbers_tls" = "yes"; then
+++  case "$target" in
+++  mips*-linux-*)
+++    AC_MSG_WARN([FIXME: overwrite setcontext_clobbers_tls for $target:$ptr_type_size])
+++    libgo_cv_lib_setcontext_clobbers_tls=no ;;
+++  esac
+++fi
++ if test "$libgo_cv_lib_setcontext_clobbers_tls" = "yes"; then
++   AC_DEFINE(SETCONTEXT_CLOBBERS_TLS, 1,
++ 	    [Define if setcontext clobbers TLS variables])

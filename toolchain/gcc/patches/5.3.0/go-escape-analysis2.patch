@@ -1,0 +1,520 @@
+--- gcc-5-5.3.1.orig/debian/patches/go-escape-analysis2.diff
++++ gcc-5-5.3.1/debian/patches/go-escape-analysis2.diff
+@@ -0,0 +1,517 @@
++# DP: gccgo: Consider multi-result calls in escape analysis.
++# DP: gccgo: Propagate escape info from closures to enclosed variables.
++# DP: gccgo: Analyze function values and conversions.
++# DP: gccgo: Use backend interface for stack allocation.
++
++LANG=C svn diff -r222194:222657 gcc/go \
++	| sed -r 's,^--- (\S+)\t(\S+)(.*)$,--- a/src/\1\t\2,;s,^\+\+\+ (\S+)\t(\S+)(.*)$,+++ b/src/\1\t\2,'
++
++gcc/go/
++
++2015-04-30  Chris Manghane  <cmang@google.com>
++
++	* go-gcc.cc (Gcc_backend::stack_allocation_expression): New
++	method.
++
++Index: b/src/gcc/go/go-gcc.cc
++===================================================================
++--- a/src/gcc/go/go-gcc.cc
+++++ b/src/gcc/go/go-gcc.cc
++@@ -324,6 +324,9 @@ class Gcc_backend : public Backend
++   call_expression(Bexpression* fn, const std::vector<Bexpression*>& args,
++                   Bexpression* static_chain, Location);
++ 
+++  Bexpression*
+++  stack_allocation_expression(int64_t size, Location);
+++
++   // Statements.
++ 
++   Bstatement*
++@@ -1884,6 +1887,17 @@ Gcc_backend::call_expression(Bexpression
++   return this->make_expression(ret);
++ }
++ 
+++// Return an expression that allocates SIZE bytes on the stack.
+++
+++Bexpression*
+++Gcc_backend::stack_allocation_expression(int64_t size, Location location)
+++{
+++  tree alloca = builtin_decl_explicit(BUILT_IN_ALLOCA);
+++  tree size_tree = build_int_cst(integer_type_node, size);
+++  tree ret = build_call_expr_loc(location.gcc_location(), alloca, 1, size_tree);
+++  return this->make_expression(ret);
+++}
+++
++ // An expression as a statement.
++ 
++ Bstatement*
++Index: b/src/gcc/go/gofrontend/gogo.h
++===================================================================
++--- a/src/gcc/go/gofrontend/gogo.h
+++++ b/src/gcc/go/gofrontend/gogo.h
++@@ -1042,6 +1042,11 @@ class Function
++     this->is_unnamed_type_stub_method_ = true;
++   }
++ 
+++  // Return the amount of enclosed variables in this closure.
+++  size_t
+++  closure_field_count() const
+++  { return this->closure_fields_.size(); }
+++
++   // Add a new field to the closure variable.
++   void
++   add_closure_field(Named_object* var, Location loc)
++Index: b/src/gcc/go/gofrontend/expressions.h
++===================================================================
++--- a/src/gcc/go/gofrontend/expressions.h
+++++ b/src/gcc/go/gofrontend/expressions.h
++@@ -2786,7 +2786,7 @@ class Allocation_expression : public Exp
++  public:
++   Allocation_expression(Type* type, Location location)
++     : Expression(EXPRESSION_ALLOCATION, location),
++-      type_(type), allocate_on_stack_(false), stack_temp_(NULL)
+++      type_(type), allocate_on_stack_(false)
++   { }
++ 
++   void
++@@ -2807,9 +2807,6 @@ class Allocation_expression : public Exp
++   Expression*
++   do_copy();
++ 
++-  Expression*
++-  do_flatten(Gogo*, Named_object*, Statement_inserter*);
++-
++   Bexpression*
++   do_get_backend(Translate_context*);
++ 
++@@ -2821,9 +2818,6 @@ class Allocation_expression : public Exp
++   Type* type_;
++   // Whether or not this is a stack allocation.
++   bool allocate_on_stack_;
++-  // If this memory is stack allocated, it will use the address of STACK_TEMP.
++-  // Otherwise, STACK_TEMP is NULL.
++-  Temporary_statement* stack_temp_;
++ };
++ 
++ // Construct a struct.
++Index: b/src/gcc/go/gofrontend/backend.h
++===================================================================
++--- a/src/gcc/go/gofrontend/backend.h
+++++ b/src/gcc/go/gofrontend/backend.h
++@@ -377,6 +377,10 @@ class Backend
++   call_expression(Bexpression* fn, const std::vector<Bexpression*>& args,
++ 		  Bexpression* static_chain, Location) = 0;
++ 
+++  // Return an expression that allocates SIZE bytes on the stack.
+++  virtual Bexpression*
+++  stack_allocation_expression(int64_t size, Location) = 0;
+++
++   // Statements.
++ 
++   // Create an error statement.  This is used for cases which should
++Index: b/src/gcc/go/gofrontend/escape.cc
++===================================================================
++--- a/src/gcc/go/gofrontend/escape.cc
+++++ b/src/gcc/go/gofrontend/escape.cc
++@@ -906,6 +906,8 @@ Build_connection_graphs::handle_composit
++ 	continue;
++       else if ((*p)->call_expression() != NULL)
++ 	this->handle_call(object, *p);
+++      else if ((*p)->func_expression() != NULL)
+++	composite_args.push_back((*p)->func_expression()->named_object());
++       else if ((*p)->is_composite_literal()
++ 	       || (*p)->heap_expression() != NULL)
++ 	this->handle_composite_literal(object, *p);
++@@ -949,21 +951,24 @@ Build_connection_graphs::variable(Named_
++ 	   p != defs->end();
++ 	   ++p)
++ 	{
++-	  if (p->val == NULL)
+++	  Expression* def = p->val;
+++	  if (def == NULL)
++ 	    continue;
++ 
++-	  if (p->val->func_expression() != NULL)
+++	  if (def->conversion_expression() != NULL)
+++	    def = def->conversion_expression()->expr();
+++	  if (def->func_expression() != NULL)
++ 	    {
++ 	      // VAR is being defined as a function object.
++-	      Named_object* fn = p->val->func_expression()->named_object();
+++	      Named_object* fn = def->func_expression()->named_object();
++ 	      Node* fn_node = this->gogo_->add_connection_node(fn);
++ 	      var_node->add_edge(fn_node);
++ 	    }
++-	  else if(p->val->is_composite_literal()
++-		  || p->val->heap_expression() != NULL)
++-	    this->handle_composite_literal(var, p->val);
+++	  else if(def->is_composite_literal()
+++		  || def->heap_expression() != NULL)
+++	    this->handle_composite_literal(var, def);
++ 
++-	  Named_object* ref = this->resolve_var_reference(p->val);
+++	  Named_object* ref = this->resolve_var_reference(def);
++ 	  if (ref == NULL)
++ 	    continue;
++ 
++@@ -989,21 +994,21 @@ Build_connection_graphs::variable(Named_
++ 	      Named_object* lhs_no = this->resolve_var_reference(assn->lhs());
++ 	      Named_object* rhs_no = this->resolve_var_reference(assn->rhs());
++ 
++-	      if (assn->rhs()->is_composite_literal()
++-		  || assn->rhs()->heap_expression() != NULL)
++-		this->handle_composite_literal(var, assn->rhs());
++-	      else if (assn->rhs()->call_result_expression() != NULL)
+++	      Expression* rhs = assn->rhs();
+++	      if (rhs->is_composite_literal()
+++		  || rhs->heap_expression() != NULL)
+++		this->handle_composite_literal(var, rhs);
+++
+++	      if (rhs->call_result_expression() != NULL)
++ 		{
++ 		  // V's initialization will be a call result if
++ 		  // V, V1 := call(VAR).
++ 		  // There are no useful edges to make from V, but we want
++ 		  // to make sure we handle the call that references VAR.
++-		  Expression* call =
++-		    assn->rhs()->call_result_expression()->call();
++-		  this->handle_call(var, call);
+++		  rhs = rhs->call_result_expression()->call();
++ 		}
++-	      else if (assn->rhs()->call_expression() != NULL)
++-		this->handle_call(var, assn->rhs());
+++	      if (rhs->call_expression() != NULL)
+++		this->handle_call(var, rhs);
++ 
++ 	      // If there is no standalone variable on the rhs, this could be a
++ 	      // binary expression, which isn't interesting for analysis or a
++@@ -1038,8 +1043,12 @@ Build_connection_graphs::variable(Named_
++ 	    break;
++ 
++ 	  case Statement::STATEMENT_EXPRESSION:
++-	    this->handle_call(var,
++-	    		      p->statement->expression_statement()->expr());
+++	    {
+++	      Expression* call = p->statement->expression_statement()->expr();
+++	      if (call->call_result_expression() != NULL)
+++		call = call->call_result_expression()->call();
+++	      this->handle_call(var, call);
+++	    }
++ 	    break;
++ 
++ 	  case Statement::STATEMENT_GO:
++@@ -1064,10 +1073,17 @@ Build_connection_graphs::variable(Named_
++ 	      else if (cond->binary_expression() != NULL)
++ 		{
++ 		  Binary_expression* comp = cond->binary_expression();
++-		  if (comp->left()->call_expression() != NULL)
++-		    this->handle_call(var, comp->left());
++-		  if (comp->right()->call_expression() != NULL)
++-		    this->handle_call(var, comp->right());
+++		  Expression* left = comp->left();
+++		  Expression* right = comp->right();
+++
+++		  if (left->call_result_expression() != NULL)
+++		    left = left->call_result_expression()->call();
+++		  if (left->call_expression() != NULL)
+++		    this->handle_call(var, left);
+++		  if (right->call_result_expression() != NULL)
+++		    right = right->call_result_expression()->call();
+++		  if (right->call_expression() != NULL)
+++		    this->handle_call(var, right);
++ 		}
++ 	    }
++ 	    break;
++@@ -1092,16 +1108,10 @@ Build_connection_graphs::variable(Named_
++ 		  // composite literal.
++ 		  this->handle_composite_literal(decl_no, init);
++ 		}
++-	      else if (init->call_result_expression() != NULL)
++-		{
++-		  // V's initialization will be a call result if
++-		  // V, V1 := call(VAR).
++-		  // There's no useful edges to make from V or V1, but we want
++-		  // to make sure we handle the call that references VAR.
++-		  Expression* call = init->call_result_expression()->call();
++-		  this->handle_call(var, call);
++-		}
++-	      else if (init->call_expression() != NULL)
+++
+++	      if (init->call_result_expression() != NULL)
+++		init = init->call_result_expression()->call();
+++	      if (init->call_expression() != NULL)
++ 		this->handle_call(var, init);
++ 	    }
++ 	    break;
++@@ -1148,18 +1158,46 @@ Build_connection_graphs::statement(Block
++       if (lhs_no == NULL)
++ 	break;
++ 
++-      if (assn->rhs()->func_expression() != NULL)
+++      Expression* rhs = assn->rhs();
+++      if (rhs->temporary_reference_expression() != NULL)
+++	rhs = rhs->temporary_reference_expression()->statement()->init();
+++      if (rhs == NULL)
+++	break;
+++
+++      if (rhs->call_result_expression() != NULL)
+++	rhs = rhs->call_result_expression()->call();
+++      if (rhs->call_expression() != NULL)
+++	{
+++	  // It's not clear what variables we are trying to find references to
+++	  // so just use the arguments to this call.
+++	  Expression_list* args = rhs->call_expression()->args();
+++	  if (args == NULL)
+++	    break;
+++
+++	  for (Expression_list::const_iterator p = args->begin();
+++	       p != args->end();
+++	       ++p)
+++	    {
+++	      Named_object* no = this->resolve_var_reference(*p);
+++	      if (no != NULL) {
+++		Node* lhs_node = this->gogo_->add_connection_node(lhs_no);
+++		Node* rhs_node = this->gogo_->add_connection_node(no);
+++		lhs_node->add_edge(rhs_node);
+++	      }
+++	    }
+++
+++	  this->handle_call(lhs_no, rhs);
+++	}
+++      else if (rhs->func_expression() != NULL)
++ 	{
++ 	  Node* lhs_node = this->gogo_->add_connection_node(lhs_no);
++-	  Named_object* fn = assn->rhs()->func_expression()->named_object();
+++	  Named_object* fn = rhs->func_expression()->named_object();
++ 	  Node* fn_node = this->gogo_->add_connection_node(fn);
++ 	  lhs_node->add_edge(fn_node);
++ 	}
++-      else if (assn->rhs()->call_expression() != NULL)
++-	this->handle_call(lhs_no, assn->rhs()->call_expression());
++       else
++ 	{
++-	  Named_object* rhs_no = this->resolve_var_reference(assn->rhs());
+++	  Named_object* rhs_no = this->resolve_var_reference(rhs);
++ 	  if (rhs_no != NULL)
++ 	    {
++ 	      Node* lhs_node = this->gogo_->add_connection_node(lhs_no);
++@@ -1188,6 +1226,8 @@ Build_connection_graphs::statement(Block
++   case Statement::STATEMENT_EXPRESSION:
++     {
++       Expression* expr = s->expression_statement()->expr();
+++      if (expr->call_result_expression() != NULL)
+++	expr = expr->call_result_expression()->call();
++       if (expr->call_expression() != NULL)
++ 	{
++ 	  // It's not clear what variables we are trying to find references to
++@@ -1208,6 +1248,73 @@ Build_connection_graphs::statement(Block
++     }
++     break;
++ 
+++  case Statement::STATEMENT_GO:
+++  case Statement::STATEMENT_DEFER:
+++    {
+++      // Any variable referenced via a go or defer statement escapes to
+++      // a different goroutine.
+++      Expression* call = s->thunk_statement()->call();
+++      if (call->call_expression() != NULL)
+++	{
+++	  // It's not clear what variables we are trying to find references to
+++	  // so just use the arguments to this call.
+++	  Expression_list* args = call->call_expression()->args();
+++	  if (args == NULL)
+++	    break;
+++
+++	  for (Expression_list::const_iterator p = args->begin();
+++	       p != args->end();
+++	       ++p)
+++	    {
+++	      Named_object* no = this->resolve_var_reference(*p);
+++	      if (no != NULL)
+++		this->handle_call(no, call);
+++	    }
+++	}
+++    }
+++    break;
+++
+++  case Statement::STATEMENT_VARIABLE_DECLARATION:
+++    {
+++      Variable_declaration_statement* decl =
+++	s->variable_declaration_statement();
+++      Named_object* decl_no = decl->var();
+++      Variable* v = decl_no->var_value();
+++
+++      Expression* init = v->init();
+++      if (init == NULL)
+++	break;
+++
+++      if (init->is_composite_literal()
+++	  || init->heap_expression() != NULL)
+++	{
+++	  // Create edges between DECL_NO and each named object in the
+++	  // composite literal.
+++	  this->handle_composite_literal(decl_no, init);
+++	}
+++
+++      if (init->call_result_expression() != NULL)
+++	init = init->call_result_expression()->call();
+++      if (init->call_expression() != NULL)
+++	{
+++	  // It's not clear what variables we are trying to find references to
+++	  // so just use the arguments to this call.
+++	  Expression_list* args = init->call_expression()->args();
+++	  if (args == NULL)
+++	    break;
+++
+++	  for (Expression_list::const_iterator p = args->begin();
+++	       p != args->end();
+++	       ++p)
+++	    {
+++	      Named_object* no = this->resolve_var_reference(*p);
+++	      if (no != NULL)
+++		this->handle_call(no, init);
+++	    }
+++	}
+++    }
+++    break;
+++
++   default:
++     break;
++   }
++@@ -1276,8 +1383,22 @@ Gogo::analyze_reachability()
++       Node* m = worklist.front();
++       worklist.pop_front();
++ 
++-      for (std::set<Node*>::iterator n = m->edges().begin();
++-	   n != m->edges().end();
+++      std::set<Node*> reachable = m->edges();
+++      if (m->object()->is_function()
+++	  && m->object()->func_value()->needs_closure())
+++	{
+++	  // If a closure escapes everything it closes over also escapes.
+++	  Function* closure = m->object()->func_value();
+++	  for (size_t i = 0; i < closure->closure_field_count(); i++)
+++	    {
+++	      Named_object* enclosed = closure->enclosing_var(i);
+++	      Node* enclosed_node = this->lookup_connection_node(enclosed);
+++	      go_assert(enclosed_node != NULL);
+++	      reachable.insert(enclosed_node);
+++	    }
+++	}
+++      for (std::set<Node*>::iterator n = reachable.begin();
+++	   n != reachable.end();
++ 	   ++n)
++ 	{
++ 	  // If an object can be reached from a node with ESCAPE_GLOBAL,
++@@ -1296,7 +1417,7 @@ Gogo::analyze_reachability()
++        p != this->named_connection_nodes_.end();
++        ++p)
++     {
++-      if (p->second->connection_node()->escape_state() == Node::ESCAPE_ARG)
+++      if (p->second->connection_node()->escape_state() < Node::ESCAPE_NONE)
++ 	worklist.push_back(p->second);
++     }
++ 
++@@ -1305,15 +1426,30 @@ Gogo::analyze_reachability()
++       Node* m = worklist.front();
++       worklist.pop_front();
++ 
++-      for (std::set<Node*>::iterator n = m->edges().begin();
++-	   n != m->edges().end();
+++      std::set<Node*> reachable = m->edges();
+++      if (m->object()->is_function()
+++	  && m->object()->func_value()->needs_closure())
+++	{
+++	  // If a closure escapes everything it closes over also escapes.
+++	  Function* closure = m->object()->func_value();
+++	  for (size_t i = 0; i < closure->closure_field_count(); i++)
+++	    {
+++	      Named_object* enclosed = closure->enclosing_var(i);
+++	      Node* enclosed_node = this->lookup_connection_node(enclosed);
+++	      go_assert(enclosed_node != NULL);
+++	      reachable.insert(enclosed_node);
+++	    }
+++	}
+++      for (std::set<Node*>::iterator n = reachable.begin();
+++	   n != reachable.end();
++ 	   ++n)
++ 	{
++ 	  // If an object can be reached from a node with ESCAPE_ARG,
++ 	  // it is ESCAPE_ARG or ESCAPE_GLOBAL.
++-	  if ((*n)->connection_node()->escape_state() > Node::ESCAPE_ARG)
+++	  Node::Escapement_lattice e = m->connection_node()->escape_state();
+++	  if ((*n)->connection_node()->escape_state() > e)
++ 	    {
++-	      (*n)->connection_node()->set_escape_state(Node::ESCAPE_ARG);
+++	      (*n)->connection_node()->set_escape_state(e);
++ 	      worklist.push_back(*n);
++ 	    }
++ 	}
++@@ -1429,8 +1565,7 @@ Optimize_allocations::variable(Named_obj
++ 
++   if (var->is_variable())
++     {
++-      if (var->var_value()->is_address_taken())
++-      	var->var_value()->set_does_not_escape();
+++      var->var_value()->set_does_not_escape();
++       if (var->var_value()->init() != NULL
++ 	  && var->var_value()->init()->allocation_expression() != NULL)
++ 	{
++@@ -1439,9 +1574,6 @@ Optimize_allocations::variable(Named_obj
++ 	  alloc->set_allocate_on_stack();
++ 	}
++     }
++-  else if (var->is_result_variable()
++-	   && var->result_var_value()->is_address_taken())
++-    var->result_var_value()->set_does_not_escape();
++ 
++   return TRAVERSE_CONTINUE;
++ }
++Index: b/src/gcc/go/gofrontend/expressions.cc
++===================================================================
++--- a/src/gcc/go/gofrontend/expressions.cc
+++++ b/src/gcc/go/gofrontend/expressions.cc
++@@ -11440,20 +11440,6 @@ Allocation_expression::do_copy()
++   return alloc;
++ }
++ 
++-Expression*
++-Allocation_expression::do_flatten(Gogo*, Named_object*,
++-				  Statement_inserter* inserter)
++-{
++-  if (this->allocate_on_stack_)
++-    {
++-      this->stack_temp_ = Statement::make_temporary(this->type_, NULL,
++-						    this->location());
++-      this->stack_temp_->set_is_address_taken();
++-      inserter->insert(this->stack_temp_);
++-    }
++-  return this;
++-}
++-
++ // Return the backend representation for an allocation expression.
++ 
++ Bexpression*
++@@ -11462,17 +11448,16 @@ Allocation_expression::do_get_backend(Tr
++   Gogo* gogo = context->gogo();
++   Location loc = this->location();
++ 
++-  if (this->stack_temp_ != NULL)
+++  Btype* btype = this->type_->get_backend(gogo);
+++  if (this->allocate_on_stack_)
++     {
++-      Expression* ref =
++-	Expression::make_temporary_reference(this->stack_temp_, loc);
++-      ref = Expression::make_unary(OPERATOR_AND, ref, loc);
++-      return ref->get_backend(context);
+++      int64_t size = gogo->backend()->type_size(btype);
+++      return gogo->backend()->stack_allocation_expression(size, loc);
++     }
++ 
++   Bexpression* space = 
++     gogo->allocate_memory(this->type_, loc)->get_backend(context);
++-  Btype* pbtype = gogo->backend()->pointer_type(this->type_->get_backend(gogo));
+++  Btype* pbtype = gogo->backend()->pointer_type(btype);
++   return gogo->backend()->convert_expression(pbtype, space, loc);
++ }
++ 

@@ -1,0 +1,4979 @@
+--- gcc-5-5.3.1.orig/debian/patches/go-escape-analysis.diff
++++ gcc-5-5.3.1/debian/patches/go-escape-analysis.diff
+@@ -0,0 +1,4976 @@
++# DP: 
++
++gcc/go/
++
++2015-04-17  Chris Manghane  <cmang@google.com>
++
++	* Make-lang.in (GO_OBJS): Add go/escape.o.
++
++ 
++Index: b/src/gcc/go/Make-lang.in
++===================================================================
++--- a/src/gcc/go/Make-lang.in
+++++ b/src/gcc/go/Make-lang.in
++@@ -51,6 +51,7 @@ go-warn = $(STRICT_WARN)
++ GO_OBJS = \
++ 	go/ast-dump.o \
++ 	go/dataflow.o \
+++	go/escape.o \
++ 	go/export.o \
++ 	go/expressions.o \
++ 	go/go-backend.o \
++Index: b/src/gcc/go/gofrontend/gogo.cc
++===================================================================
++--- a/src/gcc/go/gofrontend/gogo.cc
+++++ b/src/gcc/go/gofrontend/gogo.cc
++@@ -10,14 +10,15 @@
++ 
++ #include "go-c.h"
++ #include "go-dump.h"
+++#include "go-optimize.h"
++ #include "lex.h"
++ #include "types.h"
++ #include "statements.h"
++ #include "expressions.h"
++-#include "dataflow.h"
++ #include "runtime.h"
++ #include "import.h"
++ #include "export.h"
+++#include "escape.h"
++ #include "backend.h"
++ #include "gogo.h"
++ 
++@@ -158,11 +159,19 @@ Gogo::Gogo(Backend* backend, Linemap* li
++   Function_type* new_type = Type::make_function_type(NULL, NULL, NULL, loc);
++   new_type->set_is_varargs();
++   new_type->set_is_builtin();
+++  Node::Escape_states* new_escapes =
+++    new Node::Escape_states(1, Node::ESCAPE_NONE);
+++  new_type->set_parameter_escape_states(new_escapes);
+++  new_type->set_has_escape_info();
++   this->globals_->add_function_declaration("new", NULL, new_type, loc);
++ 
++   Function_type* make_type = Type::make_function_type(NULL, NULL, NULL, loc);
++   make_type->set_is_varargs();
++   make_type->set_is_builtin();
+++  Node::Escape_states* make_escapes =
+++    new Node::Escape_states(2, Node::ESCAPE_NONE);
+++  make_type->set_parameter_escape_states(make_escapes);
+++  make_type->set_has_escape_info();
++   this->globals_->add_function_declaration("make", NULL, make_type, loc);
++ 
++   Typed_identifier_list* len_result = new Typed_identifier_list();
++@@ -170,6 +179,10 @@ Gogo::Gogo(Backend* backend, Linemap* li
++   Function_type* len_type = Type::make_function_type(NULL, NULL, len_result,
++ 						     loc);
++   len_type->set_is_builtin();
+++  Node::Escape_states* len_escapes =
+++    new Node::Escape_states(1, Node::ESCAPE_NONE);
+++  len_type->set_parameter_escape_states(len_escapes);
+++  len_type->set_has_escape_info();
++   this->globals_->add_function_declaration("len", NULL, len_type, loc);
++ 
++   Typed_identifier_list* cap_result = new Typed_identifier_list();
++@@ -177,16 +190,26 @@ Gogo::Gogo(Backend* backend, Linemap* li
++   Function_type* cap_type = Type::make_function_type(NULL, NULL, len_result,
++ 						     loc);
++   cap_type->set_is_builtin();
+++  Node::Escape_states* cap_escapes =
+++    new Node::Escape_states(1, Node::ESCAPE_NONE);
+++  cap_type->set_parameter_escape_states(cap_escapes);
+++  cap_type->set_has_escape_info();
++   this->globals_->add_function_declaration("cap", NULL, cap_type, loc);
++ 
++   Function_type* print_type = Type::make_function_type(NULL, NULL, NULL, loc);
++   print_type->set_is_varargs();
++   print_type->set_is_builtin();
+++  Node::Escape_states* print_escapes =
+++    new Node::Escape_states(1, Node::ESCAPE_NONE);
+++  print_type->set_parameter_escape_states(print_escapes);
+++  print_type->set_has_escape_info();
++   this->globals_->add_function_declaration("print", NULL, print_type, loc);
++ 
++   print_type = Type::make_function_type(NULL, NULL, NULL, loc);
++   print_type->set_is_varargs();
++   print_type->set_is_builtin();
+++  print_type->set_parameter_escape_states(print_escapes);
+++  print_type->set_has_escape_info();
++   this->globals_->add_function_declaration("println", NULL, print_type, loc);
++ 
++   Type *empty = Type::make_empty_interface_type(loc);
++@@ -195,6 +218,10 @@ Gogo::Gogo(Backend* backend, Linemap* li
++   Function_type *panic_type = Type::make_function_type(NULL, panic_parms,
++ 						       NULL, loc);
++   panic_type->set_is_builtin();
+++  Node::Escape_states* panic_escapes =
+++    new Node::Escape_states(1, Node::ESCAPE_ARG);
+++  panic_type->set_parameter_escape_states(panic_escapes);
+++  panic_type->set_has_escape_info();
++   this->globals_->add_function_declaration("panic", NULL, panic_type, loc);
++ 
++   Typed_identifier_list* recover_result = new Typed_identifier_list();
++@@ -208,6 +235,10 @@ Gogo::Gogo(Backend* backend, Linemap* li
++   Function_type* close_type = Type::make_function_type(NULL, NULL, NULL, loc);
++   close_type->set_is_varargs();
++   close_type->set_is_builtin();
+++  Node::Escape_states* close_escapes =
+++    new Node::Escape_states(1, Node::ESCAPE_NONE);
+++  close_type->set_parameter_escape_states(close_escapes);
+++  close_type->set_has_escape_info();
++   this->globals_->add_function_declaration("close", NULL, close_type, loc);
++ 
++   Typed_identifier_list* copy_result = new Typed_identifier_list();
++@@ -216,31 +247,56 @@ Gogo::Gogo(Backend* backend, Linemap* li
++ 						      copy_result, loc);
++   copy_type->set_is_varargs();
++   copy_type->set_is_builtin();
+++  Node::Escape_states* copy_escapes =
+++    new Node::Escape_states(2, Node::ESCAPE_NONE);
+++  copy_type->set_parameter_escape_states(copy_escapes);
+++  copy_type->set_has_escape_info();
++   this->globals_->add_function_declaration("copy", NULL, copy_type, loc);
++ 
++   Function_type* append_type = Type::make_function_type(NULL, NULL, NULL, loc);
++   append_type->set_is_varargs();
++   append_type->set_is_builtin();
+++  Node::Escape_states* append_escapes = new Node::Escape_states;
+++  append_escapes->push_back(Node::ESCAPE_ARG);
+++  append_escapes->push_back(Node::ESCAPE_NONE);
+++  append_type->set_parameter_escape_states(append_escapes);
+++  append_type->set_has_escape_info();
++   this->globals_->add_function_declaration("append", NULL, append_type, loc);
++ 
++   Function_type* complex_type = Type::make_function_type(NULL, NULL, NULL, loc);
++   complex_type->set_is_varargs();
++   complex_type->set_is_builtin();
+++  Node::Escape_states* complex_escapes =
+++    new Node::Escape_states(2, Node::ESCAPE_NONE);
+++  complex_type->set_parameter_escape_states(complex_escapes);
+++  complex_type->set_has_escape_info();
++   this->globals_->add_function_declaration("complex", NULL, complex_type, loc);
++ 
++   Function_type* real_type = Type::make_function_type(NULL, NULL, NULL, loc);
++   real_type->set_is_varargs();
++   real_type->set_is_builtin();
+++  Node::Escape_states* real_escapes =
+++    new Node::Escape_states(1, Node::ESCAPE_NONE);
+++  real_type->set_parameter_escape_states(real_escapes);
+++  real_type->set_has_escape_info();
++   this->globals_->add_function_declaration("real", NULL, real_type, loc);
++ 
++   Function_type* imag_type = Type::make_function_type(NULL, NULL, NULL, loc);
++   imag_type->set_is_varargs();
++   imag_type->set_is_builtin();
+++  Node::Escape_states* imag_escapes =
+++    new Node::Escape_states(1, Node::ESCAPE_NONE);
+++  imag_type->set_parameter_escape_states(imag_escapes);
+++  imag_type->set_has_escape_info();
++   this->globals_->add_function_declaration("imag", NULL, imag_type, loc);
++ 
++   Function_type* delete_type = Type::make_function_type(NULL, NULL, NULL, loc);
++   delete_type->set_is_varargs();
++   delete_type->set_is_builtin();
+++  Node::Escape_states* delete_escapes =
+++    new Node::Escape_states(2, Node::ESCAPE_NONE);
+++  delete_type->set_parameter_escape_states(delete_escapes);
+++  delete_type->set_has_escape_info();
++   this->globals_->add_function_declaration("delete", NULL, delete_type, loc);
++ }
++ 
++@@ -1604,9 +1660,9 @@ Gogo::start_function(const std::string&
++ 
++   Block* block = new Block(NULL, location);
++ 
++-  Function* enclosing = (at_top_level
+++  Named_object* enclosing = (at_top_level
++ 			 ? NULL
++-			 : this->functions_.back().function->func_value());
+++			 : this->functions_.back().function);
++ 
++   Function* function = new Function(type, enclosing, block, location);
++ 
++@@ -1904,6 +1960,74 @@ Gogo::add_label_reference(const std::str
++ 				   issue_goto_errors);
++ }
++ 
+++// Add a function to the call graph.
+++
+++Node*
+++Gogo::add_call_node(Named_object* function)
+++{
+++  Node* call = this->lookup_call_node(function);
+++  if (call == NULL)
+++    {
+++      call = Node::make_call(function);
+++      this->call_graph_.insert(call);
+++      this->named_call_nodes_[function] = call;
+++    }
+++  return call;
+++}
+++
+++// Find the call node that represents FUNCTION.  Return NULL if it does not
+++// exist.
+++
+++Node*
+++Gogo::lookup_call_node(Named_object* function) const
+++{
+++  Named_escape_nodes::const_iterator p = this->named_call_nodes_.find(function);
+++  if (p == this->named_call_nodes_.end())
+++    return NULL;
+++  return p->second;
+++}
+++
+++// Add a connection node for OBJECT.
+++
+++Node*
+++Gogo::add_connection_node(Named_object* object)
+++{
+++  Node* connection = this->lookup_connection_node(object);
+++  if (connection == NULL)
+++    {
+++      connection = Node::make_connection(object, Node::ESCAPE_NONE);
+++
+++      // Each global variable is a part of the global connection graph.
+++      if (object->is_variable()
+++	  && object->var_value()->is_global())
+++	{
+++	  connection->connection_node()->set_escape_state(Node::ESCAPE_GLOBAL);
+++	  this->global_connections_.insert(connection);
+++	}
+++
+++      // Each function declaration or definition is the root of its own
+++      // connection graph.  This means closures will have their own
+++      // connection graph that objects in the enclosing function might
+++      // refer to.
+++      if (object->is_function() || object->is_function_declaration())
+++	this->connection_roots_.insert(connection);
+++      this->named_connection_nodes_[object] = connection;
+++    }
+++  return connection;
+++}
+++
+++// Find the connection node for OBJECT.  Return NULL if it does not exist.
+++
+++Node*
+++Gogo::lookup_connection_node(Named_object* object) const
+++{
+++  Named_escape_nodes::const_iterator p =
+++    this->named_connection_nodes_.find(object);
+++  if (p == this->named_connection_nodes_.end())
+++    return NULL;
+++  return p->second;
+++}
+++
++ // Return the current binding state.
++ 
++ Bindings_snapshot*
++@@ -4455,7 +4579,7 @@ Gogo::convert_named_types_in_bindings(Bi
++ 
++ // Class Function.
++ 
++-Function::Function(Function_type* type, Function* enclosing, Block* block,
+++Function::Function(Function_type* type, Named_object* enclosing, Block* block,
++ 		   Location location)
++   : type_(type), enclosing_(enclosing), results_(NULL),
++     closure_var_(NULL), block_(block), location_(location), labels_(),
++@@ -4809,6 +4933,13 @@ Function::export_func_with_type(Export*
++       exp->write_c_string("(");
++       const Typed_identifier* receiver = fntype->receiver();
++       exp->write_name(receiver->name());
+++
+++      if (fntype->has_escape_info())
+++        {
+++          exp->write_c_string(" ");
+++          exp->write_escape(fntype->receiver_escape_state());
+++        }
+++
++       exp->write_c_string(" ");
++       exp->write_type(receiver->type());
++       exp->write_c_string(") ");
++@@ -4820,17 +4951,25 @@ Function::export_func_with_type(Export*
++   const Typed_identifier_list* parameters = fntype->parameters();
++   if (parameters != NULL)
++     {
+++      size_t i = 0;
++       bool is_varargs = fntype->is_varargs();
++       bool first = true;
++       for (Typed_identifier_list::const_iterator p = parameters->begin();
++ 	   p != parameters->end();
++-	   ++p)
+++	   ++p, ++i)
++ 	{
++ 	  if (first)
++ 	    first = false;
++ 	  else
++ 	    exp->write_c_string(", ");
++ 	  exp->write_name(p->name());
+++
+++	  if (fntype->has_escape_info())
+++	    {
+++	      exp->write_c_string(" ");
+++	      exp->write_escape(fntype->parameter_escape_states()->at(i));
+++	    }
+++
++ 	  exp->write_c_string(" ");
++ 	  if (!is_varargs || p + 1 != parameters->end())
++ 	    exp->write_type(p->type());
++@@ -4878,17 +5017,29 @@ Function::export_func_with_type(Export*
++ void
++ Function::import_func(Import* imp, std::string* pname,
++ 		      Typed_identifier** preceiver,
+++		      Node::Escapement_lattice* rcvr_escape,
++ 		      Typed_identifier_list** pparameters,
+++		      Node::Escape_states** pparam_escapes,
++ 		      Typed_identifier_list** presults,
++-		      bool* is_varargs)
+++		      bool* is_varargs, bool* has_escape_info)
++ {
+++  *has_escape_info = false;
+++
++   imp->require_c_string("func ");
++ 
++   *preceiver = NULL;
+++  *rcvr_escape = Node::ESCAPE_NONE;
++   if (imp->peek_char() == '(')
++     {
++       imp->require_c_string("(");
++       std::string name = imp->read_name();
+++
+++      if (imp->match_c_string(" <escape")){
+++	*has_escape_info = true;
+++	imp->require_c_string(" ");
+++	*rcvr_escape = imp->read_escape_info();
+++      }
+++
++       imp->require_c_string(" ");
++       Type* rtype = imp->read_type();
++       *preceiver = new Typed_identifier(name, rtype, imp->location());
++@@ -4898,16 +5049,27 @@ Function::import_func(Import* imp, std::
++   *pname = imp->read_identifier();
++ 
++   Typed_identifier_list* parameters;
+++  Node::Escape_states* param_escapes;
++   *is_varargs = false;
++   imp->require_c_string(" (");
++   if (imp->peek_char() == ')')
++-    parameters = NULL;
+++    {
+++      parameters = NULL;
+++      param_escapes = NULL;
+++    }
++   else
++     {
++       parameters = new Typed_identifier_list();
+++      param_escapes = new Node::Escape_states();
++       while (true)
++ 	{
++ 	  std::string name = imp->read_name();
+++	  if (imp->match_c_string(" <escape")){
+++	    *has_escape_info = true;
+++	    imp->require_c_string(" ");
+++	    param_escapes->push_back(imp->read_escape_info());
+++	  }
+++
++ 	  imp->require_c_string(" ");
++ 
++ 	  if (imp->match_c_string("..."))
++@@ -4929,6 +5091,7 @@ Function::import_func(Import* imp, std::
++     }
++   imp->require_c_string(")");
++   *pparameters = parameters;
+++  *pparam_escapes = param_escapes;
++ 
++   Typed_identifier_list* results;
++   if (imp->peek_char() != ' ')
++@@ -5765,7 +5928,7 @@ Variable::Variable(Type* type, Expressio
++     type_from_init_tuple_(false), type_from_range_index_(false),
++     type_from_range_value_(false), type_from_chan_element_(false),
++     is_type_switch_var_(false), determined_type_(false),
++-    in_unique_section_(false)
+++    in_unique_section_(false), escapes_(true)
++ {
++   go_assert(type != NULL || init != NULL);
++   go_assert(!is_parameter || init == NULL);
++Index: b/src/gcc/go/gofrontend/gogo.h
++===================================================================
++--- a/src/gcc/go/gofrontend/gogo.h
+++++ b/src/gcc/go/gofrontend/gogo.h
++@@ -7,6 +7,7 @@
++ #ifndef GO_GOGO_H
++ #define GO_GOGO_H
++ 
+++#include "escape.h"
++ #include "go-linemap.h"
++ 
++ class Traverse;
++@@ -125,6 +126,21 @@ class Gogo
++   linemap()
++   { return this->linemap_; }
++ 
+++  // Get the Call Graph.
+++  const std::set<Node*>&
+++  call_graph() const
+++  { return this->call_graph_; }
+++
+++  // Get the roots of each connection graph.
+++  const std::set<Node*>&
+++  connection_roots() const
+++  { return this->connection_roots_; }
+++
+++  // Get the nodes that escape globally.
+++  const std::set<Node*>&
+++  global_connections() const
+++  { return this->global_connections_; }
+++
++   // Get the package name.
++   const std::string&
++   package_name() const;
++@@ -345,6 +361,22 @@ class Gogo
++   add_label_reference(const std::string&, Location,
++ 		      bool issue_goto_errors);
++ 
+++  // Add a FUNCTION to the call graph.
+++  Node*
+++  add_call_node(Named_object* function);
+++
+++  // Lookup the call node for FUNCTION.
+++  Node*
+++  lookup_call_node(Named_object* function) const;
+++
+++  // Add a connection node for OBJECT.
+++  Node*
+++  add_connection_node(Named_object* object);
+++
+++  // Lookup the connection node for OBJECT.
+++  Node*
+++  lookup_connection_node(Named_object* object) const;
+++
++   // Return a snapshot of the current binding state.
++   Bindings_snapshot*
++   bindings_snapshot(Location);
++@@ -544,6 +576,26 @@ class Gogo
++   void
++   check_return_statements();
++ 
+++  // Build call graph.
+++  void
+++  build_call_graph();
+++
+++  // Build connection graphs.
+++  void
+++  build_connection_graphs();
+++
+++  // Analyze reachability in the connection graphs.
+++  void
+++  analyze_reachability();
+++
+++  // Record escape information in function signatures for export data.
+++  void
+++  mark_escaping_signatures();
+++
+++  // Optimize variable allocation.
+++  void
+++  optimize_allocations(const char** filenames);
+++
++   // Do all exports.
++   void
++   do_exports();
++@@ -579,6 +631,14 @@ class Gogo
++   void
++   dump_ast(const char* basename);
++ 
+++  // Dump Call Graph if -fgo-dump-calls is set.
+++  void
+++  dump_call_graph(const char* basename);
+++
+++  // Dump Connection Graphs if -fgo-dump-connections is set.
+++  void
+++  dump_connection_graphs(const char* basename);
+++
++   // Convert named types to the backend representation.
++   void
++   convert_named_types();
++@@ -684,6 +744,10 @@ class Gogo
++   // where they were defined.
++   typedef Unordered_map(std::string, Location) File_block_names;
++ 
+++  // Type used to map named objects that refer to objects to the
+++  // node that represent them in the escape analysis graphs.
+++  typedef Unordered_map(Named_object*, Node*)  Named_escape_nodes;
+++
++   // Type used to queue writing a type specific function.
++   struct Specific_type_function
++   {
++@@ -716,6 +780,20 @@ class Gogo
++   // The global binding contour.  This includes the builtin functions
++   // and the package we are compiling.
++   Bindings* globals_;
+++  // The call graph for a program execution which represents the functions
+++  // encountered and the caller-callee relationship between the functions.
+++  std::set<Node*> call_graph_;
+++  // The nodes that form the roots of the connection graphs for each called
+++  // function and represent the connectivity relationship between all objects
+++  // in the function.
+++  std::set<Node*> connection_roots_;
+++  // All connection nodes that have an escape state of ESCAPE_GLOBAL are a part
+++  // of a special connection graph of only global variables.
+++  std::set<Node*> global_connections_;
+++  // Mapping from named objects to nodes in the call graph.
+++  Named_escape_nodes named_call_nodes_;
+++  // Mapping from named objects to nodes in a connection graph.
+++  Named_escape_nodes named_connection_nodes_;
++   // The list of names we have seen in the file block.
++   File_block_names file_block_names_;
++   // Mapping from import file names to packages.
++@@ -886,7 +964,7 @@ class Block
++ class Function
++ {
++  public:
++-  Function(Function_type* type, Function*, Block*, Location);
+++  Function(Function_type* type, Named_object*, Block*, Location);
++ 
++   // Return the function's type.
++   Function_type*
++@@ -894,14 +972,14 @@ class Function
++   { return this->type_; }
++ 
++   // Return the enclosing function if there is one.
++-  Function*
++-  enclosing()
+++  Named_object*
+++  enclosing() const
++   { return this->enclosing_; }
++ 
++   // Set the enclosing function.  This is used when building thunks
++   // for functions which call recover.
++   void
++-  set_enclosing(Function* enclosing)
+++  set_enclosing(Named_object* enclosing)
++   {
++     go_assert(this->enclosing_ == NULL);
++     this->enclosing_ = enclosing;
++@@ -1152,8 +1230,11 @@ class Function
++   // Import a function.
++   static void
++   import_func(Import*, std::string* pname, Typed_identifier** receiver,
+++	      Node::Escapement_lattice* rcvr_escape,
++ 	      Typed_identifier_list** pparameters,
++-	      Typed_identifier_list** presults, bool* is_varargs);
+++	      Node::Escape_states** pparam_escapes,
+++	      Typed_identifier_list** presults, bool* is_varargs,
+++	      bool* has_escape_info);
++ 
++  private:
++   // Type for mapping from label names to Label objects.
++@@ -1169,7 +1250,7 @@ class Function
++   Function_type* type_;
++   // The enclosing function.  This is NULL when there isn't one, which
++   // is the normal case.
++-  Function* enclosing_;
+++  Named_object* enclosing_;
++   // The result variables, if any.
++   Results* results_;
++   // If there is a closure, this is the list of variables which appear
++@@ -1414,7 +1495,11 @@ class Variable
++   // Whether this variable should live in the heap.
++   bool
++   is_in_heap() const
++-  { return this->is_address_taken_ && !this->is_global_; }
+++  {
+++    return this->is_address_taken_ 
+++      && this->escapes_
+++      && !this->is_global_;
+++  }
++ 
++   // Note that something takes the address of this variable.
++   void
++@@ -1432,6 +1517,16 @@ class Variable
++   set_non_escaping_address_taken()
++   { this->is_non_escaping_address_taken_ = true; }
++ 
+++  // Return whether this variable escapes the function it is declared in.
+++  bool
+++  escapes()
+++  { return this->escapes_; }
+++
+++  // Note that this variable does not escape the function it is declared in.
+++  void
+++  set_does_not_escape()
+++  { this->escapes_ = false; }
+++
++   // Get the source location of the variable's declaration.
++   Location
++   location() const
++@@ -1525,6 +1620,11 @@ class Variable
++     this->type_from_chan_element_ = false;
++   }
++ 
+++  // TRUE if this variable was created for a type switch clause.
+++  bool
+++  is_type_switch_var() const
+++  { return this->is_type_switch_var_; }
+++
++   // Note that this variable was created for a type switch clause.
++   void
++   set_is_type_switch_var()
++@@ -1609,7 +1709,7 @@ class Variable
++   bool is_used_ : 1;
++   // Whether something takes the address of this variable.  For a
++   // local variable this implies that the variable has to be on the
++-  // heap.
+++  // heap if it escapes from its function.
++   bool is_address_taken_ : 1;
++   // Whether something takes the address of this variable such that
++   // the address does not escape the function.
++@@ -1635,6 +1735,9 @@ class Variable
++   // True if this variable should be put in a unique section.  This is
++   // used for field tracking.
++   bool in_unique_section_ : 1;
+++  // Whether this variable escapes the function it is created in.  This is
+++  // true until shown otherwise.
+++  bool escapes_ : 1;
++ };
++ 
++ // A variable which is really the name for a function return value, or
++@@ -1647,7 +1750,7 @@ class Result_variable
++ 		  Location location)
++     : type_(type), function_(function), index_(index), location_(location),
++       backend_(NULL), is_address_taken_(false),
++-      is_non_escaping_address_taken_(false)
+++      is_non_escaping_address_taken_(false), escapes_(true)
++   { }
++ 
++   // Get the type of the result variable.
++@@ -1690,11 +1793,24 @@ class Result_variable
++   void
++   set_non_escaping_address_taken()
++   { this->is_non_escaping_address_taken_ = true; }
+++  
+++  // Return whether this variable escapes the function it is declared in.
+++  bool
+++  escapes()
+++  { return this->escapes_; }
+++
+++  // Note that this variable does not escape the function it is declared in.
+++  void
+++  set_does_not_escape()
+++  { this->escapes_ = false; }
++ 
++   // Whether this variable should live in the heap.
++   bool
++   is_in_heap() const
++-  { return this->is_address_taken_; }
+++  {
+++    return this->is_address_taken_
+++      && this->escapes_;
+++  }
++ 
++   // Set the function.  This is used when cloning functions which call
++   // recover.
++@@ -1722,6 +1838,9 @@ class Result_variable
++   // Whether something takes the address of this variable such that
++   // the address does not escape the function.
++   bool is_non_escaping_address_taken_;
+++  // Whether this variable escapes the function it is created in.  This is
+++  // true until shown otherwise.
+++  bool escapes_;
++ };
++ 
++ // The value we keep for a named constant.  This lets us hold a type
++Index: b/src/gcc/go/gofrontend/dataflow.cc
++===================================================================
++--- a/src/gcc/go/gofrontend/dataflow.cc
+++++ b/src/gcc/go/gofrontend/dataflow.cc
++@@ -169,8 +169,20 @@ Dataflow_traverse_statements::statement(
++ 					Statement *statement)
++ {
++   Dataflow_traverse_assignment dta(this->dataflow_, statement);
++-  if (!statement->traverse_assignments(&dta))
+++
+++  // For thunk statements, make sure to traverse the call expression to
+++  // find any reference to a variable being used as an argument.
+++  if (!statement->traverse_assignments(&dta)
+++      || statement->thunk_statement() != NULL)
++     {
+++      // Case statements in selects will be lowered into temporaries at this
+++      // point so our dataflow analysis will miss references between a/c and ch
+++      // in case statements of the form a,c := <-ch.  Do a special dataflow
+++      // analysis for select statements here; the analysis for the blocks will
+++      // be handled as usual.
+++      if (statement->select_statement() != NULL)
+++	statement->select_statement()->analyze_dataflow(this->dataflow_);
+++
++       Dataflow_traverse_expressions dte(this->dataflow_, statement);
++       statement->traverse(block, pindex, &dte);
++     }
++@@ -195,12 +207,21 @@ Dataflow::Compare_vars::operator()(const
++     return false;
++   if (loc1 > loc2)
++     return true;
+++  if (Linemap::is_predeclared_location(loc1))
+++    return false;
++ 
++-  if (no1 == no2)
+++  if (no1 == no2
+++      || (no1->is_result_variable()
+++	  && no2->is_result_variable())
+++      || ((no1->is_variable()
+++	   && no1->var_value()->is_type_switch_var())
+++	  && (no2->is_variable()
+++	      && no2->var_value()->is_type_switch_var())))
++     return false;
++ 
++   // We can't have two variables with the same name in the same
++-  // location.
+++  // location unless they are type switch variables which share the same
+++  // fake location.
++   go_unreachable();
++ }
++ 
++Index: b/src/gcc/go/gofrontend/escape.h
++===================================================================
++--- /dev/null
+++++ b/src/gcc/go/gofrontend/escape.h
++@@ -0,0 +1,310 @@
+++// escape.h -- Go frontend escape analysis.     -*- C++ -*-
+++
+++// Copyright 2015 The Go Authors. All rights reserved.
+++// Use of this source code is governed by a BSD-style
+++// license that can be found in the LICENSE file.
+++
+++#ifndef GO_ESCAPE_H
+++#define GO_ESCAPE_H
+++
+++#include "go-system.h"
+++#include "string-dump.h"
+++
+++class Call_node;
+++class Connection_node;
+++class Connection_dump_context;
+++class Gogo;
+++class Named_object;
+++
+++// A basic escape analysis implementation for the Go frontend based on the
+++// algorithm from "Escape Analysis for Java" by Choi et. al in OOPSLA '99.
+++// This is a simplified version of the flow insensitive analysis with the goal
+++// of reducing the overhead cost of garbage collection by allocating objects
+++// on the stack when they do not escape the function they were created in.
+++//
+++// A major simplification is that the analysis only implements what Choi refers
+++// to as "deferred edges" which are used to used model assignments that copy
+++// references from one variable to another e.g. a := b.  It is unnecessary to
+++// consider assignments to the fields of an object because, in general, if a
+++// field of an object escapes and must be heap-allocated, there is no way to
+++// heap-allocate that escaping field without heap-allocating the entire object.
+++// That is, for some globally escaping object GVAR, if there is an assignment
+++// of the form GVAR = t.f such that field f of object t escapes, it is likely
+++// that t must be heap-allocated as well.  In the analysis, this assignment
+++// will be simplified to GVAR = t, which is imprecise but has the same effect.
+++
+++// This is a general graph node representing a named object used in a call graph
+++// or connection graph.  In a call graph, each named object is either a Function
+++// or Function_declaration representing a function called during the program
+++// execution (which isn't necessarily every function declared).  In a connection
+++// graph, there is a node for each node in the call graph, which forms the root
+++// of that connection graph.  Each connection graph root contains nodes whose
+++// objects are either variables used in the function defintion or are nested
+++// closures created within the function definition.  The connection graph is
+++// a way of modeling the connectivity between all objects created in a given
+++// function as well as understanding the relationship between input arguments
+++// in the caller and the formal parameters in the callee.
+++
+++class Node
+++{
+++ public:
+++  enum Node_classification
+++  {
+++    NODE_CALL,
+++    NODE_CONNECTION
+++  };
+++
+++  virtual ~Node();
+++
+++  // Make a call node for FUNCTION.
+++  static Node*
+++  make_call(Named_object* function);
+++
+++  // Make a connection node for OBJECT.
+++  // Note: values in this enum appear in export data, and therefore MUST NOT
+++  // change.
+++  enum Escapement_lattice
+++  {
+++    // ESCAPE_GLOBAL means that the object escapes all functions globally.
+++    ESCAPE_GLOBAL = 0,
+++    // ESCAPE_ARG with respect to a function means that the object escapes that
+++    // function it is created in via the function's arguments or results.
+++    ESCAPE_ARG = 1,
+++    // ESCAPE_NONE means that the object does not escape the function in which
+++    // it was created.
+++    ESCAPE_NONE = 2
+++  };
+++
+++  // A list of states usually corresponding to a list of function parameters.
+++  typedef std::vector<Escapement_lattice> Escape_states;
+++
+++  static Node*
+++  make_connection(Named_object* object, Escapement_lattice e);
+++
+++  // Return the node classification.
+++  Node_classification
+++  classification() const
+++  { return this->classification_; }
+++
+++  // Return whether this is a call node.
+++  bool
+++  is_call() const
+++  { return this->classification_ == NODE_CALL; }
+++
+++  // Return whether this is a connection node.
+++  bool
+++  is_connection() const
+++  { return this->classification_ == NODE_CONNECTION; }
+++
+++  // If this is a connection node, return the Connection_node.
+++  // Otherwise, return NULL.
+++  Connection_node*
+++  connection_node()
+++  { return this->convert<Connection_node, NODE_CONNECTION>(); }
+++
+++  // Return this node's unique id.
+++  unsigned int
+++  id() const
+++  { return this->id_; }
+++
+++  // Return this node's generated name for GraphViz.
+++  virtual const std::string&
+++  name() = 0;
+++
+++  // Return this node's generated label for GraphViz.
+++  virtual const std::string&
+++  label();
+++
+++  // Return the object this node represents.
+++  Named_object*
+++  object() const
+++  { return this->object_; }
+++
+++  void
+++  add_edge(Node* v)
+++  { this->edges_.insert(v); }
+++
+++  const std::set<Node*>&
+++  edges() const
+++  { return this->edges_; }
+++
+++ protected:
+++  Node(Node_classification, Named_object* object);
+++
+++  const std::string&
+++  get_name() const
+++  { return this->name_; }
+++
+++  void
+++  set_name(const std::string& name)
+++  { this->name_ = name; }
+++
+++  const std::string&
+++  get_label() const
+++  { return this->label_; }
+++
+++  void
+++  set_label(const std::string& label)
+++  { this->label_ = label; }
+++
+++ private:
+++  template<typename Node_class,
+++	   Node_classification node_classification>
+++  const Node_class*
+++  convert() const
+++  {
+++    return (this->classification_ == node_classification
+++	    ? static_cast<const Node_class*>(this)
+++	    : NULL);
+++  }
+++
+++  template<typename Node_class,
+++	   Node_classification node_classification>
+++  Node_class*
+++  convert()
+++  {
+++    return (this->classification_ == node_classification
+++	    ? static_cast<Node_class*>(this)
+++	    : NULL);
+++  }
+++
+++  // The classification of this node.
+++  Node_classification classification_;
+++  // A unique ID for this node.
+++  unsigned int id_;
+++  // The name for this node e.g. "Node<ID>" used as a GraphViz identifier.
+++  std::string name_;
+++  // The label for this node in the GraphViz representation.
+++  std::string label_;
+++  // The object represented by this node.
+++  Named_object* object_;
+++  // A distinct set of nodes that this node has edges to.
+++  std::set<Node*> edges_;
+++};
+++
+++
+++// A node representing a function that might be called during program execution.
+++
+++class Call_node : public Node
+++{
+++ public:
+++  Call_node(Named_object* function);
+++
+++  const std::string&
+++  name();
+++};
+++
+++// A node representing an object in the connection graph built for each function
+++// in the call graph.
+++
+++class Connection_node : public Node
+++{
+++ public:
+++  Connection_node(Named_object* object, Escapement_lattice e)
+++    : Node(NODE_CONNECTION, object),
+++      escape_state_(e)
+++  { }
+++
+++  // Return this node's generated name for GraphViz.
+++  const std::string&
+++  name();
+++
+++  // Return this node's generated label for GraphViz.
+++  const std::string&
+++  label();
+++
+++  // Return the escape state for this node.
+++  Escapement_lattice
+++  escape_state() const
+++  { return this->escape_state_; }
+++
+++  // Set the escape state for this node.
+++  void
+++  set_escape_state(Escapement_lattice e)
+++  { this->escape_state_ = e; }
+++
+++  // Return the objects inside of this connection graph.
+++  // This is empty for all connection nodes that are not the root of a
+++  // connection graph.  Each node in the call graph is a root of a connection
+++  // graph.
+++  const std::set<Node*>&
+++  objects() const
+++  { return this->objects_; }
+++
+++  void
+++  add_object(Node* object)
+++  { this->objects_.insert(object); }
+++
+++  void
+++  dump_connection(Connection_dump_context*);
+++
+++ private:
+++  // The escapement of this node.
+++  Escapement_lattice escape_state_;
+++  // The set of nodes contained within this connection node.  If this node is
+++  // not a root of a connection graph, this will be empty.
+++  std::set<Node*> objects_;
+++};
+++
+++// This class implements fgo-dump-calls. The Call graph dump of a Go program.
+++
+++class Call_dump_context : public String_dump
+++{
+++ public:
+++  Call_dump_context(std::ostream* out = NULL);
+++
+++  // Initialize the dump context.
+++  void
+++  dump(Gogo*, const char* basename);
+++
+++  // Get dump output stream.
+++  std::ostream&
+++  ostream()
+++  { return *this->ostream_; }
+++
+++  // Implementation of String_dump interface.
+++  void
+++  write_c_string(const char*);
+++
+++  void
+++  write_string(const std::string&);
+++
+++ private:
+++  // Stream on output dump file.
+++  std::ostream* ostream_;
+++
+++  Gogo* gogo_;
+++};
+++
+++// This class implements fgo-dump-conns.  The connection graph dump of
+++// the functions called in a Go program.
+++
+++class Connection_dump_context : public String_dump
+++{
+++ public:
+++  Connection_dump_context(std::ostream* out = NULL);
+++
+++  // Initialize the dump context.
+++  void
+++  dump(Gogo*, const char* basename);
+++
+++  // Get dump output stream.
+++  std::ostream&
+++  ostream()
+++  { return *this->ostream_; }
+++
+++  // Implementation of String_dump interface.
+++  void
+++  write_c_string(const char*);
+++
+++  void
+++  write_string(const std::string&);
+++
+++ private:
+++  // Stream on output dump file.
+++  std::ostream* ostream_;
+++
+++  Gogo* gogo_;
+++};
+++
+++#endif // !defined(GO_ESCAPE_H)
++Index: b/src/gcc/go/gofrontend/go.cc
++===================================================================
++--- a/src/gcc/go/gofrontend/go.cc
+++++ b/src/gcc/go/gofrontend/go.cc
++@@ -110,6 +110,10 @@ go_parse_input_files(const char** filena
++   if (only_check_syntax)
++     return;
++ 
+++  // Consider escape analysis information when deciding if a variable should
+++  // live on the heap or on the stack.
+++  ::gogo->optimize_allocations(filenames);
+++
++   // Export global identifiers as appropriate.
++   ::gogo->do_exports();
++ 
++Index: b/src/gcc/go/gofrontend/types.h
++===================================================================
++--- a/src/gcc/go/gofrontend/types.h
+++++ b/src/gcc/go/gofrontend/types.h
++@@ -8,6 +8,7 @@
++ #define GO_TYPES_H
++ 
++ #include "go-linemap.h"
+++#include "escape.h"
++ 
++ class Gogo;
++ class Package;
++@@ -1778,7 +1779,7 @@ class Function_type : public Type
++     : Type(TYPE_FUNCTION),
++       receiver_(receiver), parameters_(parameters), results_(results),
++       location_(location), is_varargs_(false), is_builtin_(false),
++-      fnbtype_(NULL)
+++      has_escape_info_(false), fnbtype_(NULL), parameter_escape_states_(NULL)
++   { }
++ 
++   // Get the receiver.
++@@ -1786,6 +1787,16 @@ class Function_type : public Type
++   receiver() const
++   { return this->receiver_; }
++ 
+++  // Get the escape state of the receiver.
+++  const Node::Escapement_lattice&
+++  receiver_escape_state() const
+++  { return this->receiver_escape_state_; }
+++
+++  // Set the escape state of the receiver.
+++  void
+++  set_receiver_escape_state(const Node::Escapement_lattice& e)
+++  { this->receiver_escape_state_ = e; }
+++
++   // Get the return names and types.
++   const Typed_identifier_list*
++   results() const
++@@ -1796,6 +1807,16 @@ class Function_type : public Type
++   parameters() const
++   { return this->parameters_; }
++ 
+++  // Get the escape states associated with each parameter.
+++  const Node::Escape_states*
+++  parameter_escape_states() const
+++  { return this->parameter_escape_states_; }
+++
+++  // Set the escape states of the parameters.
+++  void
+++  set_parameter_escape_states(Node::Escape_states* states)
+++  { this->parameter_escape_states_ = states; }
+++
++   // Whether this is a varargs function.
++   bool
++   is_varargs() const
++@@ -1806,6 +1827,11 @@ class Function_type : public Type
++   is_builtin() const
++   { return this->is_builtin_; }
++ 
+++  // Whether this contains escape information.
+++  bool
+++  has_escape_info() const
+++  { return this->has_escape_info_; }
+++
++   // The location where this type was defined.
++   Location
++   location() const
++@@ -1836,6 +1862,11 @@ class Function_type : public Type
++   set_is_builtin()
++   { this->is_builtin_ = true; }
++ 
+++  // Record that this has escape information.
+++  void
+++  set_has_escape_info()
+++  { this->has_escape_info_ = true; }
+++
++   // Import a function type.
++   static Function_type*
++   do_import(Import*);
++@@ -1947,9 +1978,16 @@ class Function_type : public Type
++   // Whether this is a special builtin function which can not simply
++   // be called.  This is used for len, cap, etc.
++   bool is_builtin_;
+++  // Whether escape information for the receiver and parameters has been
+++  // recorded.
+++  bool has_escape_info_;
++   // The backend representation of this type for backend function
++   // declarations and definitions.
++   Btype* fnbtype_;
+++  // The escape state of the receiver.
+++  Node::Escapement_lattice receiver_escape_state_;
+++  // The escape states of each parameter.
+++  Node::Escape_states* parameter_escape_states_;
++ };
++ 
++ // The type of a function's backend representation.
++Index: b/src/gcc/go/gofrontend/import.h
++===================================================================
++--- a/src/gcc/go/gofrontend/import.h
+++++ b/src/gcc/go/gofrontend/import.h
++@@ -7,6 +7,7 @@
++ #ifndef GO_IMPORT_H
++ #define GO_IMPORT_H
++ 
+++#include "escape.h"
++ #include "export.h"
++ #include "go-linemap.h"
++ 
++@@ -197,6 +198,10 @@ class Import
++   Type*
++   read_type();
++ 
+++  // Read escape information.
+++  Node::Escapement_lattice
+++  read_escape_info();
+++
++  private:
++   static Stream*
++   try_package_in_directory(const std::string&, Location);
++Index: b/src/gcc/go/gofrontend/export.cc
++===================================================================
++--- a/src/gcc/go/gofrontend/export.cc
+++++ b/src/gcc/go/gofrontend/export.cc
++@@ -436,6 +436,17 @@ Export::write_type(const Type* type)
++     this->type_refs_[type] = index;
++ }
++ 
+++// Export escape information.
+++
+++void
+++Export::write_escape(const Node::Escapement_lattice& e)
+++{
+++  char buf[30];
+++  snprintf(buf, sizeof buf, "<escape %d>", e);
+++  this->write_c_string(buf);
+++  return;
+++}
+++
++ // Add the builtin types to the export table.
++ 
++ void
++Index: b/src/gcc/go/gofrontend/export.h
++===================================================================
++--- a/src/gcc/go/gofrontend/export.h
+++++ b/src/gcc/go/gofrontend/export.h
++@@ -7,6 +7,7 @@
++ #ifndef GO_EXPORT_H
++ #define GO_EXPORT_H
++ 
+++#include "escape.h"
++ #include "string-dump.h"
++ 
++ struct sha1_ctx;
++@@ -161,6 +162,10 @@ class Export : public String_dump
++   void
++   write_type(const Type*);
++ 
+++  // Write out escape information.
+++  void
+++  write_escape(const Node::Escapement_lattice& e);
+++
++  private:
++   Export(const Export&);
++   Export& operator=(const Export&);
++Index: b/src/gcc/go/gofrontend/expressions.h
++===================================================================
++--- a/src/gcc/go/gofrontend/expressions.h
+++++ b/src/gcc/go/gofrontend/expressions.h
++@@ -31,19 +31,31 @@ class Var_expression;
++ class Temporary_reference_expression;
++ class Set_and_use_temporary_expression;
++ class String_expression;
+++class Type_conversion_expression;
++ class Unary_expression;
++ class Binary_expression;
++ class Call_expression;
+++class Call_result_expression;
++ class Func_expression;
++ class Func_descriptor_expression;
++ class Unknown_expression;
++ class Index_expression;
+++class Array_index_expression;
++ class Map_index_expression;
++ class Bound_method_expression;
++ class Field_reference_expression;
++ class Interface_field_reference_expression;
+++class Allocation_expression;
+++class Struct_construction_expression;
+++class Array_construction_expression;
+++class Fixed_array_construction_expression;
+++class Slice_construction_expression;
+++class Map_construction_expression;
++ class Type_guard_expression;
+++class Heap_expression;
++ class Receive_expression;
+++class Conditional_expression;
+++class Compound_expression;
++ class Numeric_constant;
++ class Named_object;
++ class Export;
++@@ -553,6 +565,12 @@ class Expression
++   string_expression()
++   { return this->convert<String_expression, EXPRESSION_STRING>(); }
++ 
+++  // If this is a conversion expression, return the Type_conversion_expression
+++  // structure.  Otherwise, return NULL.
+++  Type_conversion_expression*
+++  conversion_expression()
+++  { return this->convert<Type_conversion_expression, EXPRESSION_CONVERSION>(); }
+++
++   // Return whether this is the expression nil.
++   bool
++   is_nil_expression() const
++@@ -582,6 +600,13 @@ class Expression
++   call_expression()
++   { return this->convert<Call_expression, EXPRESSION_CALL>(); }
++ 
+++  // If this is a call_result expression, return the Call_result_expression
+++  // structure.  Otherwise, return NULL.  This is a controlled dynamic
+++  // cast.
+++  Call_result_expression*
+++  call_result_expression()
+++  { return this->convert<Call_result_expression, EXPRESSION_CALL_RESULT>(); }
+++
++   // If this is an expression which refers to a function, return the
++   // Func_expression structure.  Otherwise, return NULL.
++   Func_expression*
++@@ -611,6 +636,13 @@ class Expression
++   index_expression()
++   { return this->convert<Index_expression, EXPRESSION_INDEX>(); }
++ 
+++  // If this is an expression which refers to indexing in a array,
+++  // return the Array_index_expression structure.  Otherwise, return
+++  // NULL.
+++  Array_index_expression*
+++  array_index_expression()
+++  { return this->convert<Array_index_expression, EXPRESSION_ARRAY_INDEX>(); }
+++
++   // If this is an expression which refers to indexing in a map,
++   // return the Map_index_expression structure.  Otherwise, return
++   // NULL.
++@@ -643,18 +675,78 @@ class Expression
++ 			 EXPRESSION_INTERFACE_FIELD_REFERENCE>();
++   }
++ 
+++  // If this is an allocation expression, return the Allocation_expression
+++  // structure.  Otherwise, return NULL.
+++  Allocation_expression*
+++  allocation_expression()
+++  { return this->convert<Allocation_expression, EXPRESSION_ALLOCATION>(); }
+++
+++  // If this is a struct composite literal, return the
+++  // Struct_construction_expression structure.  Otherwise, return NULL.
+++  Struct_construction_expression*
+++  struct_literal()
+++  {
+++    return this->convert<Struct_construction_expression,
+++			 EXPRESSION_STRUCT_CONSTRUCTION>();
+++  }
+++
+++  // If this is a array composite literal, return the
+++  // Array_construction_expression structure.  Otherwise, return NULL.
+++  Fixed_array_construction_expression*
+++  array_literal()
+++  {
+++    return this->convert<Fixed_array_construction_expression,
+++			 EXPRESSION_FIXED_ARRAY_CONSTRUCTION>();
+++  }
+++
+++  // If this is a slice composite literal, return the
+++  // Slice_construction_expression structure.  Otherwise, return NULL.
+++  Slice_construction_expression*
+++  slice_literal()
+++  {
+++    return this->convert<Slice_construction_expression,
+++			 EXPRESSION_SLICE_CONSTRUCTION>();
+++  }
+++
+++  // If this is a map composite literal, return the
+++  // Map_construction_expression structure.  Otherwise, return NULL.
+++  Map_construction_expression*
+++  map_literal()
+++  {
+++    return this->convert<Map_construction_expression,
+++			 EXPRESSION_MAP_CONSTRUCTION>();
+++  }
+++
++   // If this is a type guard expression, return the
++   // Type_guard_expression structure.  Otherwise, return NULL.
++   Type_guard_expression*
++   type_guard_expression()
++   { return this->convert<Type_guard_expression, EXPRESSION_TYPE_GUARD>(); }
++ 
+++  // If this is a heap expression, returhn the Heap_expression structure.
+++  // Otherwise, return NULL.
+++  Heap_expression*
+++  heap_expression()
+++  { return this->convert<Heap_expression, EXPRESSION_HEAP>(); }
+++
++   // If this is a receive expression, return the Receive_expression
++   // structure.  Otherwise, return NULL.
++   Receive_expression*
++   receive_expression()
++   { return this->convert<Receive_expression, EXPRESSION_RECEIVE>(); }
++ 
+++  // If this is a conditional expression, return the Conditional_expression
+++  // structure.  Otherwise, return NULL.
+++  Conditional_expression*
+++  conditional_expression()
+++  { return this->convert<Conditional_expression, EXPRESSION_CONDITIONAL>(); }
+++
+++  // If this is a compound expression, return the Compound_expression structure.
+++  // Otherwise, return NULL.
+++  Compound_expression*
+++  compound_expression()
+++  { return this->convert<Compound_expression, EXPRESSION_COMPOUND>(); }
+++
++   // Return true if this is a composite literal.
++   bool
++   is_composite_literal() const;
++@@ -1322,6 +1414,97 @@ class String_expression : public Express
++   Type* type_;
++ };
++ 
+++// A type conversion expression.
+++
+++class Type_conversion_expression : public Expression
+++{
+++ public:
+++  Type_conversion_expression(Type* type, Expression* expr,
+++			     Location location)
+++    : Expression(EXPRESSION_CONVERSION, location),
+++      type_(type), expr_(expr), may_convert_function_types_(false)
+++  { }
+++
+++  // Return the type to which we are converting.
+++  Type*
+++  type() const
+++  { return this->type_; }
+++
+++  // Return the expression which we are converting.
+++  Expression*
+++  expr() const
+++  { return this->expr_; }
+++
+++  // Permit converting from one function type to another.  This is
+++  // used internally for method expressions.
+++  void
+++  set_may_convert_function_types()
+++  {
+++    this->may_convert_function_types_ = true;
+++  }
+++
+++  // Import a type conversion expression.
+++  static Expression*
+++  do_import(Import*);
+++
+++ protected:
+++  int
+++  do_traverse(Traverse* traverse);
+++
+++  Expression*
+++  do_lower(Gogo*, Named_object*, Statement_inserter*, int);
+++
+++  Expression*
+++  do_flatten(Gogo*, Named_object*, Statement_inserter*);
+++
+++  bool
+++  do_is_constant() const;
+++
+++  bool
+++  do_is_immutable() const;
+++
+++  bool
+++  do_numeric_constant_value(Numeric_constant*) const;
+++
+++  bool
+++  do_string_constant_value(std::string*) const;
+++
+++  Type*
+++  do_type()
+++  { return this->type_; }
+++
+++  void
+++  do_determine_type(const Type_context*);
+++
+++  void
+++  do_check_types(Gogo*);
+++
+++  Expression*
+++  do_copy()
+++  {
+++    return new Type_conversion_expression(this->type_, this->expr_->copy(),
+++					  this->location());
+++  }
+++
+++  Bexpression*
+++  do_get_backend(Translate_context* context);
+++
+++  void
+++  do_export(Export*) const;
+++
+++  void
+++  do_dump_expression(Ast_dump_context*) const;
+++
+++ private:
+++  // The type to convert to.
+++  Type* type_;
+++  // The expression to convert.
+++  Expression* expr_;
+++  // True if this is permitted to convert function types.  This is
+++  // used internally for method expressions.
+++  bool may_convert_function_types_;
+++};
+++
++ // A Unary expression.
++ 
++ class Unary_expression : public Expression
++@@ -1827,6 +2010,57 @@ class Call_expression : public Expressio
++   bool is_flattened_;
++ };
++ 
+++// A single result from a call which returns multiple results.
+++
+++class Call_result_expression : public Expression
+++{
+++ public:
+++  Call_result_expression(Call_expression* call, unsigned int index)
+++    : Expression(EXPRESSION_CALL_RESULT, call->location()),
+++      call_(call), index_(index)
+++  { }
+++
+++  Expression*
+++  call() const
+++  { return this->call_; }
+++
+++ protected:
+++  int
+++  do_traverse(Traverse*);
+++
+++  Type*
+++  do_type();
+++
+++  void
+++  do_determine_type(const Type_context*);
+++
+++  void
+++  do_check_types(Gogo*);
+++
+++  Expression*
+++  do_copy()
+++  {
+++    return new Call_result_expression(this->call_->call_expression(),
+++				      this->index_);
+++  }
+++
+++  bool
+++  do_must_eval_in_order() const
+++  { return true; }
+++
+++  Bexpression*
+++  do_get_backend(Translate_context*);
+++
+++  void
+++  do_dump_expression(Ast_dump_context*) const;
+++
+++ private:
+++  // The underlying call expression.
+++  Expression* call_;
+++  // Which result we want.
+++  unsigned int index_;
+++};
+++
++ // An expression which represents a pointer to a function.
++ 
++ class Func_expression : public Expression
++@@ -2074,6 +2308,95 @@ class Index_expression : public Parser_e
++   bool is_lvalue_;
++ };
++ 
+++// An array index.  This is used for both indexing and slicing.
+++
+++class Array_index_expression : public Expression
+++{
+++ public:
+++  Array_index_expression(Expression* array, Expression* start,
+++			 Expression* end, Expression* cap, Location location)
+++    : Expression(EXPRESSION_ARRAY_INDEX, location),
+++      array_(array), start_(start), end_(end), cap_(cap), type_(NULL)
+++  { }
+++
+++  // Return the array.
+++  Expression*
+++  array()
+++  { return this->array_; }
+++
+++  const Expression*
+++  array() const
+++  { return this->array_; }
+++
+++ protected:
+++  int
+++  do_traverse(Traverse*);
+++
+++  Expression*
+++  do_flatten(Gogo*, Named_object*, Statement_inserter*);
+++
+++  Type*
+++  do_type();
+++
+++  void
+++  do_determine_type(const Type_context*);
+++
+++  void
+++  do_check_types(Gogo*);
+++
+++  Expression*
+++  do_copy()
+++  {
+++    return Expression::make_array_index(this->array_->copy(),
+++					this->start_->copy(),
+++					(this->end_ == NULL
+++					 ? NULL
+++					 : this->end_->copy()),
+++					(this->cap_ == NULL
+++					 ? NULL
+++					 : this->cap_->copy()),
+++					this->location());
+++  }
+++
+++  bool
+++  do_must_eval_subexpressions_in_order(int* skip) const
+++  {
+++    *skip = 1;
+++    return true;
+++  }
+++
+++  bool
+++  do_is_addressable() const;
+++
+++  void
+++  do_address_taken(bool escapes)
+++  { this->array_->address_taken(escapes); }
+++
+++  void
+++  do_issue_nil_check()
+++  { this->array_->issue_nil_check(); }
+++
+++  Bexpression*
+++  do_get_backend(Translate_context*);
+++
+++  void
+++  do_dump_expression(Ast_dump_context*) const;
+++  
+++ private:
+++  // The array we are getting a value from.
+++  Expression* array_;
+++  // The start or only index.
+++  Expression* start_;
+++  // The end index of a slice.  This may be NULL for a simple array
+++  // index, or it may be a nil expression for the length of the array.
+++  Expression* end_;
+++  // The capacity argument of a slice.  This may be NULL for an array index or
+++  // slice.
+++  Expression* cap_;
+++  // The type of the expression.
+++  Type* type_;
+++};
+++
++ // An index into a map.
++ 
++ class Map_index_expression : public Expression
++@@ -2456,6 +2779,327 @@ class Interface_field_reference_expressi
++   std::string name_;
++ };
++ 
+++// Implement the builtin function new.
+++
+++class Allocation_expression : public Expression
+++{
+++ public:
+++  Allocation_expression(Type* type, Location location)
+++    : Expression(EXPRESSION_ALLOCATION, location),
+++      type_(type), allocate_on_stack_(false), stack_temp_(NULL)
+++  { }
+++
+++  void
+++  set_allocate_on_stack()
+++  { this->allocate_on_stack_ = true; }
+++
+++ protected:
+++  int
+++  do_traverse(Traverse*);
+++
+++  Type*
+++  do_type();
+++
+++  void
+++  do_determine_type(const Type_context*)
+++  { }
+++
+++  Expression*
+++  do_copy();
+++
+++  Expression*
+++  do_flatten(Gogo*, Named_object*, Statement_inserter*);
+++
+++  Bexpression*
+++  do_get_backend(Translate_context*);
+++
+++  void
+++  do_dump_expression(Ast_dump_context*) const;
+++
+++ private:
+++  // The type we are allocating.
+++  Type* type_;
+++  // Whether or not this is a stack allocation.
+++  bool allocate_on_stack_;
+++  // If this memory is stack allocated, it will use the address of STACK_TEMP.
+++  // Otherwise, STACK_TEMP is NULL.
+++  Temporary_statement* stack_temp_;
+++};
+++
+++// Construct a struct.
+++
+++class Struct_construction_expression : public Expression
+++{
+++ public:
+++  Struct_construction_expression(Type* type, Expression_list* vals,
+++				 Location location)
+++    : Expression(EXPRESSION_STRUCT_CONSTRUCTION, location),
+++      type_(type), vals_(vals), traverse_order_(NULL)
+++  { }
+++
+++  // Set the traversal order, used to ensure that we implement the
+++  // order of evaluation rules.  Takes ownership of the argument.
+++  void
+++  set_traverse_order(std::vector<int>* traverse_order)
+++  { this->traverse_order_ = traverse_order; }
+++
+++  // Return whether this is a constant initializer.
+++  bool
+++  is_constant_struct() const;
+++
+++  Expression_list*
+++  vals() const
+++  { return this->vals_; }
+++
+++ protected:
+++  int
+++  do_traverse(Traverse* traverse);
+++
+++  bool
+++  do_is_immutable() const;
+++
+++  Type*
+++  do_type()
+++  { return this->type_; }
+++
+++  void
+++  do_determine_type(const Type_context*);
+++
+++  void
+++  do_check_types(Gogo*);
+++
+++  Expression*
+++  do_copy()
+++  {
+++    Struct_construction_expression* ret =
+++      new Struct_construction_expression(this->type_,
+++					 (this->vals_ == NULL
+++					  ? NULL
+++					  : this->vals_->copy()),
+++					 this->location());
+++    if (this->traverse_order_ != NULL)
+++      ret->set_traverse_order(this->traverse_order_);
+++    return ret;
+++  }
+++
+++  Expression*
+++  do_flatten(Gogo*, Named_object*, Statement_inserter*);
+++
+++  Bexpression*
+++  do_get_backend(Translate_context*);
+++
+++  void
+++  do_export(Export*) const;
+++
+++  void
+++  do_dump_expression(Ast_dump_context*) const;
+++
+++ private:
+++  // The type of the struct to construct.
+++  Type* type_;
+++  // The list of values, in order of the fields in the struct.  A NULL
+++  // entry means that the field should be zero-initialized.
+++  Expression_list* vals_;
+++  // If not NULL, the order in which to traverse vals_.  This is used
+++  // so that we implement the order of evaluation rules correctly.
+++  std::vector<int>* traverse_order_;
+++};
+++
+++// Construct an array.  This class is not used directly; instead we
+++// use the child classes, Fixed_array_construction_expression and
+++// Slice_construction_expression.
+++
+++class Array_construction_expression : public Expression
+++{
+++ protected:
+++  Array_construction_expression(Expression_classification classification,
+++				Type* type,
+++				const std::vector<unsigned long>* indexes,
+++				Expression_list* vals, Location location)
+++    : Expression(classification, location),
+++      type_(type), indexes_(indexes), vals_(vals)
+++  { go_assert(indexes == NULL || indexes->size() == vals->size()); }
+++
+++ public:
+++  // Return whether this is a constant initializer.
+++  bool
+++  is_constant_array() const;
+++
+++  // Return the number of elements.
+++  size_t
+++  element_count() const
+++  { return this->vals_ == NULL ? 0 : this->vals_->size(); }
+++
+++  // The list of values.
+++  Expression_list*
+++  vals() const
+++  { return this->vals_; }
+++
+++protected:
+++  virtual int
+++  do_traverse(Traverse* traverse);
+++
+++  bool
+++  do_is_immutable() const;
+++
+++  Type*
+++  do_type()
+++  { return this->type_; }
+++
+++  void
+++  do_determine_type(const Type_context*);
+++
+++  void
+++  do_check_types(Gogo*);
+++
+++  void
+++  do_export(Export*) const;
+++
+++  // The indexes.
+++  const std::vector<unsigned long>*
+++  indexes()
+++  { return this->indexes_; }
+++
+++  Expression*
+++  do_flatten(Gogo*, Named_object*, Statement_inserter*);
+++
+++  // Get the backend constructor for the array values.
+++  Bexpression*
+++  get_constructor(Translate_context* context, Btype* btype);
+++
+++  void
+++  do_dump_expression(Ast_dump_context*) const;
+++
+++ private:
+++  // The type of the array to construct.
+++  Type* type_;
+++  // The list of indexes into the array, one for each value.  This may
+++  // be NULL, in which case the indexes start at zero and increment.
+++  const std::vector<unsigned long>* indexes_;
+++  // The list of values.  This may be NULL if there are no values.
+++  Expression_list* vals_;
+++};
+++
+++// Construct a fixed array.
+++
+++class Fixed_array_construction_expression :
+++  public Array_construction_expression
+++{
+++ public:
+++  Fixed_array_construction_expression(Type* type,
+++				      const std::vector<unsigned long>* indexes,
+++				      Expression_list* vals, Location location);
+++
+++ protected:
+++  Expression*
+++  do_copy()
+++  {
+++    return new Fixed_array_construction_expression(this->type(),
+++						   this->indexes(),
+++						   (this->vals() == NULL
+++						    ? NULL
+++						    : this->vals()->copy()),
+++						   this->location());
+++  }
+++
+++  Bexpression*
+++  do_get_backend(Translate_context*);
+++};
+++
+++// Construct a slice.
+++
+++class Slice_construction_expression : public Array_construction_expression
+++{
+++ public:
+++  Slice_construction_expression(Type* type,
+++				const std::vector<unsigned long>* indexes,
+++				Expression_list* vals, Location location);
+++ protected:
+++  // Note that taking the address of a slice literal is invalid.
+++
+++  int
+++  do_traverse(Traverse* traverse);
+++
+++  Expression*
+++  do_copy()
+++  {
+++    return new Slice_construction_expression(this->type(), this->indexes(),
+++					     (this->vals() == NULL
+++					      ? NULL
+++					      : this->vals()->copy()),
+++					     this->location());
+++  }
+++
+++  Bexpression*
+++  do_get_backend(Translate_context*);
+++
+++ private:
+++  // The type of the values in this slice.
+++  Type* valtype_;
+++};
+++
+++// Construct a map.
+++
+++class Map_construction_expression : public Expression
+++{
+++ public:
+++  Map_construction_expression(Type* type, Expression_list* vals,
+++			      Location location)
+++    : Expression(EXPRESSION_MAP_CONSTRUCTION, location),
+++      type_(type), vals_(vals), element_type_(NULL), constructor_temp_(NULL)
+++  { go_assert(vals == NULL || vals->size() % 2 == 0); }
+++
+++  Expression_list*
+++  vals() const
+++  { return this->vals_; }
+++
+++ protected:
+++  int
+++  do_traverse(Traverse* traverse);
+++
+++  Expression*
+++  do_flatten(Gogo*, Named_object*, Statement_inserter*);
+++
+++  Type*
+++  do_type()
+++  { return this->type_; }
+++
+++  void
+++  do_determine_type(const Type_context*);
+++
+++  void
+++  do_check_types(Gogo*);
+++
+++  Expression*
+++  do_copy()
+++  {
+++    return new Map_construction_expression(this->type_,
+++					   (this->vals_ == NULL
+++					    ? NULL
+++					    : this->vals_->copy()),
+++					   this->location());
+++  }
+++
+++  Bexpression*
+++  do_get_backend(Translate_context*);
+++
+++  void
+++  do_export(Export*) const;
+++
+++  void
+++  do_dump_expression(Ast_dump_context*) const;
+++  
+++ private:
+++  // The type of the map to construct.
+++  Type* type_;
+++  // The list of values.
+++  Expression_list* vals_;
+++  // The type of the key-value pair struct for each map element.
+++  Struct_type* element_type_;
+++  // A temporary reference to the variable storing the constructor initializer.
+++  Temporary_statement* constructor_temp_;
+++};
+++
++ // A type guard expression.
++ 
++ class Type_guard_expression : public Expression
++@@ -2514,6 +3158,58 @@ class Type_guard_expression : public Exp
++   Type* type_;
++ };
++ 
+++// Class Heap_expression.
+++
+++// When you take the address of an escaping expression, it is allocated
+++// on the heap.  This class implements that.
+++
+++class Heap_expression : public Expression
+++{
+++ public:
+++  Heap_expression(Expression* expr, Location location)
+++    : Expression(EXPRESSION_HEAP, location),
+++      expr_(expr)
+++  { }
+++
+++  Expression*
+++  expr() const
+++  { return this->expr_; }
+++
+++ protected:
+++  int
+++  do_traverse(Traverse* traverse)
+++  { return Expression::traverse(&this->expr_, traverse); }
+++
+++  Type*
+++  do_type();
+++  void
+++  do_determine_type(const Type_context*)
+++  { this->expr_->determine_type_no_context(); }
+++
+++  Expression*
+++  do_copy()
+++  {
+++    return Expression::make_heap_expression(this->expr_->copy(),
+++                                            this->location());
+++  }
+++
+++  Bexpression*
+++  do_get_backend(Translate_context*);
+++
+++  // We only export global objects, and the parser does not generate
+++  // this in global scope.
+++  void
+++  do_export(Export*) const
+++  { go_unreachable(); }
+++
+++  void
+++  do_dump_expression(Ast_dump_context*) const;
+++
+++ private:
+++  // The expression which is being put on the heap.
+++  Expression* expr_;
+++};
+++
++ // A receive expression.
++ 
++ class Receive_expression : public Expression
++@@ -2574,6 +3270,96 @@ class Receive_expression : public Expres
++   Temporary_statement* temp_receiver_;
++ };
++ 
+++// Conditional expressions.
+++
+++class Conditional_expression : public Expression
+++{
+++ public:
+++  Conditional_expression(Expression* cond, Expression* then_expr,
+++                         Expression* else_expr, Location location)
+++      : Expression(EXPRESSION_CONDITIONAL, location),
+++        cond_(cond), then_(then_expr), else_(else_expr)
+++  {}
+++
+++  Expression*
+++  condition() const
+++  { return this->cond_; }
+++
+++ protected:
+++  int
+++  do_traverse(Traverse*);
+++
+++  Type*
+++  do_type();
+++
+++  void
+++  do_determine_type(const Type_context*);
+++
+++  Expression*
+++  do_copy()
+++  {
+++    return new Conditional_expression(this->cond_->copy(), this->then_->copy(),
+++                                      this->else_->copy(), this->location());
+++  }
+++
+++  Bexpression*
+++  do_get_backend(Translate_context* context);
+++
+++  void
+++  do_dump_expression(Ast_dump_context*) const;
+++
+++ private:
+++  // The condition to be checked.
+++  Expression* cond_;
+++  // The expression to execute if the condition is true.
+++  Expression* then_;
+++  // The expression to execute if the condition is false.
+++  Expression* else_;
+++};
+++
+++// Compound expressions.
+++
+++class Compound_expression : public Expression
+++{
+++ public:
+++  Compound_expression(Expression* init, Expression* expr, Location location)
+++      : Expression(EXPRESSION_COMPOUND, location), init_(init), expr_(expr)
+++  {}
+++
+++  Expression*
+++  init() const
+++  { return this->init_; }
+++
+++ protected:
+++  int
+++  do_traverse(Traverse*);
+++
+++  Type*
+++  do_type();
+++
+++  void
+++  do_determine_type(const Type_context*);
+++
+++  Expression*
+++  do_copy()
+++  {
+++    return new Compound_expression(this->init_->copy(), this->expr_->copy(),
+++                                   this->location());
+++  }
+++
+++  Bexpression*
+++  do_get_backend(Translate_context* context);
+++
+++  void
+++  do_dump_expression(Ast_dump_context*) const;
+++
+++ private:
+++  // The expression that is evaluated first and discarded.
+++  Expression* init_;
+++  // The expression that is evaluated and returned.
+++  Expression* expr_;
+++};
+++
++ // A numeric constant.  This is used both for untyped constants and
++ // for constants that have a type.
++ 
++Index: b/src/gcc/go/gofrontend/statements.cc
++===================================================================
++--- a/src/gcc/go/gofrontend/statements.cc
+++++ b/src/gcc/go/gofrontend/statements.cc
++@@ -14,6 +14,7 @@
++ #include "backend.h"
++ #include "statements.h"
++ #include "ast-dump.h"
+++#include "dataflow.h"
++ 
++ // Class Statement.
++ 
++@@ -520,45 +521,7 @@ Statement::make_temporary(Type* type, Ex
++   return new Temporary_statement(type, init, location);
++ }
++ 
++-// An assignment statement.
++-
++-class Assignment_statement : public Statement
++-{
++- public:
++-  Assignment_statement(Expression* lhs, Expression* rhs,
++-		       Location location)
++-    : Statement(STATEMENT_ASSIGNMENT, location),
++-      lhs_(lhs), rhs_(rhs)
++-  { }
++-
++- protected:
++-  int
++-  do_traverse(Traverse* traverse);
++-
++-  bool
++-  do_traverse_assignments(Traverse_assignments*);
++-
++-  void
++-  do_determine_types();
++-
++-  void
++-  do_check_types(Gogo*);
++-
++-  Statement*
++-  do_flatten(Gogo*, Named_object*, Block*, Statement_inserter*);
++-
++-  Bstatement*
++-  do_get_backend(Translate_context*);
++-
++-  void
++-  do_dump_statement(Ast_dump_context*) const;
++-
++- private:
++-  // Left hand side--the lvalue.
++-  Expression* lhs_;
++-  // Right hand side--the rvalue.
++-  Expression* rhs_;
++-};
+++// Class Assignment_statement.
++ 
++ // Traversal.
++ 
++@@ -3150,41 +3113,7 @@ Statement::make_unnamed_label_statement(
++   return new Unnamed_label_statement(label);
++ }
++ 
++-// An if statement.
++-
++-class If_statement : public Statement
++-{
++- public:
++-  If_statement(Expression* cond, Block* then_block, Block* else_block,
++-	       Location location)
++-    : Statement(STATEMENT_IF, location),
++-      cond_(cond), then_block_(then_block), else_block_(else_block)
++-  { }
++-
++- protected:
++-  int
++-  do_traverse(Traverse*);
++-
++-  void
++-  do_determine_types();
++-
++-  void
++-  do_check_types(Gogo*);
++-
++-  bool
++-  do_may_fall_through() const;
++-
++-  Bstatement*
++-  do_get_backend(Translate_context*);
++-
++-  void
++-  do_dump_statement(Ast_dump_context*) const;
++-
++- private:
++-  Expression* cond_;
++-  Block* then_block_;
++-  Block* else_block_;
++-};
+++// Class If_statement.
++ 
++ // Traversal.
++ 
++@@ -4676,7 +4605,6 @@ Select_clauses::Select_clause::lower(Gog
++   // through here.
++   this->is_lowered_ = true;
++   this->val_ = NULL;
++-  this->var_ = NULL;
++ }
++ 
++ // Lower a default clause in a select statement.
++@@ -4840,6 +4768,22 @@ Select_clauses::Select_clause::check_typ
++     error_at(this->location(), "invalid receive on send-only channel");
++ }
++ 
+++// Analyze the dataflow across each case statement.
+++
+++void
+++Select_clauses::Select_clause::analyze_dataflow(Dataflow* dataflow)
+++{
+++  if (this->is_default_)
+++    return;
+++
+++  // For a CommClause, the dataflow analysis should record a definition of
+++  // VAR and CLOSEDVAR
+++  if (this->var_ != NULL && !this->var_->is_sink())
+++    dataflow->add_def(this->var_, this->channel_, NULL, false);
+++  if (this->closedvar_ != NULL && !this->closedvar_->is_sink())
+++    dataflow->add_def(this->closedvar_, this->channel_, NULL, false);
+++}
+++
++ // Whether this clause may fall through to the statement which follows
++ // the overall select statement.
++ 
++@@ -4958,6 +4902,17 @@ Select_clauses::check_types()
++     p->check_types();
++ }
++ 
+++// Analyze the dataflow across each case statement.
+++
+++void
+++Select_clauses::analyze_dataflow(Dataflow* dataflow)
+++{
+++  for (Clauses::iterator p = this->clauses_.begin();
+++       p != this->clauses_.end();
+++       ++p)
+++    p->analyze_dataflow(dataflow);
+++}
+++
++ // Return whether these select clauses fall through to the statement
++ // following the overall select statement.
++ 
++Index: b/src/gcc/go/gofrontend/statements.h
++===================================================================
++--- a/src/gcc/go/gofrontend/statements.h
+++++ b/src/gcc/go/gofrontend/statements.h
++@@ -15,12 +15,14 @@ class Statement_inserter;
++ class Block;
++ class Function;
++ class Unnamed_label;
+++class Assignment_statement;
++ class Temporary_statement;
++ class Variable_declaration_statement;
++ class Expression_statement;
++ class Return_statement;
++ class Thunk_statement;
++ class Label_statement;
+++class If_statement;
++ class For_statement;
++ class For_range_statement;
++ class Switch_statement;
++@@ -45,6 +47,7 @@ class Bexpression;
++ class Bstatement;
++ class Bvariable;
++ class Ast_dump_context;
+++class Dataflow;
++ 
++ // This class is used to traverse assignments made by a statement
++ // which makes assignments.
++@@ -331,6 +334,22 @@ class Statement
++   is_block_statement() const
++   { return this->classification_ == STATEMENT_BLOCK; }
++ 
+++  // If this is an assignment statement, return it.  Otherwise return
+++  // NULL.
+++  Assignment_statement*
+++  assignment_statement()
+++  {
+++    return this->convert<Assignment_statement, STATEMENT_ASSIGNMENT>();
+++  }
+++
+++  // If this is an temporary statement, return it.  Otherwise return
+++  // NULL.
+++  Temporary_statement*
+++  temporary_statement()
+++  {
+++    return this->convert<Temporary_statement, STATEMENT_TEMPORARY>();
+++  }
+++
++   // If this is a variable declaration statement, return it.
++   // Otherwise return NULL.
++   Variable_declaration_statement*
++@@ -363,6 +382,11 @@ class Statement
++   label_statement()
++   { return this->convert<Label_statement, STATEMENT_LABEL>(); }
++ 
+++  // If this is an if statement, return it.  Otherwise return NULL.
+++  If_statement*
+++  if_statement()
+++  { return this->convert<If_statement, STATEMENT_IF>(); }
+++
++   // If this is a for statement, return it.  Otherwise return NULL.
++   For_statement*
++   for_statement()
++@@ -385,6 +409,11 @@ class Statement
++   type_switch_statement()
++   { return this->convert<Type_switch_statement, STATEMENT_TYPE_SWITCH>(); }
++ 
+++  // If this is a send statement, return it.  Otherwise return NULL.
+++  Send_statement*
+++  send_statement()
+++  { return this->convert<Send_statement, STATEMENT_SEND>(); }
+++
++   // If this is a select statement, return it.  Otherwise return NULL.
++   Select_statement*
++   select_statement()
++@@ -507,6 +536,54 @@ class Statement
++   Location location_;
++ };
++ 
+++// An assignment statement.
+++
+++class Assignment_statement : public Statement
+++{
+++ public:
+++  Assignment_statement(Expression* lhs, Expression* rhs,
+++		       Location location)
+++    : Statement(STATEMENT_ASSIGNMENT, location),
+++      lhs_(lhs), rhs_(rhs)
+++  { }
+++
+++  Expression*
+++  lhs() const
+++  { return this->lhs_; }
+++
+++  Expression*
+++  rhs() const
+++  { return this->rhs_; }
+++
+++ protected:
+++  int
+++  do_traverse(Traverse* traverse);
+++
+++  bool
+++  do_traverse_assignments(Traverse_assignments*);
+++
+++  void
+++  do_determine_types();
+++
+++  void
+++  do_check_types(Gogo*);
+++
+++  Statement*
+++  do_flatten(Gogo*, Named_object*, Block*, Statement_inserter*);
+++
+++  Bstatement*
+++  do_get_backend(Translate_context*);
+++
+++  void
+++  do_dump_statement(Ast_dump_context*) const;
+++
+++ private:
+++  // Left hand side--the lvalue.
+++  Expression* lhs_;
+++  // Right hand side--the rvalue.
+++  Expression* rhs_;
+++};
+++
++ // A statement which creates and initializes a temporary variable.
++ 
++ class Temporary_statement : public Statement
++@@ -697,6 +774,14 @@ class Send_statement : public Statement
++       channel_(channel), val_(val)
++   { }
++ 
+++  Expression*
+++  channel()
+++  { return this->channel_; }  
+++
+++  Expression*
+++  val()
+++  { return this->val_; }
+++
++  protected:
++   int
++   do_traverse(Traverse* traverse);
++@@ -775,6 +860,10 @@ class Select_clauses
++   void
++   check_types();
++ 
+++  // Analyze the dataflow across each case statement.
+++  void
+++  analyze_dataflow(Dataflow*);
+++
++   // Whether the select clauses may fall through to the statement
++   // which follows the overall select statement.
++   bool
++@@ -831,6 +920,10 @@ class Select_clauses
++     void
++     check_types();
++ 
+++    // Analyze the dataflow across each case statement.
+++    void
+++    analyze_dataflow(Dataflow*);
+++
++     // Return true if this is the default clause.
++     bool
++     is_default() const
++@@ -937,6 +1030,10 @@ class Select_statement : public Statemen
++   Unnamed_label*
++   break_label();
++ 
+++  void
+++  analyze_dataflow(Dataflow* dataflow)
+++  { this->clauses_->analyze_dataflow(dataflow); }
+++
++  protected:
++   int
++   do_traverse(Traverse* traverse)
++@@ -1108,6 +1205,46 @@ class Label_statement : public Statement
++   Label* label_;
++ };
++ 
+++// An if statement.
+++
+++class If_statement : public Statement
+++{
+++ public:
+++  If_statement(Expression* cond, Block* then_block, Block* else_block,
+++	       Location location)
+++    : Statement(STATEMENT_IF, location),
+++      cond_(cond), then_block_(then_block), else_block_(else_block)
+++  { }
+++
+++  Expression*
+++  condition() const
+++  { return this->cond_; }
+++
+++ protected:
+++  int
+++  do_traverse(Traverse*);
+++
+++  void
+++  do_determine_types();
+++
+++  void
+++  do_check_types(Gogo*);
+++
+++  bool
+++  do_may_fall_through() const;
+++
+++  Bstatement*
+++  do_get_backend(Translate_context*);
+++
+++  void
+++  do_dump_statement(Ast_dump_context*) const;
+++
+++ private:
+++  Expression* cond_;
+++  Block* then_block_;
+++  Block* else_block_;
+++};
+++
++ // A for statement.
++ 
++ class For_statement : public Statement
++Index: b/src/gcc/go/gofrontend/escape.cc
++===================================================================
++--- /dev/null
+++++ b/src/gcc/go/gofrontend/escape.cc
++@@ -0,0 +1,1481 @@
+++// escape.cc -- Go frontend escape analysis.
+++
+++// Copyright 2015 The Go Authors. All rights reserved.
+++// Use of this source code is governed by a BSD-style
+++// license that can be found in the LICENSE file.
+++
+++#include "go-system.h"
+++
+++#include <fstream>
+++
+++#include "go-c.h"
+++#include "go-dump.h"
+++#include "go-optimize.h"
+++#include "types.h"
+++#include "statements.h"
+++#include "expressions.h"
+++#include "dataflow.h"
+++#include "gogo.h"
+++#include "escape.h"
+++
+++// Class Node.
+++
+++Node::Node(Node_classification classification, Named_object* object)
+++  : classification_(classification), object_(object)
+++{
+++  // Give every node a unique ID for representation purposes.
+++  static int count;
+++  this->id_ = count++;
+++}
+++
+++Node::~Node()
+++{
+++}
+++
+++// Make a call node for FUNCTION.
+++
+++Node*
+++Node::make_call(Named_object* function)
+++{
+++  return new Call_node(function);
+++}
+++
+++// Make a connection node for OBJECT.
+++
+++Node*
+++Node::make_connection(Named_object* object, Escapement_lattice e)
+++{
+++  return new Connection_node(object, e);
+++}
+++
+++// Return this node's label, which will be the name seen in the graphical
+++// representation.
+++
+++const std::string&
+++Node::label()
+++{
+++  if (this->label_.empty())
+++    {
+++      this->label_ = "[label=\"";
+++      this->label_ += this->object_->name();
+++      this->label_ += "\"]";
+++    }
+++  return this->label_;
+++}
+++
+++// Class Call_node.
+++
+++Call_node::Call_node(Named_object* function)
+++  : Node(NODE_CALL, function)
+++{ go_assert(function->is_function() || function->is_function_declaration()); }
+++
+++const std::string&
+++Call_node::name()
+++{
+++  if (this->get_name().empty())
+++    {
+++      char buf[30];
+++      snprintf(buf, sizeof buf, "CallNode%d", this->id());
+++      this->set_name(std::string(buf));
+++    }
+++  return this->get_name();
+++}
+++
+++// Class Connection_node.
+++
+++const std::string&
+++Connection_node::name()
+++{
+++  if (this->get_name().empty())
+++    {
+++      char buf[30];
+++      snprintf(buf, sizeof buf, "ConnectionNode%d", this->id());
+++      this->set_name(std::string(buf));
+++    }
+++  return this->get_name();
+++}
+++
+++const std::string&
+++Connection_node::label()
+++{
+++  if (this->get_label().empty())
+++    {
+++      std::string label = "[label=\"";
+++      label += this->object()->name();
+++      label += "\",color=";
+++      switch (this->escape_state_)
+++      {
+++      case ESCAPE_GLOBAL:
+++	label += "red";
+++	break;
+++      case ESCAPE_ARG:
+++	label += "blue";
+++	break;
+++      case ESCAPE_NONE:
+++	label += "black";
+++	break;
+++      }
+++      label += "]";
+++      this->set_label(label);
+++    }
+++  return this->get_label();
+++}
+++
+++// Dump a connection node and its edges to a dump file.
+++
+++void
+++Connection_node::dump_connection(Connection_dump_context* cdc)
+++{
+++  cdc->write_string(this->name() + this->label());
+++  cdc->write_c_string("\n");
+++
+++  for (std::set<Node*>::const_iterator p = this->edges().begin();
+++       p != this->edges().end();
+++       ++p)
+++    {
+++      cdc->write_string(this->name());
+++      cdc->write_c_string("->");
+++
+++      if ((*p)->object()->is_function())
+++	{
+++	  char buf[100];
+++	  snprintf(buf, sizeof buf, "dummy%d[lhead=cluster%d]",
+++		   (*p)->id(), (*p)->id());
+++	  cdc->write_c_string(buf);
+++	}
+++      else
+++	cdc->write_string((*p)->name());
+++      cdc->write_c_string("\n");
+++    }
+++}
+++
+++// The -fgo-dump-calls flag to activate call graph dumps in GraphViz DOT format.
+++
+++Go_dump call_graph_dump_flag("calls");
+++
+++// Class Call_dump_context.
+++
+++Call_dump_context::Call_dump_context(std::ostream* out)
+++  : ostream_(out), gogo_(NULL)
+++{ }
+++
+++// Dump files will be named %basename%.calls.dot
+++
+++const char* kCallDumpFileExtension = ".calls.dot";
+++
+++// Dump the call graph in DOT format.
+++
+++void
+++Call_dump_context::dump(Gogo* gogo, const char* basename)
+++{
+++  std::ofstream* out = new std::ofstream();
+++  std::string dumpname(basename);
+++  dumpname += kCallDumpFileExtension;
+++  out->open(dumpname.c_str());
+++
+++  if (out->fail())
+++    {
+++      error("cannot open %s:%m, -fgo-dump-calls ignored", dumpname.c_str());
+++      return;
+++    }
+++
+++  this->gogo_ = gogo;
+++  this->ostream_ = out;
+++
+++  this->write_string("digraph CallGraph {\n");
+++  std::set<Node*> call_graph = gogo->call_graph();
+++
+++  // Generate GraphViz nodes for each node.
+++  for (std::set<Node*>::const_iterator p = call_graph.begin();
+++       p != call_graph.end();
+++       ++p)
+++    {
+++      this->write_string((*p)->name() + (*p)->label());
+++      this->write_c_string("\n");
+++      
+++      // Generate a graphical representation of the caller-callee relationship.
+++      std::set<Node*> callees = (*p)->edges();
+++      for (std::set<Node*>::const_iterator ce = callees.begin();
+++	   ce != callees.end();
+++	   ++ce)
+++	{
+++	  this->write_string((*p)->name() + "->" + (*ce)->name());
+++	  this->write_c_string("\n");
+++	}
+++    }
+++  this->write_string("}");
+++  out->close();
+++}
+++
+++// Dump the Call Graph of the program to the dump file.
+++
+++void Gogo::dump_call_graph(const char* basename)
+++{
+++  if (::call_graph_dump_flag.is_enabled())
+++    {
+++      Call_dump_context cdc;
+++      cdc.dump(this, basename);
+++    }
+++}
+++
+++// Implementation of String_dump interface.
+++
+++void
+++Call_dump_context::write_c_string(const char* s)
+++{
+++  this->ostream() << s;
+++}
+++
+++void
+++Call_dump_context::write_string(const std::string& s)
+++{
+++  this->ostream() << s;
+++}
+++
+++// The -fgo-dump-conns flag to activate connection graph dumps in
+++// GraphViz DOT format.
+++
+++Go_dump connection_graph_dump_flag("conns");
+++
+++// Class Connection_dump_context.
+++
+++Connection_dump_context::Connection_dump_context(std::ostream* out)
+++  : ostream_(out), gogo_(NULL)
+++{ }
+++
+++// Dump files will be named %basename%.conns.dot
+++
+++const char* kConnectionDumpFileExtension = ".conns.dot";
+++
+++// Dump the connection graph in DOT format.
+++
+++void
+++Connection_dump_context::dump(Gogo* gogo, const char* basename)
+++{
+++  std::ofstream* out = new std::ofstream();
+++  std::string dumpname(basename);
+++  dumpname += kConnectionDumpFileExtension;
+++  out->open(dumpname.c_str());
+++
+++  if (out->fail())
+++    {
+++      error("cannot open %s:%m, -fgo-dump-conns ignored", dumpname.c_str());
+++      return;
+++    }
+++
+++  this->gogo_ = gogo;
+++  this->ostream_ = out;
+++
+++  this->write_string("digraph ConnectionGraph {\n");
+++  this->write_string("compound=true\n");
+++
+++  // Dump global objects.
+++  std::set<Node*> globals = this->gogo_->global_connections();
+++  this->write_c_string("subgraph globals{\n");
+++  this->write_c_string("label=\"NonLocalGraph\"\n");
+++  this->write_c_string("color=red\n");
+++  for (std::set<Node*>::const_iterator p1 = globals.begin();
+++       p1 != globals.end();
+++       ++p1)
+++    (*p1)->connection_node()->dump_connection(this);
+++  this->write_c_string("}\n");
+++
+++  std::set<Node*> roots = this->gogo_->connection_roots();
+++  for (std::set<Node*>::const_reverse_iterator p1 = roots.rbegin();
+++       p1 != roots.rend();
+++       ++p1)
+++    {
+++      std::set<Node*> objects = (*p1)->connection_node()->objects();
+++
+++      char buf[150];
+++      snprintf(buf, sizeof buf, "subgraph cluster%d", (*p1)->id());
+++      this->write_c_string(buf);
+++      this->write_string("{\n");
+++      snprintf(buf, sizeof buf, "dummy%d[shape=point,style=invis]\n",
+++	       (*p1)->id());
+++      this->write_c_string(buf);
+++      this->write_string("label = \"" + (*p1)->object()->name() + "\"\n");
+++
+++      for (std::set<Node*>::const_iterator p2 = objects.begin();
+++	   p2 != objects.end();
+++	   ++p2)
+++	(*p2)->connection_node()->dump_connection(this);
+++
+++      this->write_string("}\n");
+++    }
+++  this->write_string("}");
+++  out->close();
+++}
+++
+++void
+++Gogo::dump_connection_graphs(const char* basename)
+++{
+++  if (::connection_graph_dump_flag.is_enabled())
+++    {
+++      Connection_dump_context cdc;
+++      cdc.dump(this, basename);
+++    }
+++}
+++
+++// Implementation of String_dump interface.
+++
+++void
+++Connection_dump_context::write_c_string(const char* s)
+++{
+++  this->ostream() << s;
+++}
+++
+++void
+++Connection_dump_context::write_string(const std::string& s)
+++{
+++  this->ostream() << s;
+++}
+++
+++// A traversal class used to build a call graph for this program.
+++
+++class Build_call_graph : public Traverse
+++{
+++ public:
+++  Build_call_graph(Gogo* gogo)
+++    : Traverse(traverse_functions
+++	       | traverse_expressions),
+++      gogo_(gogo), current_function_(NULL)
+++  { }
+++
+++  int
+++  function(Named_object*);
+++
+++  int
+++  expression(Expression**);
+++
+++ private:
+++  // The IR.
+++  Gogo* gogo_;
+++  // The current function being traversed, for reference when traversing the
+++  // function body.
+++  Named_object* current_function_;
+++};
+++
+++// Add each function to the call graph and then traverse each function's
+++// body to find callee functions.
+++
+++int
+++Build_call_graph::function(Named_object* fn)
+++{
+++  this->gogo_->add_call_node(fn);
+++  go_assert(this->current_function_ == NULL);
+++  this->current_function_ = fn;
+++  fn->func_value()->traverse(this);
+++  this->current_function_ = NULL;
+++  return TRAVERSE_CONTINUE;
+++}
+++
+++// Find function calls and add them as callees to CURRENT_FUNCTION.
+++
+++int
+++Build_call_graph::expression(Expression** pexpr)
+++{
+++  if (this->current_function_ == NULL)
+++    return TRAVERSE_CONTINUE;
+++
+++  Expression* expr = *pexpr;
+++  Named_object* fn;
+++  if (expr->call_expression() != NULL)
+++    {
+++      Func_expression* func = expr->call_expression()->fn()->func_expression();
+++      if (func == NULL)
+++	{
+++	  // This is probably a variable holding a function value or a closure.
+++	  return TRAVERSE_CONTINUE;
+++	}
+++      fn = func->named_object();
+++    }
+++  else if (expr->func_expression() != NULL)
+++    fn = expr->func_expression()->named_object();
+++  else
+++    return TRAVERSE_CONTINUE;
+++
+++  Node* caller = this->gogo_->lookup_call_node(this->current_function_);
+++  go_assert(caller != NULL);
+++
+++  // Create the callee here if it hasn't been seen yet.  This could also be a
+++  // function defined in another package.
+++  Node* callee = this->gogo_->add_call_node(fn);
+++  caller->add_edge(callee);
+++  return TRAVERSE_CONTINUE;
+++}
+++
+++// Build the call graph.
+++
+++void
+++Gogo::build_call_graph()
+++{
+++  Build_call_graph build_calls(this);
+++  this->traverse(&build_calls);
+++}
+++
+++// A traversal class used to build a connection graph for each node in the
+++// call graph.
+++
+++class Build_connection_graphs : public Traverse
+++{
+++ public:
+++  Build_connection_graphs(Gogo* gogo)
+++    : Traverse(traverse_variables
+++	       | traverse_statements),
+++      gogo_(gogo), dataflow_(new Dataflow), current_function_(NULL)
+++  {
+++    // Collect dataflow information for this program.
+++    this->dataflow_->initialize(this->gogo_);
+++  }
+++
+++  void
+++  set_current_function(Named_object* function)
+++  { this->current_function_ = function; }
+++
+++  int
+++  variable(Named_object*);
+++
+++  int
+++  statement(Block*, size_t*, Statement*);
+++
+++
+++ private:
+++  // Handle a call EXPR referencing OBJECT.
+++  void
+++  handle_call(Named_object* object, Expression* expr);
+++
+++  // Get the initialization values of a composite literal EXPR.
+++  Expression_list*
+++  get_composite_arguments(Expression* expr);
+++
+++  // Handle defining OBJECT as a composite literal EXPR.
+++  void
+++  handle_composite_literal(Named_object* object, Expression* expr);
+++
+++  // Resolve the outermost named object of EXPR if there is one.
+++  Named_object*
+++  resolve_var_reference(Expression* expr);
+++
+++  // The IR.
+++  Gogo* gogo_;
+++  // The Dataflow information for this program.
+++  Dataflow* dataflow_;
+++  // The current function whose connection graph is being built.
+++  Named_object* current_function_;
+++};
+++
+++// Given an expression, return the outermost Named_object that it refers to.
+++// This is used to model the simplification between assignments in our analysis.
+++
+++Named_object*
+++Build_connection_graphs::resolve_var_reference(Expression* expr)
+++{
+++  bool done = false;
+++  Expression* orig = expr;
+++  while (!done)
+++    {
+++      // The goal of this loop is to find the variable being referenced, p,
+++      // when the expression is:
+++      switch (expr->classification())
+++      {
+++      case Expression::EXPRESSION_UNARY:
+++	// &p or *p
+++	expr = expr->unary_expression()->operand();
+++	break;
+++
+++      case Expression::EXPRESSION_ARRAY_INDEX:
+++	// p[i][j]
+++	expr = expr->array_index_expression()->array();
+++	break;
+++
+++      case Expression::EXPRESSION_FIELD_REFERENCE:
+++	// p.i.j
+++	orig = expr;
+++	expr = expr->field_reference_expression()->expr();
+++	break;
+++
+++      case Expression::EXPRESSION_RECEIVE:
+++	// <- p
+++	expr = expr->receive_expression()->channel();
+++	break;
+++
+++      case Expression::EXPRESSION_BOUND_METHOD:
+++	// p.c
+++	expr = expr->bound_method_expression()->first_argument();
+++	break;
+++
+++      case Expression::EXPRESSION_CALL:
+++	// p.c()
+++	expr = expr->call_expression()->fn();
+++	break;
+++
+++      case Expression::EXPRESSION_TEMPORARY_REFERENCE:
+++	// This is used after lowering, so try to retrieve the original
+++	// expression that might have been lowered into a temporary statement.
+++	expr = expr->temporary_reference_expression()->statement()->init();
+++	if (expr == NULL)
+++	  return NULL;
+++	break;
+++
+++      case Expression::EXPRESSION_SET_AND_USE_TEMPORARY:
+++	expr = expr->set_and_use_temporary_expression()->expression();
+++	break;
+++
+++      case Expression::EXPRESSION_COMPOUND:
+++	// p && q
+++	expr = expr->compound_expression()->init();
+++	break;
+++
+++      case Expression::EXPRESSION_CONDITIONAL:
+++	// if p {
+++	expr = expr->conditional_expression()->condition();
+++	break;
+++
+++      case Expression::EXPRESSION_CONVERSION:
+++	// T(p)
+++	expr = expr->conversion_expression()->expr();
+++	break;
+++
+++      case Expression::EXPRESSION_TYPE_GUARD:
+++	// p.(T)
+++	expr = expr->type_guard_expression()->expr();
+++	break;
+++
+++      default:
+++	done = true;
+++	break;
+++      }
+++    }
+++
+++  Var_expression* ve = expr->var_expression();
+++  if (ve != NULL)
+++    {
+++      Named_object* no = ve->named_object();
+++      go_assert(no->is_variable() || no->is_result_variable());
+++
+++      if (no->is_variable()
+++	  && no->var_value()->is_closure()
+++	  && this->current_function_->func_value()->needs_closure())
+++	{
+++	  // CURRENT_FUNCTION is a closure and NO is being set to a
+++	  // variable in the enclosing function.
+++	  Named_object* closure = this->current_function_;
+++
+++	  // If NO is a closure variable, the expression is a field
+++	  // reference to the enclosed variable.
+++	  Field_reference_expression* fre =
+++	    orig->deref()->field_reference_expression();
+++	  if (fre == NULL)
+++	    return NULL;
+++
+++	  unsigned int closure_index = fre->field_index();
+++	  no = closure->func_value()->enclosing_var(closure_index - 1);
+++	}
+++      return no;
+++    }
+++  return NULL;
+++}
+++
+++// For a call that references OBJECT, associate the OBJECT argument with the
+++// appropriate call parameter.
+++
+++void
+++Build_connection_graphs::handle_call(Named_object* object, Expression* e)
+++{
+++  // Only call expression statements are interesting
+++  // e.g. 'func(var)' for which we can show var does not escape.
+++  Call_expression* ce = e->call_expression();
+++  if (ce == NULL || ce->args() == NULL)
+++    return;
+++  
+++  // If the function call that references OBJECT is unknown, we must be
+++  // conservative and assume every argument escapes.  A function call is unknown
+++  // if it is a call to a function stored in a variable or a call to an
+++  // interface method.
+++  if (ce->fn()->func_expression() == NULL)
+++    {
+++      for (Expression_list::const_iterator arg = ce->args()->begin();
+++	   arg != ce->args()->end();
+++	   ++arg)
+++	{
+++	  Named_object* arg_no = this->resolve_var_reference(*arg);
+++	  if (arg_no != NULL)
+++	    {
+++	      Connection_node* arg_node =
+++		this->gogo_->add_connection_node(arg_no)->connection_node();
+++	      arg_node->set_escape_state(Node::ESCAPE_ARG);
+++	    }
+++	}
+++      return;
+++    }
+++
+++  Named_object* callee = ce->fn()->func_expression()->named_object();
+++  Function_type* fntype;
+++  if (callee->is_function())
+++    fntype = callee->func_value()->type();
+++  else
+++    fntype = callee->func_declaration_value()->type();
+++
+++  Node* callee_node = this->gogo_->lookup_connection_node(callee);
+++  if (callee_node == NULL && callee->is_function())
+++    {
+++      // Might be a nested closure that hasn't been analyzed yet.
+++      Named_object* currfn = this->current_function_;
+++      callee_node = this->gogo_->add_connection_node(callee);
+++      this->current_function_ = callee;
+++      callee->func_value()->traverse(this);
+++      this->current_function_ = currfn;
+++    }
+++
+++  // First find which arguments OBJECT is to CALLEE.  Given a function call,
+++  // OBJECT could be an argument multiple times e.g. CALLEE(OBJECT, OBJECT).
+++  // TODO(cmang): This should be done by the Dataflow analysis so we don't have
+++  // to do it each time we see a function call.  FIXME.
+++  Expression_list* args = ce->args()->copy();
+++  if (fntype->is_varargs()
+++      && args->back()->slice_literal() != NULL)
+++    {
+++      // Is the function is varargs, the last argument is lowered into a slice
+++      // containing all original arguments.  We want to traverse the original
+++      // arguments here.
+++      Slice_construction_expression* sce = args->back()->slice_literal();
+++      for (Expression_list::const_iterator p = sce->vals()->begin();
+++	   p != sce->vals()->end();
+++	   ++p)
+++	{
+++	  if (*p != NULL)
+++	    args->push_back(*p);
+++	}
+++    }
+++
+++  // ARG_POSITION is just a counter used to keep track of the index in the list
+++  // of arguments to this call.  In a method call, the receiver will always be
+++  // the first argument.  When looking at the function type, it will not be the
+++  // first element in the parameter list; instead, the receiver will be
+++  // non-NULL.  For convenience, mark the position of the receiver argument
+++  // as negative.
+++  int arg_position = fntype->is_method() ? -1 : 0;
+++  std::list<int> positions;
+++  for (Expression_list::const_iterator p = args->begin();
+++       p != args->end();
+++       ++p, ++arg_position)
+++    {
+++      Expression* arg = *p;
+++
+++      // An argument might be a chain of method calls, some of which are
+++      // converted from value to pointer types.  Just remove the unary
+++      // conversion if it exists.
+++      if (arg->unary_expression() != NULL)
+++	arg = arg->unary_expression()->operand();
+++
+++      // The reference to OBJECT might be in a nested call argument.
+++      if (arg->call_expression() != NULL)
+++	this->handle_call(object, arg);
+++
+++      std::vector<Named_object*> objects;
+++      if (arg->is_composite_literal()
+++	  || arg->heap_expression() != NULL)
+++	{
+++	  // For a call that has a composite literal as an argument, traverse
+++	  // the initializers of the composite literal for extra objects to
+++	  // associate with a parameter in this function.
+++	  Expression_list* comp_args = this->get_composite_arguments(arg);
+++	  if (comp_args == NULL)
+++	    continue;
+++
+++	  for (size_t i = 0; i < comp_args->size(); ++i)
+++	    {
+++	      Expression* comp_arg = comp_args->at(i);
+++	      if (comp_arg == NULL)
+++		continue;
+++	      else if (comp_arg->is_composite_literal()
+++		       || comp_arg->heap_expression() != NULL)
+++		{
+++		  // Of course, there are situations where a composite literal
+++		  // initialization value is also a composite literal.
+++		  Expression_list* nested_args =
+++		    this->get_composite_arguments(comp_arg);
+++		  if (nested_args != NULL)
+++		    comp_args->append(nested_args);
+++		}
+++
+++	      Named_object* no = this->resolve_var_reference(comp_arg);
+++	      if (no != NULL)
+++		objects.push_back(no);
+++	    }
+++	}
+++      else
+++	{
+++	  Named_object* arg_no = this->resolve_var_reference(arg);
+++	  if (arg_no != NULL)
+++	    objects.push_back(arg_no);
+++	}
+++
+++      // There are no variables to consider for this parameter.
+++      if (objects.empty())
+++	continue;
+++
+++      for (std::vector<Named_object*>::const_iterator p1 = objects.begin();
+++	   p1 != objects.end();
+++	   ++p1)
+++	{
+++	  // If CALLEE is defined in another package and we have imported escape
+++	  // information about its parameters, update the escape state of this
+++	  // argument appropriately. If there is no escape information for this
+++	  // function, we have to assume all arguments escape.
+++	  if (callee->package() != NULL
+++	      || fntype->is_builtin())
+++	    {
+++	      Node::Escapement_lattice param_escape = Node::ESCAPE_NONE;
+++	      if (fntype->has_escape_info())
+++		{
+++		  if (arg_position == -1)
+++		    {
+++		      // Use the escape info from the receiver.
+++		      param_escape = fntype->receiver_escape_state();
+++		    }
+++		  else if (fntype->parameters() != NULL)
+++		    {
+++		      const Node::Escape_states* states =
+++			fntype->parameter_escape_states();
+++
+++		      int param_size = fntype->parameters()->size();
+++		      if (arg_position >= param_size)
+++			{
+++			  go_assert(fntype->is_varargs());
+++			  param_escape = states->back();
+++			}
+++		      else
+++			param_escape =
+++			  fntype->parameter_escape_states()->at(arg_position);
+++		    }
+++		}
+++	      else
+++		param_escape = Node::ESCAPE_ARG;
+++
+++	      Connection_node* arg_node =
+++		this->gogo_->add_connection_node(*p1)->connection_node();
+++	      if (arg_node->escape_state() > param_escape)
+++		arg_node->set_escape_state(param_escape);
+++	    }
+++
+++	  if (*p1 == object)
+++	    positions.push_back(arg_position);
+++	}
+++    }
+++
+++  // If OBJECT was not found in CALLEE's arguments, OBJECT is likely a
+++  // subexpression of one of the arguments e.g. CALLEE(a[OBJECT]).  This call
+++  // does not give any useful information about whether OBJECT escapes.
+++  if (positions.empty())
+++    return;
+++
+++  // The idea here is to associate the OBJECT in the caller context with the
+++  // parameter in the callee context.  This also needs to consider varargs.
+++  // This only works with functions with arguments.
+++  if (!callee->is_function())
+++    return;
+++
+++  // Use the bindings in the callee to lookup the associated parameter.
+++  const Bindings* callee_bindings = callee->func_value()->block()->bindings();
+++
+++  // Next find the corresponding named parameters in the function signature.
+++  const Typed_identifier_list* params = fntype->parameters();
+++  for (std::list<int>::const_iterator pos = positions.begin();
+++       params != NULL && pos != positions.end();
+++       ++pos)
+++    {
+++      std::string param_name;
+++      bool param_is_interface = false;
+++      if (*pos >= 0 && params->size() <= static_cast<size_t>(*pos))
+++	{
+++	  // There were more arguments than there are parameters. This must be
+++	  // varargs and the argument corresponds to the last parameter.
+++	  go_assert(fntype->is_varargs());
+++	  param_name = params->back().name();
+++	}
+++      else if (*pos < 0)
+++	{
+++	  // We adjust the recorded position of method arguments by one to
+++	  // account for the receiver, so *pos == -1 implies this is the
+++	  // receiver and this must be a method call.
+++	  go_assert(fntype->is_method() && fntype->receiver() != NULL);
+++	  param_name = fntype->receiver()->name();
+++	}
+++      else
+++	{
+++	  param_name = params->at(*pos).name();
+++	  param_is_interface =
+++	    (params->at(*pos).type()->interface_type() != NULL);
+++	}
+++
+++      if (Gogo::is_sink_name(param_name) || param_name.empty())
+++	continue;
+++
+++      // Get the object for the associated parameter in this binding.
+++      Named_object* param_no = callee_bindings->lookup_local(param_name);
+++      go_assert(param_no != NULL);
+++
+++      // Add an edge from ARG_NODE in the caller context to the PARAM_NODE in
+++      // the callee context.
+++      if (object->is_variable() && object->var_value()->is_closure())
+++	{
+++	  int position = *pos;
+++	  if (fntype->is_method())
+++	    ++position;
+++
+++	  // Calling a function within a closure with a closure argument.
+++	  // Resolve the real variable using the closure argument.
+++	  object = this->resolve_var_reference(ce->args()->at(position));
+++	}
+++
+++      Node* arg_node = this->gogo_->add_connection_node(object);
+++      Node* param_node = this->gogo_->add_connection_node(param_no);
+++
+++      // Act conservatively when an argument is converted into an interface
+++      // value.  FIXME.
+++      if (param_is_interface)
+++	param_node->connection_node()->set_escape_state(Node::ESCAPE_ARG);
+++      param_node->add_edge(arg_node);
+++    }
+++
+++  // This is a method call with one argument: the receiver.
+++  if (params == NULL)
+++    {
+++      go_assert(positions.size() == 1);
+++      std::string rcvr_name = fntype->receiver()->name();
+++      if (Gogo::is_sink_name(rcvr_name) || rcvr_name.empty())
+++	return;
+++
+++      Named_object* rcvr_no = callee_bindings->lookup_local(rcvr_name);
+++      Node* arg_node = this->gogo_->add_connection_node(object);
+++      Node* rcvr_node = this->gogo_->add_connection_node(rcvr_no);
+++      rcvr_node->add_edge(arg_node);
+++    }
+++}
+++
+++// Given a composite literal expression, return the initialization values.
+++// This is used to handle situations where call and composite literal
+++// expressions have nested composite literals as arguments/initializers.
+++
+++Expression_list*
+++Build_connection_graphs::get_composite_arguments(Expression* expr)
+++{
+++  // A heap expression is just any expression that takes the address of a
+++  // composite literal.
+++  if (expr->heap_expression() != NULL)
+++    expr = expr->heap_expression()->expr();
+++
+++  switch (expr->classification())
+++    {
+++    case Expression::EXPRESSION_STRUCT_CONSTRUCTION:
+++      return expr->struct_literal()->vals();
+++
+++    case Expression::EXPRESSION_FIXED_ARRAY_CONSTRUCTION:
+++      return expr->array_literal()->vals();
+++
+++    case Expression::EXPRESSION_SLICE_CONSTRUCTION:
+++      return expr->slice_literal()->vals();
+++
+++    case Expression::EXPRESSION_MAP_CONSTRUCTION:
+++      return expr->map_literal()->vals();
+++
+++    default:
+++      return NULL;
+++    }
+++}
+++
+++// Given an OBJECT defined as a composite literal EXPR, create edges between
+++// OBJECT and all variables referenced in EXPR.
+++
+++void
+++Build_connection_graphs::handle_composite_literal(Named_object* object,
+++						  Expression* expr)
+++{
+++  Expression_list* args = this->get_composite_arguments(expr);
+++  if (args == NULL)
+++    return;
+++
+++  std::vector<Named_object*> composite_args;
+++  for (Expression_list::const_iterator p = args->begin();
+++       p != args->end();
+++       ++p)
+++    {
+++      if (*p == NULL)
+++	continue;
+++      else if ((*p)->call_expression() != NULL)
+++	this->handle_call(object, *p);
+++      else if ((*p)->is_composite_literal()
+++	       || (*p)->heap_expression() != NULL)
+++	this->handle_composite_literal(object, *p);
+++
+++      Named_object* no = this->resolve_var_reference(*p);
+++      if (no != NULL)
+++	composite_args.push_back(no);
+++    }
+++
+++  Node* object_node = this->gogo_->add_connection_node(object);
+++  for (std::vector<Named_object*>::const_iterator p = composite_args.begin();
+++       p != composite_args.end();
+++       ++p)
+++    {
+++      Node* arg_node = this->gogo_->add_connection_node(*p);
+++      object_node->add_edge(arg_node);
+++    }
+++}
+++
+++// Create connection nodes for each variable in a called function.
+++
+++int
+++Build_connection_graphs::variable(Named_object* var)
+++{
+++  Node* var_node = this->gogo_->add_connection_node(var);
+++  Node* root = this->gogo_->lookup_connection_node(this->current_function_);
+++  go_assert(root != NULL);
+++
+++  // Add VAR to the set of objects in CURRENT_FUNCTION's connection graph.
+++  root->connection_node()->add_object(var_node);
+++
+++  // A function's results always escape.
+++  if (var->is_result_variable())
+++    var_node->connection_node()->set_escape_state(Node::ESCAPE_ARG);
+++
+++  // Create edges from a variable to its definitions.
+++  const Dataflow::Defs* defs = this->dataflow_->find_defs(var);
+++  if (defs != NULL)
+++    {
+++      for (Dataflow::Defs::const_iterator p = defs->begin();
+++	   p != defs->end();
+++	   ++p)
+++	{
+++	  if (p->val == NULL)
+++	    continue;
+++
+++	  if (p->val->func_expression() != NULL)
+++	    {
+++	      // VAR is being defined as a function object.
+++	      Named_object* fn = p->val->func_expression()->named_object();
+++	      Node* fn_node = this->gogo_->add_connection_node(fn);
+++	      var_node->add_edge(fn_node);
+++	    }
+++	  else if(p->val->is_composite_literal()
+++		  || p->val->heap_expression() != NULL)
+++	    this->handle_composite_literal(var, p->val);
+++
+++	  Named_object* ref = this->resolve_var_reference(p->val);
+++	  if (ref == NULL)
+++	    continue;
+++
+++	  Node* ref_node = this->gogo_->add_connection_node(ref);
+++	  var_node->add_edge(ref_node);
+++	}
+++    }
+++
+++  // Create edges from a reference to a variable.
+++  const Dataflow::Refs* refs = this->dataflow_->find_refs(var);
+++  if (refs != NULL)
+++    {
+++      for (Dataflow::Refs::const_iterator p = refs->begin();
+++	   p != refs->end();
+++	   ++p)
+++	{
+++	  switch (p->statement->classification())
+++	  {
+++	  case Statement::STATEMENT_ASSIGNMENT:
+++	    {
+++	      Assignment_statement* assn =
+++		p->statement->assignment_statement();
+++	      Named_object* lhs_no = this->resolve_var_reference(assn->lhs());
+++	      Named_object* rhs_no = this->resolve_var_reference(assn->rhs());
+++
+++	      if (assn->rhs()->is_composite_literal()
+++		  || assn->rhs()->heap_expression() != NULL)
+++		this->handle_composite_literal(var, assn->rhs());
+++	      else if (assn->rhs()->call_result_expression() != NULL)
+++		{
+++		  // V's initialization will be a call result if
+++		  // V, V1 := call(VAR).
+++		  // There are no useful edges to make from V, but we want
+++		  // to make sure we handle the call that references VAR.
+++		  Expression* call =
+++		    assn->rhs()->call_result_expression()->call();
+++		  this->handle_call(var, call);
+++		}
+++	      else if (assn->rhs()->call_expression() != NULL)
+++		this->handle_call(var, assn->rhs());
+++
+++	      // If there is no standalone variable on the rhs, this could be a
+++	      // binary expression, which isn't interesting for analysis or a
+++	      // composite literal or call expression, which we handled above.
+++	      // If the underlying variable on the rhs isn't VAR then it is
+++	      // likely an indexing expression where VAR is the index.
+++	      if(lhs_no == NULL
+++		 || rhs_no == NULL
+++		 || rhs_no != var)
+++		break;
+++
+++	      var_node->connection_node()->set_escape_state(Node::ESCAPE_ARG);
+++
+++	      Node* def_node = this->gogo_->add_connection_node(lhs_no);
+++	      def_node->add_edge(var_node);
+++	    }
+++	    break;
+++
+++	  case Statement::STATEMENT_SEND:
+++	    {
+++	      Send_statement* send = p->statement->send_statement();
+++	      Named_object* chan_no = this->resolve_var_reference(send->channel());
+++	      Named_object* val_no = resolve_var_reference(send->val());
+++
+++	      if (chan_no == NULL || val_no == NULL)
+++		break;
+++
+++	      Node* chan_node = this->gogo_->add_connection_node(chan_no);
+++	      Node* val_node = this->gogo_->add_connection_node(val_no);
+++	      chan_node->add_edge(val_node);
+++	    }
+++	    break;
+++
+++	  case Statement::STATEMENT_EXPRESSION:
+++	    this->handle_call(var,
+++	    		      p->statement->expression_statement()->expr());
+++	    break;
+++
+++	  case Statement::STATEMENT_GO:
+++	  case Statement::STATEMENT_DEFER:
+++	    // Any variable referenced via a go or defer statement escapes to
+++	    // a different goroutine.
+++	    if (var_node->connection_node()->escape_state() > Node::ESCAPE_ARG)
+++	      var_node->connection_node()->set_escape_state(Node::ESCAPE_ARG);
+++	    this->handle_call(var, p->statement->thunk_statement()->call());
+++	    break;
+++
+++	  case Statement::STATEMENT_IF:
+++	    {
+++	      // If this is a reference via an if statement, it is interesting
+++	      // if there is a function call in the condition.  References in
+++	      // the then and else blocks would be discovered in an earlier
+++	      // case.
+++	      If_statement* if_stmt = p->statement->if_statement();
+++	      Expression* cond = if_stmt->condition();
+++	      if (cond->call_expression() != NULL)
+++		this->handle_call(var, cond);
+++	      else if (cond->binary_expression() != NULL)
+++		{
+++		  Binary_expression* comp = cond->binary_expression();
+++		  if (comp->left()->call_expression() != NULL)
+++		    this->handle_call(var, comp->left());
+++		  if (comp->right()->call_expression() != NULL)
+++		    this->handle_call(var, comp->right());
+++		}
+++	    }
+++	    break;
+++
+++	  case Statement::STATEMENT_VARIABLE_DECLARATION:
+++	    {
+++	      // VAR could be referenced as the initialization for another
+++	      // variable, V e.g. V := call(VAR) or V := &T{field: VAR}.
+++	      Variable_declaration_statement* decl =
+++		p->statement->variable_declaration_statement();
+++	      Named_object* decl_no = decl->var();
+++	      Variable* v = decl_no->var_value();
+++
+++	      Expression* init = v->init();
+++	      if (init == NULL)
+++		break;
+++
+++	      if (init->is_composite_literal()
+++		  || init->heap_expression() != NULL)
+++		{
+++		  // Create edges between DECL_NO and each named object in the
+++		  // composite literal.
+++		  this->handle_composite_literal(decl_no, init);
+++		}
+++	      else if (init->call_result_expression() != NULL)
+++		{
+++		  // V's initialization will be a call result if
+++		  // V, V1 := call(VAR).
+++		  // There's no useful edges to make from V or V1, but we want
+++		  // to make sure we handle the call that references VAR.
+++		  Expression* call = init->call_result_expression()->call();
+++		  this->handle_call(var, call);
+++		}
+++	      else if (init->call_expression() != NULL)
+++		this->handle_call(var, init);
+++	    }
+++	    break;
+++
+++	  case Statement::STATEMENT_TEMPORARY:
+++	    {
+++	      // A call to a function with mutliple results that references VAR
+++	      // will be lowered into a temporary at this point.  Make sure the
+++	      // call that references VAR is handled.
+++	      Expression* init = p->statement->temporary_statement()->init();
+++	      if (init == NULL)
+++		break;
+++	      else if (init->call_result_expression() != NULL)
+++		{
+++		  Expression* call = init->call_result_expression()->call();
+++		  this->handle_call(var, call);
+++		}
+++	    }
+++
+++	  default:
+++	    break;
+++	  }
+++	}
+++    }
+++  return TRAVERSE_CONTINUE;
+++}
+++
+++// Traverse statements to find interesting references that might have not
+++// been recorded in the dataflow analysis.  For example, many statements
+++// in closures are not properly recorded during dataflow analysis.  This should
+++// handle all of the cases handled above in statements that reference a
+++// variable.  FIXME.
+++
+++int
+++Build_connection_graphs::statement(Block*, size_t*, Statement* s)
+++{
+++  switch(s->classification())
+++  {
+++  case Statement::STATEMENT_ASSIGNMENT:
+++    {
+++      Assignment_statement* assn = s->assignment_statement();
+++      Named_object* lhs_no = this->resolve_var_reference(assn->lhs());
+++
+++      if (lhs_no == NULL)
+++	break;
+++
+++      if (assn->rhs()->func_expression() != NULL)
+++	{
+++	  Node* lhs_node = this->gogo_->add_connection_node(lhs_no);
+++	  Named_object* fn = assn->rhs()->func_expression()->named_object();
+++	  Node* fn_node = this->gogo_->add_connection_node(fn);
+++	  lhs_node->add_edge(fn_node);
+++	}
+++      else if (assn->rhs()->call_expression() != NULL)
+++	this->handle_call(lhs_no, assn->rhs()->call_expression());
+++      else
+++	{
+++	  Named_object* rhs_no = this->resolve_var_reference(assn->rhs());
+++	  if (rhs_no != NULL)
+++	    {
+++	      Node* lhs_node = this->gogo_->add_connection_node(lhs_no);
+++	      Node* rhs_node = this->gogo_->add_connection_node(rhs_no);
+++	      lhs_node->add_edge(rhs_node);
+++	    }
+++	}
+++    }
+++    break;
+++
+++  case Statement::STATEMENT_SEND:
+++    {
+++      Send_statement* send = s->send_statement();
+++      Named_object* chan_no = this->resolve_var_reference(send->channel());
+++      Named_object* val_no = this->resolve_var_reference(send->val());
+++
+++      if (chan_no == NULL || val_no == NULL)
+++	break;
+++
+++      Node* chan_node = this->gogo_->add_connection_node(chan_no);
+++      Node* val_node = this->gogo_->add_connection_node(val_no);
+++      chan_node->add_edge(val_node);
+++    }
+++    break;
+++
+++  case Statement::STATEMENT_EXPRESSION:
+++    {
+++      Expression* expr = s->expression_statement()->expr();
+++      if (expr->call_expression() != NULL)
+++	{
+++	  // It's not clear what variables we are trying to find references to
+++	  // so just use the arguments to this call.
+++	  Expression_list* args = expr->call_expression()->args();
+++	  if (args == NULL)
+++	    break;
+++
+++	  for (Expression_list::const_iterator p = args->begin();
+++	       p != args->end();
+++	       ++p)
+++	    {
+++	      Named_object* no = this->resolve_var_reference(*p);
+++	      if (no != NULL)
+++		this->handle_call(no, expr);
+++	    }
+++	}
+++    }
+++    break;
+++
+++  default:
+++    break;
+++  }
+++
+++  return TRAVERSE_CONTINUE;
+++}
+++
+++// Build the connection graphs for each function present in the call graph.
+++
+++void
+++Gogo::build_connection_graphs()
+++{
+++  Build_connection_graphs build_conns(this);
+++
+++  for (std::set<Node*>::const_iterator p = this->call_graph_.begin();
+++       p != this->call_graph_.end();
+++       ++p)
+++    {
+++      Named_object* func = (*p)->object();
+++      
+++      go_assert(func->is_function() || func->is_function_declaration());
+++      Function_type* fntype;
+++      if (func->is_function())
+++	fntype = func->func_value()->type();
+++      else
+++	fntype = func->func_declaration_value()->type();
+++      if (fntype->is_builtin())
+++	continue;
+++
+++      this->add_connection_node(func);
+++      build_conns.set_current_function(func);
+++      if (func->is_function())
+++	{
+++	  // A pointer receiver of a method always escapes from the method.
+++	  if (fntype->is_method() &&
+++	      fntype->receiver()->type()->points_to() != NULL)
+++	    {
+++	      const Bindings* callee_bindings =
+++		func->func_value()->block()->bindings();
+++	      std::string rcvr_name = fntype->receiver()->name();
+++	      if (Gogo::is_sink_name(rcvr_name) || rcvr_name.empty())
+++		return;
+++
+++	      Named_object* rcvr_no = callee_bindings->lookup_local(rcvr_name);
+++	      Node* rcvr_node = this->add_connection_node(rcvr_no);
+++	      rcvr_node->connection_node()->set_escape_state(Node::ESCAPE_ARG);
+++	    }
+++	  func->func_value()->traverse(&build_conns);
+++	}
+++    }
+++}
+++
+++void
+++Gogo::analyze_reachability()
+++{
+++  std::list<Node*> worklist;
+++
+++  // Run reachability analysis on all globally escaping objects.
+++  for (std::set<Node*>::const_iterator p = this->global_connections_.begin();
+++       p != this->global_connections_.end();
+++       ++p)
+++    worklist.push_back(*p);
+++
+++  while (!worklist.empty())
+++    {
+++      Node* m = worklist.front();
+++      worklist.pop_front();
+++
+++      for (std::set<Node*>::iterator n = m->edges().begin();
+++	   n != m->edges().end();
+++	   ++n)
+++	{
+++	  // If an object can be reached from a node with ESCAPE_GLOBAL,
+++	  // it also must ESCAPE_GLOBAL.
+++	  if ((*n)->connection_node()->escape_state() != Node::ESCAPE_GLOBAL)
+++	    {
+++	      (*n)->connection_node()->set_escape_state(Node::ESCAPE_GLOBAL);
+++	      worklist.push_back(*n);
+++	    }
+++	}
+++    }
+++
+++  // Run reachability analysis on all objects that escape via arguments.
+++  for (Named_escape_nodes::const_iterator p =
+++	 this->named_connection_nodes_.begin();
+++       p != this->named_connection_nodes_.end();
+++       ++p)
+++    {
+++      if (p->second->connection_node()->escape_state() == Node::ESCAPE_ARG)
+++	worklist.push_back(p->second);
+++    }
+++
+++  while (!worklist.empty())
+++    {
+++      Node* m = worklist.front();
+++      worklist.pop_front();
+++
+++      for (std::set<Node*>::iterator n = m->edges().begin();
+++	   n != m->edges().end();
+++	   ++n)
+++	{
+++	  // If an object can be reached from a node with ESCAPE_ARG,
+++	  // it is ESCAPE_ARG or ESCAPE_GLOBAL.
+++	  if ((*n)->connection_node()->escape_state() > Node::ESCAPE_ARG)
+++	    {
+++	      (*n)->connection_node()->set_escape_state(Node::ESCAPE_ARG);
+++	      worklist.push_back(*n);
+++	    }
+++	}
+++    }  
+++}
+++
+++// Iterate over all functions analyzed in the analysis, recording escape
+++// information for each receiver and parameter.
+++
+++void
+++Gogo::mark_escaping_signatures()
+++{
+++  for (std::set<Node*>::const_iterator p = this->call_graph_.begin();
+++       p != this->call_graph_.end();
+++       ++p)
+++    {
+++      Named_object* fn = (*p)->object();
+++      if (!fn->is_function())
+++	continue;
+++
+++      Function* func = fn->func_value();
+++      Function_type* fntype = func->type();
+++      const Bindings* bindings = func->block()->bindings();
+++
+++      // If this is a method, set the escape state of the receiver.
+++      if (fntype->is_method())
+++	{
+++	  std::string rcvr_name = fntype->receiver()->name();
+++	  if (rcvr_name.empty() || Gogo::is_sink_name(rcvr_name))
+++	    fntype->set_receiver_escape_state(Node::ESCAPE_NONE);
+++	  else
+++	    {
+++	      Named_object* rcvr_no = bindings->lookup_local(rcvr_name);
+++	      go_assert(rcvr_no != NULL);
+++
+++	      Node* rcvr_node = this->lookup_connection_node(rcvr_no);
+++	      if (rcvr_node != NULL)
+++		{
+++		  Node::Escapement_lattice e =
+++		    rcvr_node->connection_node()->escape_state();
+++		  fntype->set_receiver_escape_state(e);
+++		}
+++	      else
+++		fntype->set_receiver_escape_state(Node::ESCAPE_NONE);
+++	    }
+++	  fntype->set_has_escape_info();
+++	}
+++
+++      const Typed_identifier_list* params = fntype->parameters();
+++      if (params == NULL)
+++	continue;
+++
+++      fntype->set_has_escape_info();
+++      Node::Escape_states* param_escape_states = new Node::Escape_states;
+++      for (Typed_identifier_list::const_iterator p1 = params->begin();
+++	   p1 != params->end();
+++	   ++p1)
+++	{
+++	  std::string param_name = p1->name();
+++	  if (param_name.empty() || Gogo::is_sink_name(param_name))
+++	    param_escape_states->push_back(Node::ESCAPE_NONE);
+++	  else
+++	    {
+++	      Named_object* param_no = bindings->lookup_local(param_name);
+++	      go_assert(param_no != NULL);
+++
+++	      Node* param_node = this->lookup_connection_node(param_no);
+++	      if (param_node == NULL)
+++		{
+++		  param_escape_states->push_back(Node::ESCAPE_NONE);
+++		  continue;
+++		}
+++
+++	      Node::Escapement_lattice e =
+++		param_node->connection_node()->escape_state();
+++	      param_escape_states->push_back(e);
+++	    }
+++	}
+++      go_assert(params->size() == param_escape_states->size());
+++      fntype->set_parameter_escape_states(param_escape_states);
+++    }
+++}
+++
+++class Optimize_allocations : public Traverse
+++{
+++ public:
+++  Optimize_allocations(Gogo* gogo)
+++    : Traverse(traverse_variables),
+++      gogo_(gogo)
+++  { }
+++
+++  int
+++  variable(Named_object*);
+++
+++ private:
+++  // The IR.
+++  Gogo* gogo_;
+++};
+++
+++// The -fgo-optimize-alloc flag activates this escape analysis.
+++
+++Go_optimize optimize_allocation_flag("allocs");
+++
+++// Propagate escape information for each variable.
+++
+++int
+++Optimize_allocations::variable(Named_object* var)
+++{
+++  Node* var_node = this->gogo_->lookup_connection_node(var);
+++  if (var_node == NULL
+++      || var_node->connection_node()->escape_state() != Node::ESCAPE_NONE)
+++    return TRAVERSE_CONTINUE;
+++
+++  if (var->is_variable())
+++    {
+++      if (var->var_value()->is_address_taken())
+++      	var->var_value()->set_does_not_escape();
+++      if (var->var_value()->init() != NULL
+++	  && var->var_value()->init()->allocation_expression() != NULL)
+++	{
+++	  Allocation_expression* alloc =
+++	    var->var_value()->init()->allocation_expression();
+++	  alloc->set_allocate_on_stack();
+++	}
+++    }
+++  else if (var->is_result_variable()
+++	   && var->result_var_value()->is_address_taken())
+++    var->result_var_value()->set_does_not_escape();
+++
+++  return TRAVERSE_CONTINUE;
+++}
+++
+++// Perform escape analysis on this program and optimize allocations using
+++// the derived information if -fgo-optimize-allocs.
+++
+++void
+++Gogo::optimize_allocations(const char** filenames)
+++{
+++  if (!::optimize_allocation_flag.is_enabled() || saw_errors())
+++    return;
+++
+++  // Build call graph for this program.
+++  this->build_call_graph();
+++
+++  // Dump the call graph for this program if -fgo-dump-calls is enabled.
+++  this->dump_call_graph(filenames[0]);
+++
+++  // Build the connection graphs for this program.
+++  this->build_connection_graphs();
+++
+++  // Dump the connection graphs if -fgo-dump-connections is enabled.
+++  this->dump_connection_graphs(filenames[0]);
+++
+++  // Given the connection graphs for this program, perform a reachability
+++  // analysis to determine what objects escape.
+++  this->analyze_reachability();
+++
+++  // Propagate escape information to variables and variable initializations.
+++  Optimize_allocations optimize_allocs(this);
+++  this->traverse(&optimize_allocs);
+++
+++  // Store escape information for a function's receivers and parameters in the
+++  // function's signature for use when exporting package information.
+++  this->mark_escaping_signatures();
+++}
++Index: b/src/gcc/go/gofrontend/import.cc
++===================================================================
++--- a/src/gcc/go/gofrontend/import.cc
+++++ b/src/gcc/go/gofrontend/import.cc
++@@ -502,16 +502,28 @@ Import::import_func(Package* package)
++ {
++   std::string name;
++   Typed_identifier* receiver;
+++  Node::Escapement_lattice rcvr_escape;
++   Typed_identifier_list* parameters;
+++  Node::Escape_states* param_escapes;
++   Typed_identifier_list* results;
++   bool is_varargs;
++-  Function::import_func(this, &name, &receiver, &parameters, &results,
++-			&is_varargs);
+++  bool has_escape_info;
+++  Function::import_func(this, &name, &receiver, &rcvr_escape, &parameters,
+++			&param_escapes, &results, &is_varargs,
+++			&has_escape_info);
++   Function_type *fntype = Type::make_function_type(receiver, parameters,
++ 						   results, this->location_);
++   if (is_varargs)
++     fntype->set_is_varargs();
++ 
+++  if (has_escape_info)
+++    {
+++      if (fntype->is_method())
+++	fntype->set_receiver_escape_state(rcvr_escape);
+++      fntype->set_parameter_escape_states(param_escapes);
+++      fntype->set_has_escape_info();
+++    }
+++
++   Location loc = this->location_;
++   Named_object* no;
++   if (fntype->is_method())
++@@ -762,6 +774,19 @@ Import::read_type()
++   return type;
++ }
++ 
+++// Read escape info in the import stream.
+++
+++Node::Escapement_lattice
+++Import::read_escape_info()
+++{
+++  Stream* stream = this->stream_;
+++  this->require_c_string("<escape ");
+++
+++  int escape_value = stream->get_char() - '0';
+++  this->require_c_string(">");
+++  return Node::Escapement_lattice(escape_value);
+++}
+++
++ // Register the builtin types.
++ 
++ void
++Index: b/src/gcc/go/gofrontend/expressions.cc
++===================================================================
++--- a/src/gcc/go/gofrontend/expressions.cc
+++++ b/src/gcc/go/gofrontend/expressions.cc
++@@ -3017,100 +3017,7 @@ Expression::make_iota()
++   return &iota_expression;
++ }
++ 
++-// A type conversion expression.
++-
++-class Type_conversion_expression : public Expression
++-{
++- public:
++-  Type_conversion_expression(Type* type, Expression* expr,
++-			     Location location)
++-    : Expression(EXPRESSION_CONVERSION, location),
++-      type_(type), expr_(expr), may_convert_function_types_(false)
++-  { }
++-
++-  // Return the type to which we are converting.
++-  Type*
++-  type() const
++-  { return this->type_; }
++-
++-  // Return the expression which we are converting.
++-  Expression*
++-  expr() const
++-  { return this->expr_; }
++-
++-  // Permit converting from one function type to another.  This is
++-  // used internally for method expressions.
++-  void
++-  set_may_convert_function_types()
++-  {
++-    this->may_convert_function_types_ = true;
++-  }
++-
++-  // Import a type conversion expression.
++-  static Expression*
++-  do_import(Import*);
++-
++- protected:
++-  int
++-  do_traverse(Traverse* traverse);
++-
++-  Expression*
++-  do_lower(Gogo*, Named_object*, Statement_inserter*, int);
++-
++-  Expression*
++-  do_flatten(Gogo*, Named_object*, Statement_inserter*);
++-
++-  bool
++-  do_is_constant() const;
++-
++-  bool
++-  do_is_immutable() const;
++-
++-  bool
++-  do_numeric_constant_value(Numeric_constant*) const;
++-
++-  bool
++-  do_string_constant_value(std::string*) const;
++-
++-  Type*
++-  do_type()
++-  { return this->type_; }
++-
++-  void
++-  do_determine_type(const Type_context*)
++-  {
++-    Type_context subcontext(this->type_, false);
++-    this->expr_->determine_type(&subcontext);
++-  }
++-
++-  void
++-  do_check_types(Gogo*);
++-
++-  Expression*
++-  do_copy()
++-  {
++-    return new Type_conversion_expression(this->type_, this->expr_->copy(),
++-					  this->location());
++-  }
++-
++-  Bexpression*
++-  do_get_backend(Translate_context* context);
++-
++-  void
++-  do_export(Export*) const;
++-
++-  void
++-  do_dump_expression(Ast_dump_context*) const;
++-
++- private:
++-  // The type to convert to.
++-  Type* type_;
++-  // The expression to convert.
++-  Expression* expr_;
++-  // True if this is permitted to convert function types.  This is
++-  // used internally for method expressions.
++-  bool may_convert_function_types_;
++-};
+++// Class Type_conversion_expression.
++ 
++ // Traversal.
++ 
++@@ -3300,6 +3207,15 @@ Type_conversion_expression::do_string_co
++   return false;
++ }
++ 
+++// Determine the resulting type of the conversion.
+++
+++void
+++Type_conversion_expression::do_determine_type(const Type_context*)
+++{
+++  Type_context subcontext(this->type_, false);
+++  this->expr_->determine_type(&subcontext);
+++}
+++
++ // Check that types are convertible.
++ 
++ void
++@@ -3750,6 +3666,19 @@ Unary_expression::do_flatten(Gogo* gogo,
++         }
++     }
++ 
+++  if (this->op_ == OPERATOR_AND)
+++    {
+++      if (this->expr_->var_expression() != NULL)
+++	{
+++	  Named_object* var = this->expr_->var_expression()->named_object();
+++	  if (var->is_variable())
+++	    this->escapes_ = var->var_value()->escapes();
+++	  if (var->is_result_variable())
+++	    this->escapes_ = var->result_var_value()->escapes();
+++	}
+++      this->expr_->address_taken(this->escapes_);
+++    }
+++
++   if (this->create_temp_ && !this->expr_->is_variable())
++     {
++       Temporary_statement* temp =
++@@ -4070,10 +3999,7 @@ Unary_expression::do_check_types(Gogo*)
++ 	    }
++ 	}
++       else
++-        {
++-          this->expr_->address_taken(this->escapes_);
++-          this->expr_->issue_nil_check();
++-        }
+++	this->expr_->issue_nil_check();
++       break;
++ 
++     case OPERATOR_MULT:
++@@ -6362,13 +6288,15 @@ Bound_method_expression::create_thunk(Go
++ 
++   Function_type* new_fntype = orig_fntype->copy_with_names();
++ 
++-  Named_object* new_no = gogo->start_function(Gogo::thunk_name(), new_fntype,
+++  std::string thunk_name = Gogo::thunk_name();
+++  Named_object* new_no = gogo->start_function(thunk_name, new_fntype,
++ 					      false, loc);
++ 
++   Variable* cvar = new Variable(closure_type, NULL, false, false, false, loc);
++   cvar->set_is_used();
++   cvar->set_is_closure();
++-  Named_object* cp = Named_object::make_variable("$closure", NULL, cvar);
+++  Named_object* cp = Named_object::make_variable("$closure" + thunk_name,
+++						 NULL, cvar);
++   new_no->func_value()->set_closure_var(cp);
++ 
++   gogo->start_block(loc);
++@@ -8082,7 +8010,9 @@ Builtin_call_expression::do_copy()
++ {
++   Call_expression* bce =
++     new Builtin_call_expression(this->gogo_, this->fn()->copy(),
++-				this->args()->copy(),
+++				(this->args() == NULL
+++				 ? NULL
+++				 : this->args()->copy()),
++ 				this->is_varargs(),
++ 				this->location());
++ 
++@@ -9517,52 +9447,7 @@ Expression::make_call(Expression* fn, Ex
++   return new Call_expression(fn, args, is_varargs, location);
++ }
++ 
++-// A single result from a call which returns multiple results.
++-
++-class Call_result_expression : public Expression
++-{
++- public:
++-  Call_result_expression(Call_expression* call, unsigned int index)
++-    : Expression(EXPRESSION_CALL_RESULT, call->location()),
++-      call_(call), index_(index)
++-  { }
++-
++- protected:
++-  int
++-  do_traverse(Traverse*);
++-
++-  Type*
++-  do_type();
++-
++-  void
++-  do_determine_type(const Type_context*);
++-
++-  void
++-  do_check_types(Gogo*);
++-
++-  Expression*
++-  do_copy()
++-  {
++-    return new Call_result_expression(this->call_->call_expression(),
++-				      this->index_);
++-  }
++-
++-  bool
++-  do_must_eval_in_order() const
++-  { return true; }
++-
++-  Bexpression*
++-  do_get_backend(Translate_context*);
++-
++-  void
++-  do_dump_expression(Ast_dump_context*) const;
++-
++- private:
++-  // The underlying call expression.
++-  Expression* call_;
++-  // Which result we want.
++-  unsigned int index_;
++-};
+++// Class Call_result_expression.
++ 
++ // Traverse a call result.
++ 
++@@ -9825,85 +9710,7 @@ Expression::make_index(Expression* left,
++   return new Index_expression(left, start, end, cap, location);
++ }
++ 
++-// An array index.  This is used for both indexing and slicing.
++-
++-class Array_index_expression : public Expression
++-{
++- public:
++-  Array_index_expression(Expression* array, Expression* start,
++-			 Expression* end, Expression* cap, Location location)
++-    : Expression(EXPRESSION_ARRAY_INDEX, location),
++-      array_(array), start_(start), end_(end), cap_(cap), type_(NULL)
++-  { }
++-
++- protected:
++-  int
++-  do_traverse(Traverse*);
++-
++-  Expression*
++-  do_flatten(Gogo*, Named_object*, Statement_inserter*);
++-
++-  Type*
++-  do_type();
++-
++-  void
++-  do_determine_type(const Type_context*);
++-
++-  void
++-  do_check_types(Gogo*);
++-
++-  Expression*
++-  do_copy()
++-  {
++-    return Expression::make_array_index(this->array_->copy(),
++-					this->start_->copy(),
++-					(this->end_ == NULL
++-					 ? NULL
++-					 : this->end_->copy()),
++-					(this->cap_ == NULL
++-					 ? NULL
++-					 : this->cap_->copy()),
++-					this->location());
++-  }
++-
++-  bool
++-  do_must_eval_subexpressions_in_order(int* skip) const
++-  {
++-    *skip = 1;
++-    return true;
++-  }
++-
++-  bool
++-  do_is_addressable() const;
++-
++-  void
++-  do_address_taken(bool escapes)
++-  { this->array_->address_taken(escapes); }
++-
++-  void
++-  do_issue_nil_check()
++-  { this->array_->issue_nil_check(); }
++-
++-  Bexpression*
++-  do_get_backend(Translate_context*);
++-
++-  void
++-  do_dump_expression(Ast_dump_context*) const;
++-  
++- private:
++-  // The array we are getting a value from.
++-  Expression* array_;
++-  // The start or only index.
++-  Expression* start_;
++-  // The end index of a slice.  This may be NULL for a simple array
++-  // index, or it may be a nil expression for the length of the array.
++-  Expression* end_;
++-  // The capacity argument of a slice.  This may be NULL for an array index or
++-  // slice.
++-  Expression* cap_;
++-  // The type of the expression.
++-  Type* type_;
++-};
+++// Class Array_index_expression.
++ 
++ // Array index traversal.
++ 
++@@ -11199,13 +11006,15 @@ Interface_field_reference_expression::cr
++ 
++   Function_type* new_fntype = orig_fntype->copy_with_names();
++ 
++-  Named_object* new_no = gogo->start_function(Gogo::thunk_name(), new_fntype,
+++  std::string thunk_name = Gogo::thunk_name();
+++  Named_object* new_no = gogo->start_function(thunk_name, new_fntype,
++ 					      false, loc);
++ 
++   Variable* cvar = new Variable(closure_type, NULL, false, false, false, loc);
++   cvar->set_is_used();
++   cvar->set_is_closure();
++-  Named_object* cp = Named_object::make_variable("$closure", NULL, cvar);
+++  Named_object* cp = Named_object::make_variable("$closure" + thunk_name,
+++						 NULL, cvar);
++   new_no->func_value()->set_closure_var(cp);
++ 
++   gogo->start_block(loc);
++@@ -11605,43 +11414,45 @@ Expression::make_selector(Expression* le
++   return new Selector_expression(left, name, location);
++ }
++ 
++-// Implement the builtin function new.
+++// Class Allocation_expression.
++ 
++-class Allocation_expression : public Expression
+++int
+++Allocation_expression::do_traverse(Traverse* traverse)
++ {
++- public:
++-  Allocation_expression(Type* type, Location location)
++-    : Expression(EXPRESSION_ALLOCATION, location),
++-      type_(type)
++-  { }
++-
++- protected:
++-  int
++-  do_traverse(Traverse* traverse)
++-  { return Type::traverse(this->type_, traverse); }
++-
++-  Type*
++-  do_type()
++-  { return Type::make_pointer_type(this->type_); }
+++  return Type::traverse(this->type_, traverse);
+++}
++ 
++-  void
++-  do_determine_type(const Type_context*)
++-  { }
+++Type*
+++Allocation_expression::do_type()
+++{
+++  return Type::make_pointer_type(this->type_);
+++}
++ 
++-  Expression*
++-  do_copy()
++-  { return new Allocation_expression(this->type_, this->location()); }
+++// Make a copy of an allocation expression.
++ 
++-  Bexpression*
++-  do_get_backend(Translate_context*);
+++Expression*
+++Allocation_expression::do_copy()
+++{
+++  Allocation_expression* alloc =
+++    new Allocation_expression(this->type_, this->location());
+++  if (this->allocate_on_stack_)
+++    alloc->set_allocate_on_stack();
+++  return alloc;
+++}
++ 
++-  void
++-  do_dump_expression(Ast_dump_context*) const;
++-  
++- private:
++-  // The type we are allocating.
++-  Type* type_;
++-};
+++Expression*
+++Allocation_expression::do_flatten(Gogo*, Named_object*,
+++				  Statement_inserter* inserter)
+++{
+++  if (this->allocate_on_stack_)
+++    {
+++      this->stack_temp_ = Statement::make_temporary(this->type_, NULL,
+++						    this->location());
+++      this->stack_temp_->set_is_address_taken();
+++      inserter->insert(this->stack_temp_);
+++    }
+++  return this;
+++}
++ 
++ // Return the backend representation for an allocation expression.
++ 
++@@ -11650,6 +11461,15 @@ Allocation_expression::do_get_backend(Tr
++ {
++   Gogo* gogo = context->gogo();
++   Location loc = this->location();
+++
+++  if (this->stack_temp_ != NULL)
+++    {
+++      Expression* ref =
+++	Expression::make_temporary_reference(this->stack_temp_, loc);
+++      ref = Expression::make_unary(OPERATOR_AND, ref, loc);
+++      return ref->get_backend(context);
+++    }
+++
++   Bexpression* space = 
++     gogo->allocate_memory(this->type_, loc)->get_backend(context);
++   Btype* pbtype = gogo->backend()->pointer_type(this->type_->get_backend(gogo));
++@@ -11675,80 +11495,7 @@ Expression::make_allocation(Type* type,
++   return new Allocation_expression(type, location);
++ }
++ 
++-// Construct a struct.
++-
++-class Struct_construction_expression : public Expression
++-{
++- public:
++-  Struct_construction_expression(Type* type, Expression_list* vals,
++-				 Location location)
++-    : Expression(EXPRESSION_STRUCT_CONSTRUCTION, location),
++-      type_(type), vals_(vals), traverse_order_(NULL)
++-  { }
++-
++-  // Set the traversal order, used to ensure that we implement the
++-  // order of evaluation rules.  Takes ownership of the argument.
++-  void
++-  set_traverse_order(std::vector<int>* traverse_order)
++-  { this->traverse_order_ = traverse_order; }
++-
++-  // Return whether this is a constant initializer.
++-  bool
++-  is_constant_struct() const;
++-
++- protected:
++-  int
++-  do_traverse(Traverse* traverse);
++-
++-  bool
++-  do_is_immutable() const;
++-
++-  Type*
++-  do_type()
++-  { return this->type_; }
++-
++-  void
++-  do_determine_type(const Type_context*);
++-
++-  void
++-  do_check_types(Gogo*);
++-
++-  Expression*
++-  do_copy()
++-  {
++-    Struct_construction_expression* ret =
++-      new Struct_construction_expression(this->type_,
++-					 (this->vals_ == NULL
++-					  ? NULL
++-					  : this->vals_->copy()),
++-					 this->location());
++-    if (this->traverse_order_ != NULL)
++-      ret->set_traverse_order(this->traverse_order_);
++-    return ret;
++-  }
++-
++-  Expression*
++-  do_flatten(Gogo*, Named_object*, Statement_inserter*);
++-
++-  Bexpression*
++-  do_get_backend(Translate_context*);
++-
++-  void
++-  do_export(Export*) const;
++-
++-  void
++-  do_dump_expression(Ast_dump_context*) const;
++-
++- private:
++-  // The type of the struct to construct.
++-  Type* type_;
++-  // The list of values, in order of the fields in the struct.  A NULL
++-  // entry means that the field should be zero-initialized.
++-  Expression_list* vals_;
++-  // If not NULL, the order in which to traverse vals_.  This is used
++-  // so that we implement the order of evaluation rules correctly.
++-  std::vector<int>* traverse_order_;
++-};
+++// Class Struct_construction_expression.
++ 
++ // Traversal.
++ 
++@@ -12015,80 +11762,7 @@ Expression::make_struct_composite_litera
++   return new Struct_construction_expression(type, vals, location);
++ }
++ 
++-// Construct an array.  This class is not used directly; instead we
++-// use the child classes, Fixed_array_construction_expression and
++-// Slice_construction_expression.
++-
++-class Array_construction_expression : public Expression
++-{
++- protected:
++-  Array_construction_expression(Expression_classification classification,
++-				Type* type,
++-				const std::vector<unsigned long>* indexes,
++-				Expression_list* vals, Location location)
++-    : Expression(classification, location),
++-      type_(type), indexes_(indexes), vals_(vals)
++-  { go_assert(indexes == NULL || indexes->size() == vals->size()); }
++-
++- public:
++-  // Return whether this is a constant initializer.
++-  bool
++-  is_constant_array() const;
++-
++-  // Return the number of elements.
++-  size_t
++-  element_count() const
++-  { return this->vals_ == NULL ? 0 : this->vals_->size(); }
++-
++-protected:
++-  virtual int
++-  do_traverse(Traverse* traverse);
++-
++-  bool
++-  do_is_immutable() const;
++-
++-  Type*
++-  do_type()
++-  { return this->type_; }
++-
++-  void
++-  do_determine_type(const Type_context*);
++-
++-  void
++-  do_check_types(Gogo*);
++-
++-  void
++-  do_export(Export*) const;
++-
++-  // The indexes.
++-  const std::vector<unsigned long>*
++-  indexes()
++-  { return this->indexes_; }
++-
++-  // The list of values.
++-  Expression_list*
++-  vals()
++-  { return this->vals_; }
++-
++-  Expression*
++-  do_flatten(Gogo*, Named_object*, Statement_inserter*);
++-
++-  // Get the backend constructor for the array values.
++-  Bexpression*
++-  get_constructor(Translate_context* context, Btype* btype);
++-
++-  void
++-  do_dump_expression(Ast_dump_context*) const;
++-
++- private:
++-  // The type of the array to construct.
++-  Type* type_;
++-  // The list of indexes into the array, one for each value.  This may
++-  // be NULL, in which case the indexes start at zero and increment.
++-  const std::vector<unsigned long>* indexes_;
++-  // The list of values.  This may be NULL if there are no values.
++-  Expression_list* vals_;
++-};
+++// Class Array_construction_expression.
++ 
++ // Traversal.
++ 
++@@ -12344,34 +12018,14 @@ Array_construction_expression::do_dump_e
++ 
++ }
++ 
++-// Construct a fixed array.
+++// Class Fixed_array_construction_expression.
++ 
++-class Fixed_array_construction_expression :
++-  public Array_construction_expression
++-{
++- public:
++-  Fixed_array_construction_expression(Type* type,
++-				      const std::vector<unsigned long>* indexes,
++-				      Expression_list* vals, Location location)
++-    : Array_construction_expression(EXPRESSION_FIXED_ARRAY_CONSTRUCTION,
++-				    type, indexes, vals, location)
++-  { go_assert(type->array_type() != NULL && !type->is_slice_type()); }
++-
++- protected:
++-  Expression*
++-  do_copy()
++-  {
++-    return new Fixed_array_construction_expression(this->type(),
++-						   this->indexes(),
++-						   (this->vals() == NULL
++-						    ? NULL
++-						    : this->vals()->copy()),
++-						   this->location());
++-  }
++-
++-  Bexpression*
++-  do_get_backend(Translate_context*);
++-};
+++Fixed_array_construction_expression::Fixed_array_construction_expression(
+++    Type* type, const std::vector<unsigned long>* indexes,
+++    Expression_list* vals, Location location)
+++  : Array_construction_expression(EXPRESSION_FIXED_ARRAY_CONSTRUCTION,
+++				  type, indexes, vals, location)
+++{ go_assert(type->array_type() != NULL && !type->is_slice_type()); }
++ 
++ // Return the backend representation for constructing a fixed array.
++ 
++@@ -12391,60 +12045,34 @@ Expression::make_array_composite_literal
++   return new Fixed_array_construction_expression(type, NULL, vals, location);
++ }
++ 
++-// Construct a slice.
+++// Class Slice_construction_expression.
++ 
++-class Slice_construction_expression : public Array_construction_expression
+++Slice_construction_expression::Slice_construction_expression(
+++  Type* type, const std::vector<unsigned long>* indexes,
+++  Expression_list* vals, Location location)
+++  : Array_construction_expression(EXPRESSION_SLICE_CONSTRUCTION,
+++				  type, indexes, vals, location),
+++    valtype_(NULL)
++ {
++- public:
++-  Slice_construction_expression(Type* type,
++-				const std::vector<unsigned long>* indexes,
++-				Expression_list* vals, Location location)
++-    : Array_construction_expression(EXPRESSION_SLICE_CONSTRUCTION,
++-				    type, indexes, vals, location),
++-      valtype_(NULL)
++-  {
++-    go_assert(type->is_slice_type());
++-
++-    unsigned long lenval;
++-    Expression* length;
++-    if (vals == NULL || vals->empty())
++-      lenval = 0;
++-    else
++-      {
++-	if (this->indexes() == NULL)
++-	  lenval = vals->size();
++-	else
++-	  lenval = indexes->back() + 1;
++-      }
++-    Type* int_type = Type::lookup_integer_type("int");
++-    length = Expression::make_integer_ul(lenval, int_type, location);
++-    Type* element_type = type->array_type()->element_type();
++-    this->valtype_ = Type::make_array_type(element_type, length);
++-  }
++-
++- protected:
++-  // Note that taking the address of a slice literal is invalid.
++-
++-  int
++-  do_traverse(Traverse* traverse);
+++  go_assert(type->is_slice_type());
++ 
++-  Expression*
++-  do_copy()
++-  {
++-    return new Slice_construction_expression(this->type(), this->indexes(),
++-					     (this->vals() == NULL
++-					      ? NULL
++-					      : this->vals()->copy()),
++-					     this->location());
++-  }
+++  unsigned long lenval;
+++  Expression* length;
+++  if (vals == NULL || vals->empty())
+++    lenval = 0;
+++  else
+++    {
+++      if (this->indexes() == NULL)
+++	lenval = vals->size();
+++      else
+++	lenval = indexes->back() + 1;
+++    }
+++  Type* int_type = Type::lookup_integer_type("int");
+++  length = Expression::make_integer_ul(lenval, int_type, location);
+++  Type* element_type = type->array_type()->element_type();
+++  this->valtype_ = Type::make_array_type(element_type, length);
+++}
++ 
++-  Bexpression*
++-  do_get_backend(Translate_context*);
++-
++- private:
++-  // The type of the values in this slice.
++-  Type* valtype_;
++-};
++ 
++ // Traversal.
++ 
++@@ -12526,63 +12154,7 @@ Expression::make_slice_composite_literal
++   return new Slice_construction_expression(type, NULL, vals, location);
++ }
++ 
++-// Construct a map.
++-
++-class Map_construction_expression : public Expression
++-{
++- public:
++-  Map_construction_expression(Type* type, Expression_list* vals,
++-			      Location location)
++-    : Expression(EXPRESSION_MAP_CONSTRUCTION, location),
++-      type_(type), vals_(vals), element_type_(NULL), constructor_temp_(NULL)
++-  { go_assert(vals == NULL || vals->size() % 2 == 0); }
++-
++- protected:
++-  int
++-  do_traverse(Traverse* traverse);
++-
++-  Expression*
++-  do_flatten(Gogo*, Named_object*, Statement_inserter*);
++-
++-  Type*
++-  do_type()
++-  { return this->type_; }
++-
++-  void
++-  do_determine_type(const Type_context*);
++-
++-  void
++-  do_check_types(Gogo*);
++-
++-  Expression*
++-  do_copy()
++-  {
++-    return new Map_construction_expression(this->type_,
++-					   (this->vals_ == NULL
++-					    ? NULL
++-					    : this->vals_->copy()),
++-					   this->location());
++-  }
++-
++-  Bexpression*
++-  do_get_backend(Translate_context*);
++-
++-  void
++-  do_export(Export*) const;
++-
++-  void
++-  do_dump_expression(Ast_dump_context*) const;
++-  
++- private:
++-  // The type of the map to construct.
++-  Type* type_;
++-  // The list of values.
++-  Expression_list* vals_;
++-  // The type of the key-value pair struct for each map element.
++-  Struct_type* element_type_;
++-  // A temporary reference to the variable storing the constructor initializer.
++-  Temporary_statement* constructor_temp_;
++-};
+++// Class Map_construction_expression.
++ 
++ // Traversal.
++ 
++@@ -13692,53 +13264,11 @@ Expression::make_type_guard(Expression*
++ 
++ // Class Heap_expression.
++ 
++-// When you take the address of an escaping expression, it is allocated
++-// on the heap.  This class implements that.
+++// Return the type of the expression stored on the heap.
++ 
++-class Heap_expression : public Expression
++-{
++- public:
++-  Heap_expression(Expression* expr, Location location)
++-    : Expression(EXPRESSION_HEAP, location),
++-      expr_(expr)
++-  { }
++-
++- protected:
++-  int
++-  do_traverse(Traverse* traverse)
++-  { return Expression::traverse(&this->expr_, traverse); }
++-
++-  Type*
++-  do_type()
++-  { return Type::make_pointer_type(this->expr_->type()); }
++-
++-  void
++-  do_determine_type(const Type_context*)
++-  { this->expr_->determine_type_no_context(); }
++-
++-  Expression*
++-  do_copy()
++-  {
++-    return Expression::make_heap_expression(this->expr_->copy(),
++-                                            this->location());
++-  }
++-
++-  Bexpression*
++-  do_get_backend(Translate_context*);
++-
++-  // We only export global objects, and the parser does not generate
++-  // this in global scope.
++-  void
++-  do_export(Export*) const
++-  { go_unreachable(); }
++-
++-  void
++-  do_dump_expression(Ast_dump_context*) const;
++-
++- private:
++-  // The expression which is being put on the heap.
++-  Expression* expr_;
++-};
+++Type*
+++Heap_expression::do_type()
+++{ return Type::make_pointer_type(this->expr_->type()); }
++ 
++ // Return the backend representation for allocating an expression on the heap.
++ 
++@@ -14976,48 +14506,7 @@ Expression::make_label_addr(Label* label
++   return new Label_addr_expression(label, location);
++ }
++ 
++-// Conditional expressions.
++-
++-class Conditional_expression : public Expression
++-{
++- public:
++-  Conditional_expression(Expression* cond, Expression* then_expr,
++-                         Expression* else_expr, Location location)
++-      : Expression(EXPRESSION_CONDITIONAL, location),
++-        cond_(cond), then_(then_expr), else_(else_expr)
++-  {}
++-
++- protected:
++-  int
++-  do_traverse(Traverse*);
++-
++-  Type*
++-  do_type();
++-
++-  void
++-  do_determine_type(const Type_context*);
++-
++-  Expression*
++-  do_copy()
++-  {
++-    return new Conditional_expression(this->cond_->copy(), this->then_->copy(),
++-                                      this->else_->copy(), this->location());
++-  }
++-
++-  Bexpression*
++-  do_get_backend(Translate_context* context);
++-
++-  void
++-  do_dump_expression(Ast_dump_context*) const;
++-
++- private:
++-  // The condition to be checked.
++-  Expression* cond_;
++-  // The expression to execute if the condition is true.
++-  Expression* then_;
++-  // The expression to execute if the condition is false.
++-  Expression* else_;
++-};
+++// Class Conditional_expression.
++ 
++ // Traversal.
++ 
++@@ -15096,44 +14585,7 @@ Expression::make_conditional(Expression*
++   return new Conditional_expression(cond, then, else_expr, location);
++ }
++ 
++-// Compound expressions.
++-
++-class Compound_expression : public Expression
++-{
++- public:
++-  Compound_expression(Expression* init, Expression* expr, Location location)
++-      : Expression(EXPRESSION_COMPOUND, location), init_(init), expr_(expr)
++-  {}
++-
++- protected:
++-  int
++-  do_traverse(Traverse*);
++-
++-  Type*
++-  do_type();
++-
++-  void
++-  do_determine_type(const Type_context*);
++-
++-  Expression*
++-  do_copy()
++-  {
++-    return new Compound_expression(this->init_->copy(), this->expr_->copy(),
++-                                   this->location());
++-  }
++-
++-  Bexpression*
++-  do_get_backend(Translate_context* context);
++-
++-  void
++-  do_dump_expression(Ast_dump_context*) const;
++-
++- private:
++-  // The expression that is evaluated first and discarded.
++-  Expression* init_;
++-  // The expression that is evaluated and returned.
++-  Expression* expr_;
++-};
+++// Class Compound_expression.
++ 
++ // Traversal.
++ 

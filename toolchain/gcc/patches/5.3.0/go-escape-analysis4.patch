@@ -1,0 +1,27 @@
+--- gcc-5-5.3.1.orig/debian/patches/go-escape-analysis4.diff
++++ gcc-5-5.3.1/debian/patches/go-escape-analysis4.diff
+@@ -0,0 +1,24 @@
++# DP: gccgo: If unary & does not escape, the var does not escape.
++
++If we have a unary & that takes the address of a variable, do
++not force the variable to escape if the unary & does not
++escape.
++
++Index: b/src/gcc/go/gofrontend/expressions.cc
++===================================================================
++--- a/src/gcc/go/gofrontend/expressions.cc
+++++ b/src/gcc/go/gofrontend/expressions.cc
++@@ -3668,7 +3668,12 @@ Unary_expression::do_flatten(Gogo* gogo,
++ 
++   if (this->op_ == OPERATOR_AND)
++     {
++-      if (this->expr_->var_expression() != NULL)
+++      // If this->escapes_ is false at this point, then it was set to
+++      // false by an explicit call to set_does_not_escape, and the
+++      // value does not escape.  If this->escapes_ is true, we may be
+++      // able to set it to false if taking the address of a variable
+++      // that does not escape.
+++      if (this->escapes_ && this->expr_->var_expression() != NULL)
++ 	{
++ 	  Named_object* var = this->expr_->var_expression()->named_object();
++ 	  if (var->is_variable())

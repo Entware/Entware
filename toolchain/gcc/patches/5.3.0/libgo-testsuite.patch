@@ -1,0 +1,55 @@
+--- gcc-5-5.3.1.orig/debian/patches/libgo-testsuite.diff
++++ gcc-5-5.3.1/debian/patches/libgo-testsuite.diff
+@@ -0,0 +1,52 @@
++# DP: Only run the libgo testsuite for flags configured in RUNTESTFLAGS
++
++Index: b/src/libgo/Makefile.am
++===================================================================
++--- a/src/libgo/Makefile.am
+++++ b/src/libgo/Makefile.am
++@@ -2109,6 +2109,12 @@ CHECK = \
++ 	export LD_LIBRARY_PATH; \
++ 	$(MKDIR_P) $(@D); \
++ 	rm -f $@-testsum $@-testlog; \
+++	run_check=yes; \
+++	MULTILIBDIR="$(MULTILIBDIR)"; \
+++	case "$$MULTILIBDIR" in /64|/x32) \
+++	  echo "$$RUNTESTFLAGS" | grep -q "$${MULTILIBDIR\#/*}" || run_check=; \
+++	esac; \
+++	if test "$$run_check" = "yes"; then \
++ 	if test "$(USE_DEJAGNU)" = "yes"; then \
++ 	  $(SHELL) $(srcdir)/testsuite/gotest --dejagnu=yes --basedir=$(srcdir) --srcdir=$(srcdir)/go/$(@D) --pkgpath="$(@D)" --pkgfiles="$(go_$(subst /,_,$(@D))_files)" --testname="$(@D)" --goarch="$(GOARCH)" $(GOTESTFLAGS) $(go_$(subst /,_,$(@D))_test_files); \
++ 	elif test "$(GOBENCH)" != ""; then \
++@@ -2124,6 +2130,7 @@ CHECK = \
++ 	    echo "FAIL: $(@D)" > $@-testsum; \
++ 	    exit 1; \
++ 	  fi; \
+++	fi; \
++ 	fi
++ 
++ # Build all packages before checking any.
++Index: b/src/libgo/Makefile.in
++===================================================================
++--- a/src/libgo/Makefile.in
+++++ b/src/libgo/Makefile.in
++@@ -2196,6 +2196,12 @@ CHECK = \
++ 	export LD_LIBRARY_PATH; \
++ 	$(MKDIR_P) $(@D); \
++ 	rm -f $@-testsum $@-testlog; \
+++	run_check=yes; \
+++	MULTILIBDIR="$(MULTILIBDIR)"; \
+++	case "$$MULTILIBDIR" in /64|/x32) \
+++	  echo "$$RUNTESTFLAGS" | grep -q "$${MULTILIBDIR\#/*}" || run_check=; \
+++	esac; \
+++	if test "$$run_check" = "yes"; then \
++ 	if test "$(USE_DEJAGNU)" = "yes"; then \
++ 	  $(SHELL) $(srcdir)/testsuite/gotest --dejagnu=yes --basedir=$(srcdir) --srcdir=$(srcdir)/go/$(@D) --pkgpath="$(@D)" --pkgfiles="$(go_$(subst /,_,$(@D))_files)" --testname="$(@D)" --goarch="$(GOARCH)" $(GOTESTFLAGS) $(go_$(subst /,_,$(@D))_test_files); \
++ 	elif test "$(GOBENCH)" != ""; then \
++@@ -2211,6 +2217,7 @@ CHECK = \
++ 	    echo "FAIL: $(@D)" > $@-testsum; \
++ 	    exit 1; \
++ 	  fi; \
+++	fi; \
++ 	fi
++ 
++ 
