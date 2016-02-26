@@ -2,16 +2,19 @@
 
 choice
 	prompt "GCC compiler Version" if TOOLCHAINOPTS
-	default GCC_USE_VERSION_5
+	default GCC_USE_VERSION_4_8_5
 	help
 	  Select the version of gcc you wish to use.
 
 	config GCC_USE_VERSION_4_8_5
 		select GCC_VERSION_4_8_5
 		bool "gcc 4.8.5"
-	config GCC_USE_VERSION_5
-		select GCC_VERSION_5
-		bool "gcc 5.2"
+	config GCC_USE_VERSION_5_2_0
+		select GCC_VERSION_5_2_0
+		bool "gcc 5.2.0"
+	config GCC_USE_VERSION_5_3_0
+		select GCC_VERSION_5_3_0
+		bool "gcc 5.3.0"
 
 endchoice
 
@@ -63,3 +66,10 @@ config INSTALL_GFORTRAN
 	default n
 	help
 	    Build/install GNU fortran compiler ?
+
+config INSTALL_GCCGO
+	bool
+	prompt "Build/install gccgo compiler?" if TOOLCHAINOPTS && !(GCC_VERSION_4_6 || GCC_VERSION_4_6_LINARO)
+	default n
+	help
+	    Build/install GNU gccgo compiler ?
