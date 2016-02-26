@@ -35,6 +35,10 @@ ifeq ($(PKG_VERSION),5.2.0)
     PKG_MD5SUM:=a51bcfeb3da7dd4c623e27207ed43467
 endif
 
+ifeq ($(PKG_VERSION),5.3.0)
+    PKG_MD5SUM:=c9616fd448f980259c31de613e575719
+endif
+
 PATCH_DIR=../patches/$(GCC_VERSION)
 
 BUGURL=https://dev.openwrt.org/
@@ -58,7 +62,7 @@ HOST_STAMP_CONFIGURED:=$(GCC_BUILD_DIR)/.configured
 HOST_STAMP_INSTALLED:=$(STAGING_DIR_HOST)/stamp/.gcc_$(GCC_VARIANT)_installed
 
 SEP:=,
-TARGET_LANGUAGES:="c,c++$(if $(CONFIG_INSTALL_LIBGCJ),$(SEP)java)$(if $(CONFIG_INSTALL_GFORTRAN),$(SEP)fortran)"
+TARGET_LANGUAGES:="c,c++$(if $(CONFIG_INSTALL_LIBGCJ),$(SEP)java)$(if $(CONFIG_INSTALL_GFORTRAN),$(SEP)fortran)$(if $(CONFIG_INSTALL_GCCGO),$(SEP)go)"
 
 export libgcc_cv_fixed_point=no
 ifdef CONFIG_USE_UCLIBC
