@@ -1,164 +1,22 @@
---- a/Makefile.in
-+++ b/Makefile.in
-@@ -936,8 +936,7 @@
-     maybe-configure-utils \
-     maybe-configure-gnattools \
-     maybe-configure-lto-plugin \
--    maybe-configure-libcc1 \
--    maybe-configure-gotools
-+    maybe-configure-libcc1
- .PHONY: configure-target
- configure-target:  \
-     maybe-configure-target-libstdc++-v3 \
-@@ -1091,7 +1090,6 @@
- all-host: maybe-all-lto-plugin
- @endif lto-plugin-no-bootstrap
- all-host: maybe-all-libcc1
--all-host: maybe-all-gotools
+--- a/configure
++++ b/configure
+@@ -2835,7 +2835,7 @@
+ fi
  
- .PHONY: all-target
+ # Skipdirs are removed silently.
+-skipdirs=
++skipdirs=gotools
+ # Noconfigdirs are removed loudly.
+ noconfigdirs=""
  
-@@ -1195,7 +1193,6 @@
- info-host: maybe-info-gnattools
- info-host: maybe-info-lto-plugin
- info-host: maybe-info-libcc1
--info-host: maybe-info-gotools
+--- a/configure.ac
++++ b/configure.ac
+@@ -226,7 +226,7 @@
+ fi
  
- .PHONY: info-target
+ # Skipdirs are removed silently.
+-skipdirs=
++skipdirs=gotools
+ # Noconfigdirs are removed loudly.
+ noconfigdirs=""
  
-@@ -1282,7 +1279,6 @@
- dvi-host: maybe-dvi-gnattools
- dvi-host: maybe-dvi-lto-plugin
- dvi-host: maybe-dvi-libcc1
--dvi-host: maybe-dvi-gotools
- 
- .PHONY: dvi-target
- 
-@@ -1369,7 +1365,6 @@
- pdf-host: maybe-pdf-gnattools
- pdf-host: maybe-pdf-lto-plugin
- pdf-host: maybe-pdf-libcc1
--pdf-host: maybe-pdf-gotools
- 
- .PHONY: pdf-target
- 
-@@ -1456,7 +1451,6 @@
- html-host: maybe-html-gnattools
- html-host: maybe-html-lto-plugin
- html-host: maybe-html-libcc1
--html-host: maybe-html-gotools
- 
- .PHONY: html-target
- 
-@@ -1543,7 +1537,6 @@
- TAGS-host: maybe-TAGS-gnattools
- TAGS-host: maybe-TAGS-lto-plugin
- TAGS-host: maybe-TAGS-libcc1
--TAGS-host: maybe-TAGS-gotools
- 
- .PHONY: TAGS-target
- 
-@@ -1630,7 +1623,6 @@
- install-info-host: maybe-install-info-gnattools
- install-info-host: maybe-install-info-lto-plugin
- install-info-host: maybe-install-info-libcc1
--install-info-host: maybe-install-info-gotools
- 
- .PHONY: install-info-target
- 
-@@ -1717,7 +1709,6 @@
- install-pdf-host: maybe-install-pdf-gnattools
- install-pdf-host: maybe-install-pdf-lto-plugin
- install-pdf-host: maybe-install-pdf-libcc1
--install-pdf-host: maybe-install-pdf-gotools
- 
- .PHONY: install-pdf-target
- 
-@@ -1804,7 +1795,6 @@
- install-html-host: maybe-install-html-gnattools
- install-html-host: maybe-install-html-lto-plugin
- install-html-host: maybe-install-html-libcc1
--install-html-host: maybe-install-html-gotools
- 
- .PHONY: install-html-target
- 
-@@ -1891,7 +1881,6 @@
- installcheck-host: maybe-installcheck-gnattools
- installcheck-host: maybe-installcheck-lto-plugin
- installcheck-host: maybe-installcheck-libcc1
--installcheck-host: maybe-installcheck-gotools
- 
- .PHONY: installcheck-target
- 
-@@ -1978,7 +1967,6 @@
- mostlyclean-host: maybe-mostlyclean-gnattools
- mostlyclean-host: maybe-mostlyclean-lto-plugin
- mostlyclean-host: maybe-mostlyclean-libcc1
--mostlyclean-host: maybe-mostlyclean-gotools
- 
- .PHONY: mostlyclean-target
- 
-@@ -2065,7 +2053,6 @@
- clean-host: maybe-clean-gnattools
- clean-host: maybe-clean-lto-plugin
- clean-host: maybe-clean-libcc1
--clean-host: maybe-clean-gotools
- 
- .PHONY: clean-target
- 
-@@ -2152,7 +2139,6 @@
- distclean-host: maybe-distclean-gnattools
- distclean-host: maybe-distclean-lto-plugin
- distclean-host: maybe-distclean-libcc1
--distclean-host: maybe-distclean-gotools
- 
- .PHONY: distclean-target
- 
-@@ -2239,7 +2225,6 @@
- maintainer-clean-host: maybe-maintainer-clean-gnattools
- maintainer-clean-host: maybe-maintainer-clean-lto-plugin
- maintainer-clean-host: maybe-maintainer-clean-libcc1
--maintainer-clean-host: maybe-maintainer-clean-gotools
- 
- .PHONY: maintainer-clean-target
- 
-@@ -2380,8 +2365,7 @@
-     maybe-check-utils \
-     maybe-check-gnattools \
-     maybe-check-lto-plugin \
--    maybe-check-libcc1 \
--    maybe-check-gotools
-+    maybe-check-libcc1
- 
- .PHONY: check-target
- check-target:  \
-@@ -2505,8 +2489,7 @@
-     maybe-install-utils \
-     maybe-install-gnattools \
-     maybe-install-lto-plugin \
--    maybe-install-libcc1 \
--    maybe-install-gotools
-+    maybe-install-libcc1
- 
- .PHONY: install-host
- install-host:  \
-@@ -2554,8 +2537,7 @@
-     maybe-install-utils \
-     maybe-install-gnattools \
-     maybe-install-lto-plugin \
--    maybe-install-libcc1 \
--    maybe-install-gotools
-+    maybe-install-libcc1
- 
- .PHONY: install-target
- install-target:  \
-@@ -2661,8 +2643,7 @@
-     maybe-install-strip-utils \
-     maybe-install-strip-gnattools \
-     maybe-install-strip-lto-plugin \
--    maybe-install-strip-libcc1 \
--    maybe-install-strip-gotools
-+    maybe-install-strip-libcc1
- 
- .PHONY: install-strip-target
- install-strip-target:  \
