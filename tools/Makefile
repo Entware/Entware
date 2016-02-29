@@ -40,6 +40,8 @@ tools-y += lzma squashfs4
 tools-$(BUILD_B43_TOOLS) += b43-tools
 tools-$(BUILD_ISL_CLOOG) += isl cloog
 tools-$(CONFIG_USE_SPARSE) += sparse
+tools-$(CONFIG_INSTALL_GCCGO) += go-bin
+tools-$(CONFIG_INSTALL_GCCGO) += go-src
 
 # builddir dependencies
 $(curdir)/bison/compile := $(curdir)/flex/install
@@ -73,6 +75,7 @@ $(curdir)/bc/compile := $(curdir)/bison/install
 $(curdir)/findutils/compile := $(curdir)/bison/install
 $(curdir)/gengetopt/compile := $(curdir)/libtool/install
 $(curdir)/patchelf/compile := $(curdir)/libtool/install
+$(curdir)/go-src/compile := $(curdir)/go-bin/install
 
 ifneq ($(CONFIG_CCACHE)$(CONFIG_SDK),)
 $(foreach tool, $(filter-out patch,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/ccache/install))
