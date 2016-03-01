@@ -1,3 +1,5 @@
+STRIP:=:
+
 define Build/Prepare
 	$(INSTALL_DIR) $(PKG_BUILD_DIR)
 	GOPATH=$(PKG_BUILD_DIR) gcc=$(TARGET_CC) ego get -d -x $(PKG_GOGET)
