@@ -16,17 +16,19 @@ PKG_SOURCE_VERSION:=b32db8cfcaad4ba20d85667d0978d02e68a6207f
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 HOST_BUILD_DIR:=$(BUILD_DIR_HOST)/$(PKG_NAME)-$(PKG_VERSION)
 
-HOST_UNPACK:=gzip -dc $(DL_DIR)/$(PKG_SOURCE) | tar -C $(HOST_BUILD_DIR)/src/github.com/tools/godep --strip-components=1 -xf -
+PKG_GOGET:=github.com/tools/godep
+
+HOST_UNPACK:=gzip -dc $(DL_DIR)/$(PKG_SOURCE) | tar -C $(HOST_BUILD_DIR)/src/$(PKG_GOGET) --strip-components=1 -xf -
 
 include $(INCLUDE_DIR)/host-build.mk
 
 define Host/Prepare
-	mkdir -p $(HOST_BUILD_DIR)/src/github.com/tools/godep
+	mkdir -p $(HOST_BUILD_DIR)/src/$(PKG_GOGET)
 	$(call Host/Prepare/Default)
 endef
 
 define Host/Compile
-	GOPATH=$(HOST_BUILD_DIR) GOROOT=$(STAGING_DIR_HOST)/go $(STAGING_DIR_HOST)/go/bin/go get -x github.com/tools/godep
+	GOPATH=$(HOST_BUILD_DIR) GOROOT=$(STAGING_DIR_HOST)/go $(STAGING_DIR_HOST)/go/bin/go get -x $(PKG_GOGET)
 endef
 
 define Host/Install
