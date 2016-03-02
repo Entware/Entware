@@ -1,7 +1,4 @@
 STRIP:=:
-ifneq ($(PKG_SOURCE),)
-	PATCH_DIR=
-endif
 
 ifeq ($(PKG_SOURCE),)
  define Build/Prepare
@@ -13,6 +10,9 @@ endif
 
 ifneq ($(PKG_SOURCE),)
 PKG_SOURCE_URL:=http://pkg.entware.net/sources/go
+PKG_UNPACK=$(TAR) -C $(PKG_BUILD_DIR) -xf $(DL_DIR)/$(PKG_SOURCE)
+ define Build/Patch
+ endef
  define Build/Prepare
 		$(call Build/Prepare/Default)
  endef
