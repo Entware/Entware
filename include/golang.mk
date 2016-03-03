@@ -38,8 +38,8 @@ endif
 ifeq ($(PKG_SOURCE),)
  define Build/Configure
 	(cd $(PKG_BUILD_DIR); \
-		rm -f $(DL_DIR)/$(GOARCH) ; \
-		tar cjf $(DL_DIR)/$(GOARCH) ./src --exclude-vcs ; \
+		rm -f $(DL_DIR)/$(GOPKG_SOURCE) ; \
+		tar cjf $(DL_DIR)/$(GOPKG_SOURCE) ./src --exclude-vcs ; \
 	)
  endef
 endif
