@@ -25,11 +25,9 @@ X-Git-Url: https://gcc.gnu.org/git/?p=gcc.git;a=commitdiff_plain;h=a9173ceabaf29
 git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@222904 138bc75d-0d04-0410-961f-82ee72b054a4
 ---
 
-Index: b/gcc/config.gcc
-===================================================================
 --- a/gcc/config.gcc
 +++ b/gcc/config.gcc
-@@ -575,7 +575,7 @@
+@@ -575,7 +575,7 @@ case ${target} in
  esac
  
  # Common C libraries.
@@ -38,7 +36,7 @@ Index: b/gcc/config.gcc
  
  # 32-bit x86 processors supported by --with-arch=.  Each processor
  # MUST be separated by exactly one space.
-@@ -720,6 +720,9 @@
+@@ -720,6 +720,9 @@ case ${target} in
      *-*-*uclibc*)
        tm_defines="$tm_defines DEFAULT_LIBC=LIBC_UCLIBC"
        ;;
@@ -48,11 +46,9 @@ Index: b/gcc/config.gcc
      *)
        tm_defines="$tm_defines DEFAULT_LIBC=LIBC_GLIBC"
        ;;
-Index: b/gcc/config/linux.h
-===================================================================
 --- a/gcc/config/linux.h
 +++ b/gcc/config/linux.h
-@@ -32,10 +32,12 @@
+@@ -32,10 +32,12 @@ see the files COPYING3 and COPYING.RUNTI
  #define OPTION_GLIBC  (DEFAULT_LIBC == LIBC_GLIBC)
  #define OPTION_UCLIBC (DEFAULT_LIBC == LIBC_UCLIBC)
  #define OPTION_BIONIC (DEFAULT_LIBC == LIBC_BIONIC)
@@ -65,7 +61,7 @@ Index: b/gcc/config/linux.h
  #endif
  
  #define GNU_USER_TARGET_OS_CPP_BUILTINS()			\
-@@ -50,21 +52,25 @@
+@@ -50,21 +52,25 @@ see the files COPYING3 and COPYING.RUNTI
      } while (0)
  
  /* Determine which dynamic linker to use depending on whether GLIBC or
@@ -101,7 +97,7 @@ Index: b/gcc/config/linux.h
  #else
  #error "Unsupported DEFAULT_LIBC"
  #endif /* DEFAULT_LIBC */
-@@ -81,24 +87,100 @@
+@@ -81,24 +87,100 @@ see the files COPYING3 and COPYING.RUNTI
  #define BIONIC_DYNAMIC_LINKER32 "/system/bin/linker"
  #define BIONIC_DYNAMIC_LINKER64 "/system/bin/linker64"
  #define BIONIC_DYNAMIC_LINKERX32 "/system/bin/linkerx32"
@@ -206,11 +202,9 @@ Index: b/gcc/config/linux.h
  #if (DEFAULT_LIBC == LIBC_UCLIBC) && defined (SINGLE_LIBC) /* uClinux */
  /* This is a *uclinux* target.  We don't define below macros to normal linux
     versions, because doing so would require *uclinux* targets to include
-Index: b/gcc/config/linux.opt
-===================================================================
 --- a/gcc/config/linux.opt
 +++ b/gcc/config/linux.opt
-@@ -28,5 +28,9 @@
+@@ -28,5 +28,9 @@ Target Report RejectNegative Var(linux_l
  Use GNU C library
  
  muclibc
@@ -221,11 +215,27 @@ Index: b/gcc/config/linux.opt
 +mmusl
 +Target Report RejectNegative Var(linux_libc,LIBC_MUSL) Negative(mbionic)
 +Use musl C library
-Index: b/gcc/configure
-===================================================================
 --- a/gcc/configure
 +++ b/gcc/configure
-@@ -27809,6 +27813,9 @@
+@@ -27802,6 +27802,9 @@ if test "${gcc_cv_libc_provides_ssp+set}
+ else
+   gcc_cv_libc_provides_ssp=no
+     case "$target" in
++       *-*-musl*)
++	 # All versions of musl provide stack protector
++	 gcc_cv_libc_provides_ssp=yes;;
+        *-*-linux* | *-*-kfreebsd*-gnu | *-*-knetbsd*-gnu)
+       # glibc 2.4 and later provides __stack_chk_fail and
+       # either __stack_chk_guard, or TLS access to stack guard canary.
+@@ -27834,6 +27837,7 @@ fi
+ 	 # <http://gcc.gnu.org/ml/gcc/2008-10/msg00130.html>) and for now
+ 	 # simply assert that glibc does provide this, which is true for all
+ 	 # realistically usable GNU/Hurd configurations.
++	 # All supported versions of musl provide it as well
+ 	 gcc_cv_libc_provides_ssp=yes;;
+        *-*-darwin* | *-*-freebsd*)
+ 	 ac_fn_c_check_func "$LINENO" "__stack_chk_fail" "ac_cv_func___stack_chk_fail"
+@@ -27930,6 +27934,9 @@ case "$target" in
        gcc_cv_target_dl_iterate_phdr=no
      fi
      ;;
@@ -235,11 +245,27 @@ Index: b/gcc/configure
  esac
  
  if test x$gcc_cv_target_dl_iterate_phdr = xyes; then
-Index: b/gcc/configure.ac
-===================================================================
 --- a/gcc/configure.ac
 +++ b/gcc/configure.ac
-@@ -5298,6 +5302,9 @@
+@@ -5282,6 +5282,9 @@ AC_CACHE_CHECK(__stack_chk_fail in targe
+       gcc_cv_libc_provides_ssp,
+       [gcc_cv_libc_provides_ssp=no
+     case "$target" in
++       *-*-musl*)
++	 # All versions of musl provide stack protector
++	 gcc_cv_libc_provides_ssp=yes;;
+        *-*-linux* | *-*-kfreebsd*-gnu | *-*-knetbsd*-gnu)
+       # glibc 2.4 and later provides __stack_chk_fail and
+       # either __stack_chk_guard, or TLS access to stack guard canary.
+@@ -5308,6 +5311,7 @@ AC_CACHE_CHECK(__stack_chk_fail in targe
+ 	 # <http://gcc.gnu.org/ml/gcc/2008-10/msg00130.html>) and for now
+ 	 # simply assert that glibc does provide this, which is true for all
+ 	 # realistically usable GNU/Hurd configurations.
++	 # All supported versions of musl provide it as well
+ 	 gcc_cv_libc_provides_ssp=yes;;
+        *-*-darwin* | *-*-freebsd*)
+ 	 AC_CHECK_FUNC(__stack_chk_fail,[gcc_cv_libc_provides_ssp=yes],
+@@ -5381,6 +5385,9 @@ case "$target" in
        gcc_cv_target_dl_iterate_phdr=no
      fi
      ;;
@@ -249,11 +275,9 @@ Index: b/gcc/configure.ac
  esac
  GCC_TARGET_TEMPLATE([TARGET_DL_ITERATE_PHDR])
  if test x$gcc_cv_target_dl_iterate_phdr = xyes; then
-Index: b/gcc/doc/invoke.texi
-===================================================================
 --- a/gcc/doc/invoke.texi
 +++ b/gcc/doc/invoke.texi
-@@ -667,7 +667,7 @@
+@@ -667,7 +667,7 @@ Objective-C and Objective-C++ Dialects}.
  -mcpu=@var{cpu}}
  
  @emph{GNU/Linux Options}
@@ -262,7 +286,7 @@ Index: b/gcc/doc/invoke.texi
  -tno-android-cc -tno-android-ld}
  
  @emph{H8/300 Options}
-@@ -15324,13 +15324,19 @@
+@@ -15325,13 +15325,19 @@ These @samp{-m} options are defined for
  @item -mglibc
  @opindex mglibc
  Use the GNU C library.  This is the default except

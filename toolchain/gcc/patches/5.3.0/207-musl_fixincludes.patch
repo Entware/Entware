@@ -16,11 +16,9 @@ On behalf of Szabolcs.Nagy@arm.com
 git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@222327 138bc75d-0d04-0410-961f-82ee72b054a4
 ---
 
-Index: b/fixincludes/mkfixinc.sh
-===================================================================
 --- a/fixincludes/mkfixinc.sh
 +++ b/fixincludes/mkfixinc.sh
-@@ -19,7 +19,8 @@
+@@ -19,7 +19,8 @@ case $machine in
      powerpc-*-eabi*    | \
      powerpc-*-rtems*   | \
      powerpcle-*-eabisim* | \

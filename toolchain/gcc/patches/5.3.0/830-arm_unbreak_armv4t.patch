@@ -1,7 +1,5 @@
 http://sourceware.org/ml/crossgcc/2008-05/msg00009.html
 
-Index: b/gcc/config/arm/linux-eabi.h
-===================================================================
 --- a/gcc/config/arm/linux-eabi.h
 +++ b/gcc/config/arm/linux-eabi.h
 @@ -45,7 +45,7 @@

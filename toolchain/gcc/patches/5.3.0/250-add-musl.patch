@@ -19,11 +19,9 @@ X-Git-Url: https://gcc.gnu.org/git/?p=gcc.git;a=commitdiff_plain;h=f2d678afa5b83
 git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@222905 138bc75d-0d04-0410-961f-82ee72b054a4
 ---
 
-Index: b/gcc/config/alpha/linux.h
-===================================================================
 --- a/gcc/config/alpha/linux.h
 +++ b/gcc/config/alpha/linux.h
-@@ -61,10 +61,14 @@
+@@ -61,10 +61,14 @@ along with GCC; see the file COPYING3.
  #define OPTION_GLIBC  (DEFAULT_LIBC == LIBC_GLIBC)
  #define OPTION_UCLIBC (DEFAULT_LIBC == LIBC_UCLIBC)
  #define OPTION_BIONIC (DEFAULT_LIBC == LIBC_BIONIC)
@@ -38,11 +36,9 @@ Index: b/gcc/config/alpha/linux.h
  #endif
  
  /* Determine what functions are present at the runtime;
-Index: b/gcc/config/glibc-stdint.h
-===================================================================
 --- a/gcc/config/glibc-stdint.h
 +++ b/gcc/config/glibc-stdint.h
-@@ -22,6 +22,12 @@
+@@ -22,6 +22,12 @@ a copy of the GCC Runtime Library Except
  see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
  <http://www.gnu.org/licenses/>.  */
  
@@ -55,7 +51,7 @@ Index: b/gcc/config/glibc-stdint.h
  #define SIG_ATOMIC_TYPE "int"
  
  #define INT8_TYPE "signed char"
-@@ -43,12 +49,12 @@
+@@ -43,12 +49,12 @@ see the files COPYING3 and COPYING.RUNTI
  #define UINT_LEAST64_TYPE (LONG_TYPE_SIZE == 64 ? "long unsigned int" : "long long unsigned int")
  
  #define INT_FAST8_TYPE "signed char"
@@ -72,11 +68,9 @@ Index: b/gcc/config/glibc-stdint.h
  #define UINT_FAST64_TYPE (LONG_TYPE_SIZE == 64 ? "long unsigned int" : "long long unsigned int")
  
  #define INTPTR_TYPE (LONG_TYPE_SIZE == 64 ? "long int" : "int")
-Index: b/gcc/config/linux.h
-===================================================================
 --- a/gcc/config/linux.h
 +++ b/gcc/config/linux.h
-@@ -32,11 +32,13 @@
+@@ -32,11 +32,13 @@ see the files COPYING3 and COPYING.RUNTI
  #define OPTION_GLIBC  (DEFAULT_LIBC == LIBC_GLIBC)
  #define OPTION_UCLIBC (DEFAULT_LIBC == LIBC_UCLIBC)
  #define OPTION_BIONIC (DEFAULT_LIBC == LIBC_BIONIC)
@@ -90,8 +84,6 @@ Index: b/gcc/config/linux.h
  #define OPTION_MUSL   (linux_libc == LIBC_MUSL)
  #endif
  
-Index: b/gcc/config/rs6000/linux.h
-===================================================================
 --- a/gcc/config/rs6000/linux.h
 +++ b/gcc/config/rs6000/linux.h
 @@ -30,10 +30,14 @@
@@ -109,11 +101,9 @@ Index: b/gcc/config/rs6000/linux.h
  #endif
  
  /* Determine what functions are present at the runtime;
-Index: b/gcc/config/rs6000/linux64.h
-===================================================================
 --- a/gcc/config/rs6000/linux64.h
 +++ b/gcc/config/rs6000/linux64.h
-@@ -299,10 +299,14 @@
+@@ -299,10 +299,14 @@ extern int dot_symbols;
  #define OPTION_GLIBC  (DEFAULT_LIBC == LIBC_GLIBC)
  #define OPTION_UCLIBC (DEFAULT_LIBC == LIBC_UCLIBC)
  #define OPTION_BIONIC (DEFAULT_LIBC == LIBC_BIONIC)
