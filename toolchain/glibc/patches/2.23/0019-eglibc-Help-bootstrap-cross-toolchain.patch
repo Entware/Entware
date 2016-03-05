@@ -1,0 +1,100 @@
+From c2d49eab20db4ab02b6de62092fedc623d757146 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Wed, 18 Mar 2015 00:49:28 +0000
+Subject: [PATCH 19/24] eglibc: Help bootstrap cross toolchain
+
+Taken from EGLIBC, r1484 + r1525
+
+        2007-02-20  Jim Blandy  <jimb@codesourcery.com>
+
+                * Makefile (install-headers): Preserve old behavior: depend on
+                $(inst_includedir)/gnu/stubs.h only if install-bootstrap-headers
+                is set; otherwise, place gnu/stubs.h on the 'install-others' list.
+
+        2007-02-16  Jim Blandy  <jimb@codesourcery.com>
+
+                * Makefile: Amend make install-headers to install everything
+                necessary for building a cross-compiler.  Install gnu/stubs.h as
+                part of 'install-headers', not 'install-others'.
+                If install-bootstrap-headers is 'yes', install a dummy copy of
+                gnu/stubs.h, instead of computing the real thing.
+                * include/stubs-bootstrap.h: New file.
+
+Upstream-Status: Pending
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ Makefile                  | 22 +++++++++++++++++++++-
+ include/stubs-bootstrap.h | 12 ++++++++++++
+ 2 files changed, 33 insertions(+), 1 deletion(-)
+ create mode 100644 include/stubs-bootstrap.h
+
+diff --git a/Makefile b/Makefile
+index 9a01c93..a6ae003 100644
+--- a/Makefile
++++ b/Makefile
+@@ -69,9 +69,18 @@ subdir-dirs = include
+ vpath %.h $(subdir-dirs)
+ 
+ # What to install.
+-install-others = $(inst_includedir)/gnu/stubs.h
+ install-bin-script =
+ 
++# If we're bootstrapping, install a dummy gnu/stubs.h along with the
++# other headers, so 'make install-headers' produces a useable include
++# tree.  Otherwise, install gnu/stubs.h later, after the rest of the
++# build is done.
++ifeq ($(install-bootstrap-headers),yes)
++install-headers: $(inst_includedir)/gnu/stubs.h
++else
++install-others = $(inst_includedir)/gnu/stubs.h
++endif
++
+ ifeq (yes,$(build-shared))
+ headers += gnu/lib-names.h
+ endif
+@@ -151,6 +160,16 @@ others: $(common-objpfx)testrun.sh
+ 
+ subdir-stubs := $(foreach dir,$(subdirs),$(common-objpfx)$(dir)/stubs)
+ 
++# gnu/stubs.h depends (via the subdir 'stubs' targets) on all the .o
++# files in EGLIBC.  For bootstrapping a GCC/EGLIBC pair, an empty
++# gnu/stubs.h is good enough.
++ifeq ($(install-bootstrap-headers),yes)
++$(inst_includedir)/gnu/stubs.h: include/stubs-bootstrap.h $(+force)
++	$(make-target-directory)
++	$(INSTALL_DATA) $< $@
++
++installed-stubs =
++else
+ ifndef abi-variants
+ installed-stubs = $(inst_includedir)/gnu/stubs.h
+ else
+@@ -177,6 +196,7 @@ $(inst_includedir)/gnu/stubs.h: $(+force)
+ 
+ install-others-nosubdir: $(installed-stubs)
+ endif
++endif
+ 
+ 
+ # Since stubs.h is never needed when building the library, we simplify the
+diff --git a/include/stubs-bootstrap.h b/include/stubs-bootstrap.h
+new file mode 100644
+index 0000000..1d2b669
+--- /dev/null
++++ b/include/stubs-bootstrap.h
+@@ -0,0 +1,12 @@
++/* Placeholder stubs.h file for bootstrapping.
++
++   When bootstrapping a GCC/EGLIBC pair, GCC requires that the EGLIBC
++   headers be installed, but we can't fully build EGLIBC without that
++   GCC.  So we run the command:
++
++      make install-headers install-bootstrap-headers=yes
++
++   to install the headers GCC needs, but avoid building certain
++   difficult headers.  The <gnu/stubs.h> header depends, via the
++   EGLIBC subdir 'stubs' make targets, on every .o file in EGLIBC, but
++   an empty stubs.h like this will do fine for GCC.  */
+-- 
+2.6.4
+

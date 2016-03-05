@@ -1,0 +1,83 @@
+From b74e34e6f53816ad57b13ba6fd70a97db1bc1eae Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Thu, 31 Dec 2015 15:15:09 -0800
+Subject: [PATCH 21/24] eglibc: Clear cache lines on ppc8xx
+
+2007-06-13  Nathan Sidwell  <nathan@codesourcery.com>
+            Mark Shinwell  <shinwell@codesourcery.com>
+
+        * sysdeps/unix/sysv/linux/powerpc/libc-start.c
+        (__libc_start_main): Detect 8xx parts and clear
+        __cache_line_size if detected.
+        * sysdeps/unix/sysv/linux/powerpc/dl-sysdep.c
+        (DL_PLATFORM_AUXV): Likewise.
+
+Upstream-Status: Pending
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ sysdeps/unix/sysv/linux/powerpc/dl-sysdep.c  | 14 +++++++++++++-
+ sysdeps/unix/sysv/linux/powerpc/libc-start.c | 16 +++++++++++++++-
+ 2 files changed, 28 insertions(+), 2 deletions(-)
+
+diff --git a/sysdeps/unix/sysv/linux/powerpc/dl-sysdep.c b/sysdeps/unix/sysv/linux/powerpc/dl-sysdep.c
+index c2504ff..d50f1cb 100644
+--- a/sysdeps/unix/sysv/linux/powerpc/dl-sysdep.c
++++ b/sysdeps/unix/sysv/linux/powerpc/dl-sysdep.c
+@@ -24,9 +24,21 @@ int __cache_line_size attribute_hidden;
+ /* Scan the Aux Vector for the "Data Cache Block Size" entry.  If found
+    verify that the static extern __cache_line_size is defined by checking
+    for not NULL.  If it is defined then assign the cache block size
+-   value to __cache_line_size.  */
++   value to __cache_line_size.  This is used by memset to
++   optimize setting to zero.  We have to detect 8xx processors, which
++   have buggy dcbz implementations that cannot report page faults
++   correctly.  That requires reading SPR, which is a privileged
++   operation.  Fortunately 2.2.18 and later emulates PowerPC mfspr
++   reads from the PVR register.   */
+ #define DL_PLATFORM_AUXV						      \
+       case AT_DCACHEBSIZE:						      \
++	if (__LINUX_KERNEL_VERSION >= 0x020218)				      \
++	  {								      \
++	    unsigned pvr = 0;						      \
++	    asm ("mfspr %0, 287" : "=r" (pvr));				      \
++	    if ((pvr & 0xffff0000) == 0x00500000)			      \
++	      break;							      \
++	  }								      \
+ 	__cache_line_size = av->a_un.a_val;				      \
+ 	break;
+ 
+diff --git a/sysdeps/unix/sysv/linux/powerpc/libc-start.c b/sysdeps/unix/sysv/linux/powerpc/libc-start.c
+index 209a16d..5d8572d 100644
+--- a/sysdeps/unix/sysv/linux/powerpc/libc-start.c
++++ b/sysdeps/unix/sysv/linux/powerpc/libc-start.c
+@@ -73,11 +73,25 @@ __libc_start_main (int argc, char **argv,
+ 
+   /* Initialize the __cache_line_size variable from the aux vector.  For the
+      static case, we also need _dl_hwcap, _dl_hwcap2 and _dl_platform, so we
+-     can call __tcb_parse_hwcap_and_convert_at_platform ().  */
++     can call __tcb_parse_hwcap_and_convert_at_platform ().
++
++     This is used by memset to optimize setting to zero.  We have to
++     detect 8xx processors, which have buggy dcbz implementations that
++     cannot report page faults correctly.  That requires reading SPR,
++     which is a privileged operation.  Fortunately 2.2.18 and later
++     emulates PowerPC mfspr reads from the PVR register.  */
+   for (ElfW (auxv_t) * av = auxvec; av->a_type != AT_NULL; ++av)
+     switch (av->a_type)
+       {
+       case AT_DCACHEBSIZE:
++	if (__LINUX_KERNEL_VERSION >= 0x020218)
++	  {
++	    unsigned pvr = 0;
++
++	    asm ("mfspr %0, 287" : "=r" (pvr) :);
++	    if ((pvr & 0xffff0000) == 0x00500000)
++	      break;
++	  }
+ 	__cache_line_size = av->a_un.a_val;
+ 	break;
+ #ifndef SHARED
+-- 
+2.6.4
+

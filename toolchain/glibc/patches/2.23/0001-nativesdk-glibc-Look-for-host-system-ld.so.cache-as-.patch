@@ -1,0 +1,69 @@
+From 66d04e2cd8badb0984050e4e9f2732f47151fbbf Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Wed, 18 Mar 2015 01:48:24 +0000
+Subject: [PATCH 01/24] nativesdk-glibc: Look for host system ld.so.cache as
+ well
+
+Upstream-Status: Inappropriate [embedded specific]
+
+The default lib search path order is:
+
+  1) LD_LIBRARY_PATH
+  2) RPATH from the binary
+  3) ld.so.cache
+  4) default search paths embedded in the linker
+
+For nativesdk binaries which are being used alongside binaries on a host system, we
+need the search paths to firstly search the shipped nativesdk libs but then also
+cover the host system. For example we want the host system's libGL and this may be
+in a non-standard location like /usr/lib/mesa. The only place the location is know
+about is in the ld.so.cache of the host system.
+
+Since nativesdk has a simple structure and doesn't need to use a cache itself, we
+repurpose the cache for use as a last resort in finding host system binaries. This
+means we need to switch the order of 3 and 4 above to make this work effectively.
+
+RP 14/10/2010
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ elf/dl-load.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/elf/dl-load.c b/elf/dl-load.c
+index 6fb615e..ee3d1e6 100644
+--- a/elf/dl-load.c
++++ b/elf/dl-load.c
+@@ -2094,6 +2094,14 @@ _dl_map_object (struct link_map *loader, const char *name,
+             }
+         }
+ 
++      /* try the default path.  */
++      if (fd == -1
++	  && ((l = loader ?: GL(dl_ns)[nsid]._ns_loaded) == NULL
++	   || __builtin_expect (!(l->l_flags_1 & DF_1_NODEFLIB), 1))
++	 && rtld_search_dirs.dirs != (void *) -1)
++	fd = open_path (name, namelen, mode & __RTLD_SECURE, &rtld_search_dirs,
++			&realname, &fb, l, LA_SER_DEFAULT, &found_other_class);
++      /* Finally try ld.so.cache */
+ #ifdef USE_LDCONFIG
+       if (fd == -1
+ 	  && (__glibc_likely ((mode & __RTLD_SECURE) == 0)
+@@ -2152,14 +2160,6 @@ _dl_map_object (struct link_map *loader, const char *name,
+ 	}
+ #endif
+ 
+-      /* Finally, try the default path.  */
+-      if (fd == -1
+-	  && ((l = loader ?: GL(dl_ns)[nsid]._ns_loaded) == NULL
+-	      || __glibc_likely (!(l->l_flags_1 & DF_1_NODEFLIB)))
+-	  && rtld_search_dirs.dirs != (void *) -1)
+-	fd = open_path (name, namelen, mode, &rtld_search_dirs,
+-			&realname, &fb, l, LA_SER_DEFAULT, &found_other_class);
+-
+       /* Add another newline when we are tracing the library loading.  */
+       if (__glibc_unlikely (GLRO(dl_debug_mask) & DL_DEBUG_LIBS))
+ 	_dl_debug_printf ("\n");
+-- 
+2.6.4
+

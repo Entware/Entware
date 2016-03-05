@@ -14,6 +14,13 @@ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 GLIBC_PATH:=
 
+ifeq ($(PKG_VERSION),2.22)
+  PKG_MD5SUM:=3168120497c81b663a76c952f7722da2
+endif
+ifeq ($(PKG_VERSION),2.23)
+  PKG_MD5SUM:=0b1e4a240a01233f310b715a4d92c3be
+endif
+
 
 PATCH_DIR:=$(PATH_PREFIX)/patches/$(PKG_VERSION)
 
@@ -64,11 +71,7 @@ export HOST_CFLAGS := $(HOST_CFLAGS) -idirafter $(CURDIR)/$(PATH_PREFIX)/include
 
 define Host/SetToolchainInfo
 	$(SED) 's,^\(LIBC_TYPE\)=.*,\1=$(PKG_NAME),' $(TOOLCHAIN_DIR)/info.mk
-ifneq ($(CONFIG_GLIBC_VERSION_2_21),)
 	$(SED) 's,^\(LIBC_URL\)=.*,\1=http://www.gnu.org/software/libc/,' $(TOOLCHAIN_DIR)/info.mk
-else
-	$(SED) 's,^\(LIBC_URL\)=.*,\1=http://www.eglibc.org/,' $(TOOLCHAIN_DIR)/info.mk
-endif
 	$(SED) 's,^\(LIBC_VERSION\)=.*,\1=$(PKG_VERSION),' $(TOOLCHAIN_DIR)/info.mk
 	$(SED) 's,^\(LIBC_SO_VERSION\)=.*,\1=$(PKG_VERSION),' $(TOOLCHAIN_DIR)/info.mk
 endef
@@ -80,7 +83,6 @@ define Host/Configure
 		touch $(HOST_BUILD_DIR)/.autoconf; \
 	}
 	mkdir -p $(CUR_BUILD_DIR)
-	grep 'CONFIG_EGLIBC_OPTION_' $(TOPDIR)/.config | sed -e "s,\\(# \)\\?CONFIG_EGLIBC_\\(.*\\),\\1\\2,g" > $(CUR_BUILD_DIR)/option-groups.config
 	( cd $(CUR_BUILD_DIR); rm -f config.cache; \
 		$(GLIBC_CONFIGURE) \
 	);
@@ -92,9 +94,6 @@ define Host/Prepare
 		patch -p1 -d $(HOST_BUILD_DIR) <  $$$$f; \
 	done; \
 	ln -snf $(PKG_SOURCE_SUBDIR) $(BUILD_DIR_TOOLCHAIN)/$(PKG_NAME)
-ifeq ($(CONFIG_GLIBC_VERSION_2_22),)
-	$(SED) 's,y,n,' $(HOST_BUILD_DIR)/libc/option-groups.defaults
-endif
 endef
 
 define Host/Clean

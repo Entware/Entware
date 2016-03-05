@@ -1,0 +1,263 @@
+From 4d6bead19874e519752ceeb2a15897ff2ffbe5e8 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Wed, 18 Mar 2015 00:31:06 +0000
+Subject: [PATCH 15/24] 'yes' within the path sets wrong config variables
+
+It seems that the 'AC_EGREP_CPP(yes...' example is quite popular
+but being such a short word to grep it is likely to produce
+false-positive matches with the path it is configured into.
+
+The change is to use a more elaborated string to grep for.
+
+Upstream-Status: Submitted [libc-alpha@sourceware.org]
+
+Signed-off-by: Benjamin Esquivel <benjamin.esquivel@linux.intel.com>
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ sysdeps/aarch64/configure                              | 4 ++--
+ sysdeps/aarch64/configure.ac                           | 4 ++--
+ sysdeps/arm/configure                                  | 4 ++--
+ sysdeps/arm/configure.ac                               | 4 ++--
+ sysdeps/mips/configure                                 | 4 ++--
+ sysdeps/mips/configure.ac                              | 4 ++--
+ sysdeps/nios2/configure                                | 4 ++--
+ sysdeps/nios2/configure.ac                             | 4 ++--
+ sysdeps/unix/sysv/linux/mips/configure                 | 4 ++--
+ sysdeps/unix/sysv/linux/mips/configure.ac              | 4 ++--
+ sysdeps/unix/sysv/linux/powerpc/powerpc64/configure    | 8 ++++----
+ sysdeps/unix/sysv/linux/powerpc/powerpc64/configure.ac | 8 ++++----
+ 12 files changed, 28 insertions(+), 28 deletions(-)
+
+diff --git a/sysdeps/aarch64/configure b/sysdeps/aarch64/configure
+index 5bd355a..3bc5537 100644
+--- a/sysdeps/aarch64/configure
++++ b/sysdeps/aarch64/configure
+@@ -148,12 +148,12 @@ else
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ #ifdef __AARCH64EB__
+-                      yes
++                      is_aarch64_be
+                      #endif
+ 
+ _ACEOF
+ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+-  $EGREP "yes" >/dev/null 2>&1; then :
++  $EGREP "is_aarch64_be" >/dev/null 2>&1; then :
+   libc_cv_aarch64_be=yes
+ else
+   libc_cv_aarch64_be=no
+diff --git a/sysdeps/aarch64/configure.ac b/sysdeps/aarch64/configure.ac
+index 7851dd4..6e92381 100644
+--- a/sysdeps/aarch64/configure.ac
++++ b/sysdeps/aarch64/configure.ac
+@@ -10,8 +10,8 @@ GLIBC_PROVIDES dnl See aclocal.m4 in the top level source directory.
+ # the dynamic linker via %ifdef.
+ AC_CACHE_CHECK([for big endian],
+   [libc_cv_aarch64_be],
+-  [AC_EGREP_CPP(yes,[#ifdef __AARCH64EB__
+-                      yes
++  [AC_EGREP_CPP(is_aarch64_be,[#ifdef __AARCH64EB__
++                      is_aarch64_be
+                      #endif
+   ], libc_cv_aarch64_be=yes, libc_cv_aarch64_be=no)])
+ if test $libc_cv_aarch64_be = yes; then
+diff --git a/sysdeps/arm/configure b/sysdeps/arm/configure
+index 431e843..e152461 100644
+--- a/sysdeps/arm/configure
++++ b/sysdeps/arm/configure
+@@ -151,12 +151,12 @@ else
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ #ifdef __ARM_PCS_VFP
+-		      yes
++		      use_arm_pcs_vfp
+ 		     #endif
+ 
+ _ACEOF
+ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+-  $EGREP "yes" >/dev/null 2>&1; then :
++  $EGREP "use_arm_pcs_vfp" >/dev/null 2>&1; then :
+   libc_cv_arm_pcs_vfp=yes
+ else
+   libc_cv_arm_pcs_vfp=no
+diff --git a/sysdeps/arm/configure.ac b/sysdeps/arm/configure.ac
+index 90cdd69..05a262b 100644
+--- a/sysdeps/arm/configure.ac
++++ b/sysdeps/arm/configure.ac
+@@ -15,8 +15,8 @@ AC_DEFINE(PI_STATIC_AND_HIDDEN)
+ # the dynamic linker via %ifdef.
+ AC_CACHE_CHECK([whether the compiler is using the ARM hard-float ABI],
+   [libc_cv_arm_pcs_vfp],
+-  [AC_EGREP_CPP(yes,[#ifdef __ARM_PCS_VFP
+-		      yes
++  [AC_EGREP_CPP(use_arm_pcs_vfp,[#ifdef __ARM_PCS_VFP
++		      use_arm_pcs_vfp
+ 		     #endif
+   ], libc_cv_arm_pcs_vfp=yes, libc_cv_arm_pcs_vfp=no)])
+ if test $libc_cv_arm_pcs_vfp = yes; then
+diff --git a/sysdeps/mips/configure b/sysdeps/mips/configure
+index 4e13248..f14af95 100644
+--- a/sysdeps/mips/configure
++++ b/sysdeps/mips/configure
+@@ -143,11 +143,11 @@ else
+ /* end confdefs.h.  */
+ dnl
+ #ifdef __mips_nan2008
+-yes
++use_mips_nan2008
+ #endif
+ _ACEOF
+ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+-  $EGREP "yes" >/dev/null 2>&1; then :
++  $EGREP "use_mips_nan2008" >/dev/null 2>&1; then :
+   libc_cv_mips_nan2008=yes
+ else
+   libc_cv_mips_nan2008=no
+diff --git a/sysdeps/mips/configure.ac b/sysdeps/mips/configure.ac
+index bcbdaff..ad3057f 100644
+--- a/sysdeps/mips/configure.ac
++++ b/sysdeps/mips/configure.ac
+@@ -6,9 +6,9 @@ dnl position independent way.
+ dnl AC_DEFINE(PI_STATIC_AND_HIDDEN)
+ 
+ AC_CACHE_CHECK([whether the compiler is using the 2008 NaN encoding],
+-  libc_cv_mips_nan2008, [AC_EGREP_CPP(yes, [dnl
++  libc_cv_mips_nan2008, [AC_EGREP_CPP(use_mips_nan2008, [dnl
+ #ifdef __mips_nan2008
+-yes
++use_mips_nan2008
+ #endif], libc_cv_mips_nan2008=yes, libc_cv_mips_nan2008=no)])
+ if test x$libc_cv_mips_nan2008 = xyes; then
+   AC_DEFINE(HAVE_MIPS_NAN2008)
+diff --git a/sysdeps/nios2/configure b/sysdeps/nios2/configure
+index 14c8a3a..dde3814 100644
+--- a/sysdeps/nios2/configure
++++ b/sysdeps/nios2/configure
+@@ -142,12 +142,12 @@ else
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ #ifdef __nios2_big_endian__
+-                      yes
++                      is_nios2_be
+                      #endif
+ 
+ _ACEOF
+ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+-  $EGREP "yes" >/dev/null 2>&1; then :
++  $EGREP "is_nios2_be" >/dev/null 2>&1; then :
+   libc_cv_nios2_be=yes
+ else
+   libc_cv_nios2_be=no
+diff --git a/sysdeps/nios2/configure.ac b/sysdeps/nios2/configure.ac
+index f05f438..dc86399 100644
+--- a/sysdeps/nios2/configure.ac
++++ b/sysdeps/nios2/configure.ac
+@@ -4,8 +4,8 @@ GLIBC_PROVIDES dnl See aclocal.m4 in the top level source directory.
+ # Nios II big endian is not yet supported.
+ AC_CACHE_CHECK([for big endian],
+   [libc_cv_nios2_be],
+-  [AC_EGREP_CPP(yes,[#ifdef __nios2_big_endian__
+-                      yes
++  [AC_EGREP_CPP(is_nios2_be,[#ifdef __nios2_big_endian__
++                      is_nios2_be
+                      #endif
+   ], libc_cv_nios2_be=yes, libc_cv_nios2_be=no)])
+ if test $libc_cv_nios2_be = yes; then
+diff --git a/sysdeps/unix/sysv/linux/mips/configure b/sysdeps/unix/sysv/linux/mips/configure
+index dee56aa..f2049ed 100644
+--- a/sysdeps/unix/sysv/linux/mips/configure
++++ b/sysdeps/unix/sysv/linux/mips/configure
+@@ -414,11 +414,11 @@ else
+ /* end confdefs.h.  */
+ dnl
+ #ifdef __mips_nan2008
+-yes
++use_mips_nan2008
+ #endif
+ _ACEOF
+ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+-  $EGREP "yes" >/dev/null 2>&1; then :
++  $EGREP "use_mips_nan2008" >/dev/null 2>&1; then :
+   libc_cv_mips_nan2008=yes
+ else
+   libc_cv_mips_nan2008=no
+diff --git a/sysdeps/unix/sysv/linux/mips/configure.ac b/sysdeps/unix/sysv/linux/mips/configure.ac
+index 45147c5..4224af1 100644
+--- a/sysdeps/unix/sysv/linux/mips/configure.ac
++++ b/sysdeps/unix/sysv/linux/mips/configure.ac
+@@ -105,9 +105,9 @@ AC_COMPILE_IFELSE(
+ LIBC_CONFIG_VAR([mips-mode-switch],[${libc_mips_mode_switch}])
+ 
+ AC_CACHE_CHECK([whether the compiler is using the 2008 NaN encoding],
+-  libc_cv_mips_nan2008, [AC_EGREP_CPP(yes, [dnl
++  libc_cv_mips_nan2008, [AC_EGREP_CPP(use_mips_nan2008, [dnl
+ #ifdef __mips_nan2008
+-yes
++use_mips_nan2008
+ #endif], libc_cv_mips_nan2008=yes, libc_cv_mips_nan2008=no)])
+ 
+ libc_mips_nan=
+diff --git a/sysdeps/unix/sysv/linux/powerpc/powerpc64/configure b/sysdeps/unix/sysv/linux/powerpc/powerpc64/configure
+index af06970..27b8c1b 100644
+--- a/sysdeps/unix/sysv/linux/powerpc/powerpc64/configure
++++ b/sysdeps/unix/sysv/linux/powerpc/powerpc64/configure
+@@ -155,12 +155,12 @@ else
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ #if _CALL_ELF == 2
+-                      yes
++                      use_ppc_elfv2_abi
+                      #endif
+ 
+ _ACEOF
+ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+-  $EGREP "yes" >/dev/null 2>&1; then :
++  $EGREP "use_ppc_elfv2_abi" >/dev/null 2>&1; then :
+   libc_cv_ppc64_elfv2_abi=yes
+ else
+   libc_cv_ppc64_elfv2_abi=no
+@@ -188,12 +188,12 @@ else
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ #ifdef _CALL_ELF
+-                         yes
++                         is_def_call_elf
+                        #endif
+ 
+ _ACEOF
+ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+-  $EGREP "yes" >/dev/null 2>&1; then :
++  $EGREP "is_def_call_elf" >/dev/null 2>&1; then :
+   libc_cv_ppc64_def_call_elf=yes
+ else
+   libc_cv_ppc64_def_call_elf=no
+diff --git a/sysdeps/unix/sysv/linux/powerpc/powerpc64/configure.ac b/sysdeps/unix/sysv/linux/powerpc/powerpc64/configure.ac
+index 0822915..9a32fdd 100644
+--- a/sysdeps/unix/sysv/linux/powerpc/powerpc64/configure.ac
++++ b/sysdeps/unix/sysv/linux/powerpc/powerpc64/configure.ac
+@@ -6,8 +6,8 @@ LIBC_SLIBDIR_RTLDDIR([lib64], [lib64])
+ # Define default-abi according to compiler flags.
+ AC_CACHE_CHECK([whether the compiler is using the PowerPC64 ELFv2 ABI],
+   [libc_cv_ppc64_elfv2_abi],
+-  [AC_EGREP_CPP(yes,[#if _CALL_ELF == 2
+-                      yes
++  [AC_EGREP_CPP(use_ppc_elfv2_abi,[#if _CALL_ELF == 2
++                      use_ppc_elfv2_abi
+                      #endif
+   ], libc_cv_ppc64_elfv2_abi=yes, libc_cv_ppc64_elfv2_abi=no)])
+ if test $libc_cv_ppc64_elfv2_abi = yes; then
+@@ -19,8 +19,8 @@ else
+   # Compiler that do not support ELFv2 ABI does not define _CALL_ELF
+   AC_CACHE_CHECK([whether the compiler defines _CALL_ELF],
+     [libc_cv_ppc64_def_call_elf],
+-    [AC_EGREP_CPP(yes,[#ifdef _CALL_ELF
+-                         yes
++    [AC_EGREP_CPP(is_def_call_elf,[#ifdef _CALL_ELF
++                         is_def_call_elf
+                        #endif
+     ], libc_cv_ppc64_def_call_elf=yes, libc_cv_ppc64_def_call_elf=no)])
+   if test $libc_cv_ppc64_def_call_elf = no; then
+-- 
+2.6.4
+

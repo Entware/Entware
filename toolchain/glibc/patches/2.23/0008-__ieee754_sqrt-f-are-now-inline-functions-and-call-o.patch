@@ -1,0 +1,387 @@
+From d02704895fdce917e337619a4414042f63edd88b Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Wed, 18 Mar 2015 00:16:38 +0000
+Subject: [PATCH 08/24] __ieee754_sqrt{,f} are now inline functions and call
+ out __slow versions
+
+Upstream-Status: Pending
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ sysdeps/powerpc/powerpc32/603e/fpu/e_sqrt.c    | 12 ++++++++++--
+ sysdeps/powerpc/powerpc32/603e/fpu/e_sqrtf.c   |  8 +++++++-
+ sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrt.c  | 14 +++++++++++---
+ sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrtf.c | 12 ++++++++++--
+ sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrt.c   | 14 +++++++++++---
+ sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrtf.c  | 12 ++++++++++--
+ sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrt.c   |  8 ++++++++
+ sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrtf.c  |  8 ++++++++
+ sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrt.c   | 12 ++++++++++--
+ sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrtf.c  |  9 ++++++++-
+ sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrt.c   | 14 +++++++++++---
+ sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrtf.c  | 12 ++++++++++--
+ 12 files changed, 114 insertions(+), 21 deletions(-)
+
+diff --git a/sysdeps/powerpc/powerpc32/603e/fpu/e_sqrt.c b/sysdeps/powerpc/powerpc32/603e/fpu/e_sqrt.c
+index 1795fd6..daa83f3 100644
+--- a/sysdeps/powerpc/powerpc32/603e/fpu/e_sqrt.c
++++ b/sysdeps/powerpc/powerpc32/603e/fpu/e_sqrt.c
+@@ -40,7 +40,7 @@ static const float half = 0.5;
+    simultaneously.  */
+ 
+ double
+-__ieee754_sqrt (double b)
++__slow_ieee754_sqrt (double b)
+ {
+   if (__builtin_expect (b > 0, 1))
+     {
+@@ -77,7 +77,7 @@ __ieee754_sqrt (double b)
+ 
+           /* Handle small numbers by scaling.  */
+           if (__builtin_expect ((u.parts.msw & 0x7ff00000) <= 0x02000000, 0))
+-            return __ieee754_sqrt (b * two108) * twom54;
++            return __slow_ieee754_sqrt (b * two108) * twom54;
+ 
+ #define FMADD(a_, c_, b_)                                               \
+           ({ double __r;                                                \
+@@ -126,4 +126,12 @@ __ieee754_sqrt (double b)
+     }
+   return f_wash (b);
+ }
++
++#undef __ieee754_sqrt
++double
++__ieee754_sqrt (double x)
++{
++   return __slow_ieee754_sqrt (x);
++}
++
+ strong_alias (__ieee754_sqrt, __sqrt_finite)
+diff --git a/sysdeps/powerpc/powerpc32/603e/fpu/e_sqrtf.c b/sysdeps/powerpc/powerpc32/603e/fpu/e_sqrtf.c
+index a917f31..b812cf1 100644
+--- a/sysdeps/powerpc/powerpc32/603e/fpu/e_sqrtf.c
++++ b/sysdeps/powerpc/powerpc32/603e/fpu/e_sqrtf.c
+@@ -38,7 +38,7 @@ static const float threehalf = 1.5;
+    square root.  */
+ 
+ float
+-__ieee754_sqrtf (float b)
++__slow_ieee754_sqrtf (float b)
+ {
+   if (__builtin_expect (b > 0, 1))
+     {
+@@ -93,4 +93,10 @@ __ieee754_sqrtf (float b)
+     }
+   return f_washf (b);
+ }
++#undef __ieee754_sqrtf
++float
++__ieee754_sqrtf (float x)
++{
++  return __slow_ieee754_sqrtf (x);
++}
+ strong_alias (__ieee754_sqrtf, __sqrtf_finite)
+diff --git a/sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrt.c b/sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrt.c
+index fc4a749..7038a70 100644
+--- a/sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrt.c
++++ b/sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrt.c
+@@ -41,10 +41,10 @@ static const float half = 0.5;
+ 
+ #ifdef __STDC__
+ double
+-__ieee754_sqrt (double b)
++__slow_ieee754_sqrt (double b)
+ #else
+ double
+-__ieee754_sqrt (b)
++__slow_ieee754_sqrt (b)
+      double b;
+ #endif
+ {
+@@ -83,7 +83,7 @@ __ieee754_sqrt (b)
+ 
+           /* Handle small numbers by scaling.  */
+           if (__builtin_expect ((u.parts.msw & 0x7ff00000) <= 0x02000000, 0))
+-            return __ieee754_sqrt (b * two108) * twom54;
++            return __slow_ieee754_sqrt (b * two108) * twom54;
+ 
+ #define FMADD(a_, c_, b_)                                               \
+           ({ double __r;                                                \
+@@ -132,4 +132,12 @@ __ieee754_sqrt (b)
+     }
+   return f_wash (b);
+ }
++
++#undef __ieee754_sqrt
++double
++__ieee754_sqrt (double x)
++{
++   return __slow_ieee754_sqrt (x);
++}
++
+ strong_alias (__ieee754_sqrt, __sqrt_finite)
+diff --git a/sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrtf.c b/sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrtf.c
+index 9d17512..10de1f0 100644
+--- a/sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrtf.c
++++ b/sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrtf.c
+@@ -39,10 +39,10 @@ static const float threehalf = 1.5;
+ 
+ #ifdef __STDC__
+ float
+-__ieee754_sqrtf (float b)
++__slow_ieee754_sqrtf (float b)
+ #else
+ float
+-__ieee754_sqrtf (b)
++__slow_ieee754_sqrtf (b)
+      float b;
+ #endif
+ {
+@@ -99,4 +99,12 @@ __ieee754_sqrtf (b)
+     }
+   return f_washf (b);
+ }
++
++#undef __ieee754_sqrtf
++float
++__ieee754_sqrtf (float x)
++{
++  return __slow_ieee754_sqrtf (x);
++}
++
+ strong_alias (__ieee754_sqrtf, __sqrtf_finite)
+diff --git a/sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrt.c b/sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrt.c
+index fc4a749..7038a70 100644
+--- a/sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrt.c
++++ b/sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrt.c
+@@ -41,10 +41,10 @@ static const float half = 0.5;
+ 
+ #ifdef __STDC__
+ double
+-__ieee754_sqrt (double b)
++__slow_ieee754_sqrt (double b)
+ #else
+ double
+-__ieee754_sqrt (b)
++__slow_ieee754_sqrt (b)
+      double b;
+ #endif
+ {
+@@ -83,7 +83,7 @@ __ieee754_sqrt (b)
+ 
+           /* Handle small numbers by scaling.  */
+           if (__builtin_expect ((u.parts.msw & 0x7ff00000) <= 0x02000000, 0))
+-            return __ieee754_sqrt (b * two108) * twom54;
++            return __slow_ieee754_sqrt (b * two108) * twom54;
+ 
+ #define FMADD(a_, c_, b_)                                               \
+           ({ double __r;                                                \
+@@ -132,4 +132,12 @@ __ieee754_sqrt (b)
+     }
+   return f_wash (b);
+ }
++
++#undef __ieee754_sqrt
++double
++__ieee754_sqrt (double x)
++{
++   return __slow_ieee754_sqrt (x);
++}
++
+ strong_alias (__ieee754_sqrt, __sqrt_finite)
+diff --git a/sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrtf.c b/sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrtf.c
+index 9d17512..10de1f0 100644
+--- a/sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrtf.c
++++ b/sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrtf.c
+@@ -39,10 +39,10 @@ static const float threehalf = 1.5;
+ 
+ #ifdef __STDC__
+ float
+-__ieee754_sqrtf (float b)
++__slow_ieee754_sqrtf (float b)
+ #else
+ float
+-__ieee754_sqrtf (b)
++__slow_ieee754_sqrtf (b)
+      float b;
+ #endif
+ {
+@@ -99,4 +99,12 @@ __ieee754_sqrtf (b)
+     }
+   return f_washf (b);
+ }
++
++#undef __ieee754_sqrtf
++float
++__ieee754_sqrtf (float x)
++{
++  return __slow_ieee754_sqrtf (x);
++}
++
+ strong_alias (__ieee754_sqrtf, __sqrtf_finite)
+diff --git a/sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrt.c b/sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrt.c
+index fc4a749..1c34244 100644
+--- a/sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrt.c
++++ b/sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrt.c
+@@ -132,4 +132,12 @@ __ieee754_sqrt (b)
+     }
+   return f_wash (b);
+ }
++
++#undef __ieee754_sqrt
++double
++__ieee754_sqrt (double x)
++{
++   return __slow_ieee754_sqrt (x);
++}
++
+ strong_alias (__ieee754_sqrt, __sqrt_finite)
+diff --git a/sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrtf.c b/sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrtf.c
+index 9d17512..8126535 100644
+--- a/sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrtf.c
++++ b/sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrtf.c
+@@ -99,4 +99,12 @@ __ieee754_sqrtf (b)
+     }
+   return f_washf (b);
+ }
++
++#undef __ieee754_sqrtf
++float
++__ieee754_sqrtf (float x)
++{
++  return __slow_ieee754_sqrtf (x);
++}
++
+ strong_alias (__ieee754_sqrtf, __sqrtf_finite)
+diff --git a/sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrt.c b/sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrt.c
+index 1795fd6..13a8197 100644
+--- a/sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrt.c
++++ b/sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrt.c
+@@ -40,7 +40,7 @@ static const float half = 0.5;
+    simultaneously.  */
+ 
+ double
+-__ieee754_sqrt (double b)
++__slow_ieee754_sqrt (double b)
+ {
+   if (__builtin_expect (b > 0, 1))
+     {
+@@ -77,7 +77,7 @@ __ieee754_sqrt (double b)
+ 
+           /* Handle small numbers by scaling.  */
+           if (__builtin_expect ((u.parts.msw & 0x7ff00000) <= 0x02000000, 0))
+-            return __ieee754_sqrt (b * two108) * twom54;
++            return __slow_ieee754_sqrt (b * two108) * twom54;
+ 
+ #define FMADD(a_, c_, b_)                                               \
+           ({ double __r;                                                \
+@@ -126,4 +126,12 @@ __ieee754_sqrt (double b)
+     }
+   return f_wash (b);
+ }
++
++#undef __ieee754_sqrt
++double
++__ieee754_sqrt (double x)
++{
++  return __slow_ieee754_sqrt (x);
++}
++
+ strong_alias (__ieee754_sqrt, __sqrt_finite)
+diff --git a/sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrtf.c b/sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrtf.c
+index a917f31..fae2d81 100644
+--- a/sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrtf.c
++++ b/sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrtf.c
+@@ -38,7 +38,7 @@ static const float threehalf = 1.5;
+    square root.  */
+ 
+ float
+-__ieee754_sqrtf (float b)
++__slow_ieee754_sqrtf (float b)
+ {
+   if (__builtin_expect (b > 0, 1))
+     {
+@@ -93,4 +93,11 @@ __ieee754_sqrtf (float b)
+     }
+   return f_washf (b);
+ }
++#undef __ieee754_sqrtf
++float
++__ieee754_sqrtf (float x)
++{
++  return __slow_ieee754_sqrtf (x);
++}
++
+ strong_alias (__ieee754_sqrtf, __sqrtf_finite)
+diff --git a/sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrt.c b/sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrt.c
+index fc4a749..7038a70 100644
+--- a/sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrt.c
++++ b/sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrt.c
+@@ -41,10 +41,10 @@ static const float half = 0.5;
+ 
+ #ifdef __STDC__
+ double
+-__ieee754_sqrt (double b)
++__slow_ieee754_sqrt (double b)
+ #else
+ double
+-__ieee754_sqrt (b)
++__slow_ieee754_sqrt (b)
+      double b;
+ #endif
+ {
+@@ -83,7 +83,7 @@ __ieee754_sqrt (b)
+ 
+           /* Handle small numbers by scaling.  */
+           if (__builtin_expect ((u.parts.msw & 0x7ff00000) <= 0x02000000, 0))
+-            return __ieee754_sqrt (b * two108) * twom54;
++            return __slow_ieee754_sqrt (b * two108) * twom54;
+ 
+ #define FMADD(a_, c_, b_)                                               \
+           ({ double __r;                                                \
+@@ -132,4 +132,12 @@ __ieee754_sqrt (b)
+     }
+   return f_wash (b);
+ }
++
++#undef __ieee754_sqrt
++double
++__ieee754_sqrt (double x)
++{
++   return __slow_ieee754_sqrt (x);
++}
++
+ strong_alias (__ieee754_sqrt, __sqrt_finite)
+diff --git a/sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrtf.c b/sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrtf.c
+index 9d17512..10de1f0 100644
+--- a/sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrtf.c
++++ b/sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrtf.c
+@@ -39,10 +39,10 @@ static const float threehalf = 1.5;
+ 
+ #ifdef __STDC__
+ float
+-__ieee754_sqrtf (float b)
++__slow_ieee754_sqrtf (float b)
+ #else
+ float
+-__ieee754_sqrtf (b)
++__slow_ieee754_sqrtf (b)
+      float b;
+ #endif
+ {
+@@ -99,4 +99,12 @@ __ieee754_sqrtf (b)
+     }
+   return f_washf (b);
+ }
++
++#undef __ieee754_sqrtf
++float
++__ieee754_sqrtf (float x)
++{
++  return __slow_ieee754_sqrtf (x);
++}
++
+ strong_alias (__ieee754_sqrtf, __sqrtf_finite)
+-- 
+2.6.4
+

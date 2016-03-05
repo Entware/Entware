@@ -1,0 +1,73 @@
+From cd9d9fe7316f4ce4ca9d8e67e22f5718879535e4 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Thu, 31 Dec 2015 14:33:02 -0800
+Subject: [PATCH 17/24] Remove bash dependency for nscd init script
+
+The nscd init script uses #! /bin/bash but only really uses one bashism
+(translated strings), so remove them and switch the shell to #!/bin/sh.
+
+Signed-off-by: Ross Burton <ross.burton@intel.com>
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ nscd/nscd.init | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/nscd/nscd.init b/nscd/nscd.init
+index a882da7..b02986e 100644
+--- a/nscd/nscd.init
++++ b/nscd/nscd.init
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ #
+ # nscd:		Starts the Name Switch Cache Daemon
+ #
+@@ -49,7 +49,7 @@ prog=nscd
+ start () {
+     [ -d /var/run/nscd ] || mkdir /var/run/nscd
+     [ -d /var/db/nscd ] || mkdir /var/db/nscd
+-    echo -n $"Starting $prog: "
++    echo -n "Starting $prog: "
+     daemon /usr/sbin/nscd
+     RETVAL=$?
+     echo
+@@ -58,7 +58,7 @@ start () {
+ }
+ 
+ stop () {
+-    echo -n $"Stopping $prog: "
++    echo -n "Stopping $prog: "
+     /usr/sbin/nscd -K
+     RETVAL=$?
+     if [ $RETVAL -eq 0 ]; then
+@@ -67,9 +67,9 @@ stop () {
+ 	# a non-privileged user
+ 	rm -f /var/run/nscd/nscd.pid
+ 	rm -f /var/run/nscd/socket
+-       	success $"$prog shutdown"
++	success "$prog shutdown"
+     else
+-       	failure $"$prog shutdown"
++	failure "$prog shutdown"
+     fi
+     echo
+     return $RETVAL
+@@ -103,13 +103,13 @@ case "$1" in
+ 	RETVAL=$?
+ 	;;
+     force-reload | reload)
+-    	echo -n $"Reloading $prog: "
++	echo -n "Reloading $prog: "
+ 	killproc /usr/sbin/nscd -HUP
+ 	RETVAL=$?
+ 	echo
+ 	;;
+     *)
+-	echo $"Usage: $0 {start|stop|status|restart|reload|condrestart}"
++	echo "Usage: $0 {start|stop|status|restart|reload|condrestart}"
+ 	RETVAL=1
+ 	;;
+ esac
+-- 
+2.6.4
+

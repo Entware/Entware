@@ -1,0 +1,48 @@
+From 97fe7f1b23ea1f17533884b8fa7f7eb40087d558 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Tue, 5 Jan 2016 17:50:00 -0800
+Subject: [PATCH] When disabling SSE,  make sure -fpmath is not set to use SSE
+ either
+
+This fixes errors when we inject sse options through CFLAGS and now
+that we have -Werror turned on by default this warning turns to become
+error on x86
+
+gcc -m32 -march=core2 -mtune=core2 -msse3 -mfpmath=sse -x c /dev/null -S
+-mno-sse -mno-mmx
+
+generates warning
+/dev/null:1:0: warning: SSE instruction set disabled, using 387
+arithmetics
+
+where as
+
+gcc -m32 -march=core2 -mtune=core2 -msse3 -mfpmath=sse -x c /dev/null -S
+-mno-sse -mno-mmx -mfpmath=387
+
+Generates no warnings
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+Upstream-Status: Submitted
+
+ ChangeLog             | 5 +++++
+ sysdeps/i386/Makefile | 2 +-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/sysdeps/i386/Makefile b/sysdeps/i386/Makefile
+index 168512f..70153b3 100644
+--- a/sysdeps/i386/Makefile
++++ b/sysdeps/i386/Makefile
+@@ -89,7 +89,7 @@ ifeq ($(subdir),elf)
+ # the first 3 mm/xmm/ymm/zmm registers are used to pass vector parameters
+ # which must be preserved.
+ CFLAGS-.os += $(if $(filter $(@F),$(patsubst %,%.os,$(all-rtld-routines))),\
+-		   -mno-sse -mno-mmx)
++		   -mno-sse -mno-mmx -mfpmath=387)
+ 
+ tests-special += $(objpfx)tst-ld-sse-use.out
+ $(objpfx)tst-ld-sse-use.out: ../sysdeps/i386/tst-ld-sse-use.sh $(objpfx)ld.so
+-- 
+2.6.4
+

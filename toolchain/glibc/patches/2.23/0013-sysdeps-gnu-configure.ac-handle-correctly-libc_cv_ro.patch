@@ -1,0 +1,42 @@
+From 10003d48f83f7a4f7fa562ed89af904a544b6323 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Wed, 18 Mar 2015 00:27:10 +0000
+Subject: [PATCH 13/24] sysdeps/gnu/configure.ac: handle correctly
+ $libc_cv_rootsbindir
+
+Upstream-Status:Pending
+
+Signed-off-by: Matthieu Crapet <Matthieu.Crapet@ingenico.com>
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ sysdeps/gnu/configure    | 2 +-
+ sysdeps/gnu/configure.ac | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/sysdeps/gnu/configure b/sysdeps/gnu/configure
+index 71243ad..f578187 100644
+--- a/sysdeps/gnu/configure
++++ b/sysdeps/gnu/configure
+@@ -32,6 +32,6 @@ case "$prefix" in
+   else
+     libc_cv_localstatedir=$localstatedir
+    fi
+-  libc_cv_rootsbindir=/sbin
++  test -n "$libc_cv_rootsbindir" || libc_cv_rootsbindir=/sbin
+   ;;
+ esac
+diff --git a/sysdeps/gnu/configure.ac b/sysdeps/gnu/configure.ac
+index 634fe4d..3db1697 100644
+--- a/sysdeps/gnu/configure.ac
++++ b/sysdeps/gnu/configure.ac
+@@ -21,6 +21,6 @@ case "$prefix" in
+   else
+     libc_cv_localstatedir=$localstatedir
+    fi
+-  libc_cv_rootsbindir=/sbin
++  test -n "$libc_cv_rootsbindir" || libc_cv_rootsbindir=/sbin
+   ;;
+ esac
+-- 
+2.6.4
+

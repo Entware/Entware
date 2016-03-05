@@ -1,0 +1,619 @@
+From 8f554f4a1beb39182aad9cd9b5e1da69464dff7e Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Wed, 18 Mar 2015 00:42:58 +0000
+Subject: [PATCH 18/24] eglibc: Cross building and testing instructions
+
+Ported from eglibc
+Upstream-Status: Pending
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ GLIBC.cross-building | 383 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ GLIBC.cross-testing  | 205 +++++++++++++++++++++++++++
+ 2 files changed, 588 insertions(+)
+ create mode 100644 GLIBC.cross-building
+ create mode 100644 GLIBC.cross-testing
+
+diff --git a/GLIBC.cross-building b/GLIBC.cross-building
+new file mode 100644
+index 0000000..e6e0da1
+--- /dev/null
++++ b/GLIBC.cross-building
+@@ -0,0 +1,383 @@
++                                                        -*- mode: text -*-
++
++                        Cross-Compiling GLIBC
++                  Jim Blandy <jimb@codesourcery.com>
++
++
++Introduction
++
++Most GNU tools have a simple build procedure: you run their
++'configure' script, and then you run 'make'.  Unfortunately, the
++process of cross-compiling the GNU C library is quite a bit more
++involved:
++
++1) Build a cross-compiler, with certain facilities disabled.
++
++2) Configure the C library using the compiler you built in step 1).
++   Build a few of the C run-time object files, but not the rest of the
++   library.  Install the library's header files and the run-time
++   object files, and create a dummy libc.so.
++
++3) Build a second cross-compiler, using the header files and object
++   files you installed in step 2.
++
++4) Configure, build, and install a fresh C library, using the compiler
++   built in step 3.
++
++5) Build a third cross-compiler, based on the C library built in step 4.
++
++The reason for this complexity is that, although GCC and the GNU C
++library are distributed separately, they are not actually independent
++of each other: GCC requires the C library's headers and some object
++files to compile its own libraries, while the C library depends on
++GCC's libraries.  GLIBC includes features and bug fixes to the stock
++GNU C library that simplify this process, but the fundamental
++interdependency stands.
++
++In this document, we explain how to cross-compile an GLIBC/GCC pair
++from source.  Our intended audience is developers who are already
++familiar with the GNU toolchain and comfortable working with
++cross-development tools.  While we do present a worked example to
++accompany the explanation, for clarity's sake we do not cover many of
++the options available to cross-toolchain users.
++
++
++Preparation
++
++GLIBC requires recent versions of the GNU binutils, GCC, and the
++Linux kernel.  The web page <http://www.eglibc.org/prerequisites>
++documents the current requirements, and lists patches needed for
++certain target architectures.  As of this writing, these build
++instructions have been tested with binutils 2.22.51, GCC 4.6.2,
++and Linux 3.1.
++
++First, let's set some variables, to simplify later commands.  We'll
++build GLIBC and GCC for an ARM target, known to the Linux kernel
++as 'arm', and we'll do the build on an Intel x86_64 Linux box:
++
++    $ build=x86_64-pc-linux-gnu
++    $ host=$build
++    $ target=arm-none-linux-gnueabi
++    $ linux_arch=arm
++
++We're using the aforementioned versions of Binutils, GCC, and Linux:
++
++    $ binutilsv=binutils-2.22.51
++    $ gccv=gcc-4.6.2
++    $ linuxv=linux-3.1
++
++We're carrying out the entire process under '~/cross-build', which
++contains unpacked source trees for binutils, gcc, and linux kernel,
++along with GLIBC svn trunk (which can be checked-out with
++'svn co http://www.eglibc.org/svn/trunk eglibc'):
++
++    $ top=$HOME/cross-build/$target
++    $ src=$HOME/cross-build/src
++    $ ls $src
++    binutils-2.22.51  glibc  gcc-4.6.2  linux-3.1
++
++We're going to place our build directories in a subdirectory 'obj',
++we'll install the cross-development toolchain in 'tools', and we'll
++place our sysroot (containing files to be installed on the target
++system) in 'sysroot':
++
++    $ obj=$top/obj
++    $ tools=$top/tools
++    $ sysroot=$top/sysroot
++
++
++Binutils
++
++Configuring and building binutils for the target is straightforward:
++
++    $ mkdir -p $obj/binutils
++    $ cd $obj/binutils
++    $ $src/$binutilsv/configure \
++    >     --target=$target \
++    >     --prefix=$tools \
++    >     --with-sysroot=$sysroot
++    $ make
++    $ make install
++
++
++The First GCC
++
++For our work, we need a cross-compiler targeting an ARM Linux
++system.  However, that configuration includes the shared library
++'libgcc_s.so', which is compiled against the GLIBC headers (which we
++haven't installed yet) and linked against 'libc.so' (which we haven't
++built yet).
++
++Fortunately, there are configuration options for GCC which tell it not
++to build 'libgcc_s.so'.  The '--without-headers' option is supposed to
++take care of this, but its implementation is incomplete, so you must
++also configure with the '--with-newlib' option.  While '--with-newlib'
++appears to mean "Use the Newlib C library", its effect is to tell the
++GCC build machinery, "Don't assume there is a C library available."
++
++We also need to disable some of the libraries that would normally be
++built along with GCC, and specify that only the compiler for the C
++language is needed.
++
++So, we create a build directory, configure, make, and install.
++
++    $ mkdir -p $obj/gcc1
++    $ cd $obj/gcc1
++    $ $src/$gccv/configure \
++    >     --target=$target \
++    >     --prefix=$tools \
++    >     --without-headers --with-newlib \
++    >     --disable-shared --disable-threads --disable-libssp \
++    >     --disable-libgomp --disable-libmudflap --disable-libquadmath \
++    >     --disable-decimal-float --disable-libffi \
++    >     --enable-languages=c
++    $ PATH=$tools/bin:$PATH make
++    $ PATH=$tools/bin:$PATH make install
++
++
++Linux Kernel Headers
++
++To configure GLIBC, we also need Linux kernel headers in place.
++Fortunately, the Linux makefiles have a target that installs them for
++us.  Since the process does modify the source tree a bit, we make a
++copy first:
++
++    $ cp -r $src/$linuxv $obj/linux
++    $ cd $obj/linux
++
++Now we're ready to install the headers into the sysroot:
++
++    $ PATH=$tools/bin:$PATH \
++    > make headers_install \
++    >      ARCH=$linux_arch CROSS_COMPILE=$target- \
++    >      INSTALL_HDR_PATH=$sysroot/usr
++
++
++GLIBC Headers and Preliminary Objects
++
++Using the cross-compiler we've just built, we can now configure GLIBC
++well enough to install the headers and build the object files that the
++full cross-compiler will need:
++
++    $ mkdir -p $obj/glibc-headers
++    $ cd $obj/glibc-headers
++    $ BUILD_CC=gcc \
++    > CC=$tools/bin/$target-gcc \
++    > CXX=$tools/bin/$target-g++ \
++    > AR=$tools/bin/$target-ar \
++    > RANLIB=$tools/bin/$target-ranlib \
++    > $src/glibc/libc/configure \
++    >     --prefix=/usr \
++    >     --with-headers=$sysroot/usr/include \
++    >     --build=$build \
++    >     --host=$target \
++    >     --disable-profile --without-gd --without-cvs \
++    >     --enable-add-ons=nptl,libidn,../ports
++
++The option '--prefix=/usr' may look strange, but you should never
++configure GLIBC with a prefix other than '/usr': in various places,
++GLIBC's build system checks whether the prefix is '/usr', and does
++special handling only if that is the case.  Unless you use this
++prefix, you will get a sysroot that does not use the standard Linux
++directory layouts and cannot be used as a basis for the root
++filesystem on your target system compatibly with normal GLIBC
++installations.
++
++The '--with-headers' option tells GLIBC where the Linux headers have
++been installed.
++
++The '--enable-add-ons=nptl,libidn,../ports' option tells GLIBC to look
++for the listed glibc add-ons. Most notably the ports add-on (located
++just above the libc sources in the GLIBC svn tree) is required to
++support ARM targets.
++
++We can now use the 'install-headers' makefile target to install the
++headers:
++
++    $ make install-headers install_root=$sysroot \
++    >                      install-bootstrap-headers=yes
++
++The 'install_root' variable indicates where the files should actually
++be installed; its value is treated as the parent of the '--prefix'
++directory we passed to the configure script, so the headers will go in
++'$sysroot/usr/include'.  The 'install-bootstrap-headers' variable
++requests special handling for certain tricky header files.
++
++Next, there are a few object files needed to link shared libraries,
++which we build and install by hand:
++
++    $ mkdir -p $sysroot/usr/lib
++    $ make csu/subdir_lib
++    $ cp csu/crt1.o csu/crti.o csu/crtn.o $sysroot/usr/lib
++
++Finally, 'libgcc_s.so' requires a 'libc.so' to link against.  However,
++since we will never actually execute its code, it doesn't matter what
++it contains.  So, treating '/dev/null' as a C source file, we produce
++a dummy 'libc.so' in one step:
++
++    $ $tools/bin/$target-gcc -nostdlib -nostartfiles -shared -x c /dev/null \
++    >                        -o $sysroot/usr/lib/libc.so
++
++
++The Second GCC
++
++With the GLIBC headers and selected object files installed, we can
++now build a GCC that is capable of compiling GLIBC.  We configure,
++build, and install the second GCC, again building only the C compiler,
++and avoiding libraries we won't use:
++
++    $ mkdir -p $obj/gcc2
++    $ cd $obj/gcc2
++    $ $src/$gccv/configure \
++    >     --target=$target \
++    >     --prefix=$tools \
++    >     --with-sysroot=$sysroot \
++    >     --disable-libssp --disable-libgomp --disable-libmudflap \
++    >     --disable-libffi --disable-libquadmath \
++    >     --enable-languages=c
++    $ PATH=$tools/bin:$PATH make
++    $ PATH=$tools/bin:$PATH make install
++
++
++GLIBC, Complete
++
++With the second compiler built and installed, we're now ready for the
++full GLIBC build:
++
++    $ mkdir -p $obj/glibc
++    $ cd $obj/glibc
++    $ BUILD_CC=gcc \
++    > CC=$tools/bin/$target-gcc \
++    > CXX=$tools/bin/$target-g++ \
++    > AR=$tools/bin/$target-ar \
++    > RANLIB=$tools/bin/$target-ranlib \
++    > $src/glibc/libc/configure \
++    >     --prefix=/usr \
++    >     --with-headers=$sysroot/usr/include \
++    >     --with-kconfig=$obj/linux/scripts/kconfig \
++    >     --build=$build \
++    >     --host=$target \
++    >     --disable-profile --without-gd --without-cvs \
++    >     --enable-add-ons=nptl,libidn,../ports
++
++Note the additional '--with-kconfig' option. This tells GLIBC where to
++find the host config tools used by the kernel 'make config' and 'make
++menuconfig'.  These tools can be re-used by GLIBC for its own 'make
++*config' support, which will create 'option-groups.config' for you.
++But first make sure those tools have been built by running some
++dummy 'make *config' calls in the kernel directory:
++
++    $ cd $obj/linux
++    $ PATH=$tools/bin:$PATH make config \
++    >      ARCH=$linux_arch CROSS_COMPILE=$target- \
++    $ PATH=$tools/bin:$PATH make menuconfig \
++    >      ARCH=$linux_arch CROSS_COMPILE=$target- \
++
++Now we can configure and build the full GLIBC:
++
++    $ cd $obj/glibc
++    $ PATH=$tools/bin:$PATH make defconfig
++    $ PATH=$tools/bin:$PATH make menuconfig
++    $ PATH=$tools/bin:$PATH make
++    $ PATH=$tools/bin:$PATH make install install_root=$sysroot
++
++At this point, we have a complete GLIBC installation in '$sysroot',
++with header files, library files, and most of the C runtime startup
++files in place.
++
++
++The Third GCC
++
++Finally, we recompile GCC against this full installation, enabling
++whatever languages and libraries we would like to use:
++
++    $ mkdir -p $obj/gcc3
++    $ cd $obj/gcc3
++    $ $src/$gccv/configure \
++    >     --target=$target \
++    >     --prefix=$tools \
++    >     --with-sysroot=$sysroot \
++    >     --enable-__cxa_atexit \
++    >     --disable-libssp --disable-libgomp --disable-libmudflap \
++    >     --enable-languages=c,c++
++    $ PATH=$tools/bin:$PATH make
++    $ PATH=$tools/bin:$PATH make install
++
++The '--enable-__cxa_atexit' option tells GCC what sort of C++
++destructor support to expect from the C library; it's required with
++GLIBC.
++
++And since GCC's installation process isn't designed to help construct
++sysroot trees, we must manually copy certain libraries into place in
++the sysroot.
++
++    $ cp -d $tools/$target/lib/libgcc_s.so* $sysroot/lib
++    $ cp -d $tools/$target/lib/libstdc++.so* $sysroot/usr/lib
++
++
++Trying Things Out
++
++At this point, '$tools' contains a cross toolchain ready to use
++the GLIBC installation in '$sysroot':
++
++    $ cat > hello.c <<EOF
++    > #include <stdio.h>
++    > int
++    > main (int argc, char **argv)
++    > {
++    >   puts ("Hello, world!");
++    >   return 0;
++    > }
++    > EOF
++    $ $tools/bin/$target-gcc -Wall hello.c -o hello
++    $ cat > c++-hello.cc <<EOF
++    > #include <iostream>
++    > int
++    > main (int argc, char **argv)
++    > {
++    >   std::cout << "Hello, C++ world!" << std::endl;
++    >   return 0;
++    > }
++    > EOF
++    $ $tools/bin/$target-g++ -Wall c++-hello.cc -o c++-hello
++
++
++We can use 'readelf' to verify that these are indeed executables for
++our target, using our dynamic linker:
++
++    $ $tools/bin/$target-readelf -hl hello
++    ELF Header:
++    ...
++      Type:                              EXEC (Executable file)
++      Machine:                           ARM
++
++    ...
++    Program Headers:
++      Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
++      PHDR           0x000034 0x10000034 0x10000034 0x00100 0x00100 R E 0x4
++      INTERP         0x000134 0x00008134 0x00008134 0x00013 0x00013 R   0x1
++          [Requesting program interpreter: /lib/ld-linux.so.3]
++      LOAD           0x000000 0x00008000 0x00008000 0x0042c 0x0042c R E 0x8000
++    ...
++
++Looking at the dynamic section of the installed 'libgcc_s.so', we see
++that the 'NEEDED' entry for the C library does include the '.6'
++suffix, indicating that was linked against our fully build GLIBC, and
++not our dummy 'libc.so':
++
++    $ $tools/bin/$target-readelf -d $sysroot/lib/libgcc_s.so.1
++    Dynamic section at offset 0x1083c contains 24 entries:
++      Tag        Type                         Name/Value
++     0x00000001 (NEEDED)                     Shared library: [libc.so.6]
++     0x0000000e (SONAME)                     Library soname: [libgcc_s.so.1]
++    ...
++
++
++And on the target machine, we can run our programs:
++
++    $ $sysroot/lib/ld.so.1 --library-path $sysroot/lib:$sysroot/usr/lib \
++    > ./hello
++    Hello, world!
++    $ $sysroot/lib/ld.so.1 --library-path $sysroot/lib:$sysroot/usr/lib \
++    > ./c++-hello
++    Hello, C++ world!
+diff --git a/GLIBC.cross-testing b/GLIBC.cross-testing
+new file mode 100644
+index 0000000..b67b468
+--- /dev/null
++++ b/GLIBC.cross-testing
+@@ -0,0 +1,205 @@
++                                                        -*- mode: text -*-
++
++                      Cross-Testing With GLIBC
++                  Jim Blandy <jimb@codesourcery.com>
++
++
++Introduction
++
++Developers writing software for embedded systems often use a desktop
++or other similarly capable computer for development, but need to run
++tests on the embedded system, or perhaps on a simulator.  When
++configured for cross-compilation, the stock GNU C library simply
++disables running tests altogether: the command 'make tests' builds
++test programs, but does not run them.  GLIBC, however, provides
++facilities for compiling tests and generating data files on the build
++system, but running the test programs themselves on a remote system or
++simulator.
++
++
++Test environment requirements
++
++The test environment must meet certain conditions for GLIBC's
++cross-testing facilities to work:
++
++- Shared filesystems.  The 'build' system, on which you configure and
++  compile GLIBC, and the 'host' system, on which you intend to run
++  GLIBC, must share a filesystem containing the GLIBC build and
++  source trees.  Files must appear at the same paths on both systems.
++
++- Remote-shell like invocation.  There must be a way to run a program
++  on the host system from the build system, passing it properly quoted
++  command-line arguments, setting environment variables, and
++  inheriting the caller's standard input and output.
++
++
++Usage
++
++To use GLIBC's cross-testing support, provide values for the
++following Make variables when you invoke 'make':
++
++- cross-test-wrapper
++
++  This should be the name of the cross-testing wrapper command, along
++  with any arguments.
++
++- cross-localedef
++
++  This should be the name of a cross-capable localedef program, like
++  that included in the GLIBC 'localedef' module, along with any
++  arguments needed.
++
++These are each explained in detail below.
++
++
++The Cross-Testing Wrapper
++
++To run test programs reliably, the stock GNU C library takes care to
++ensure that test programs use the newly compiled dynamic linker and
++shared libraries, and never the host system's installed libraries.  To
++accomplish this, it runs the tests by explicitly invoking the dynamic
++linker from the build tree, passing it a list of build tree
++directories to search for shared libraries, followed by the name of
++the executable to run and its arguments.
++
++For example, where one might normally run a test program like this:
++
++    $ ./tst-foo arg1 arg2
++
++the GNU C library might run that program like this:
++
++    $ $objdir/elf/ld-linux.so.3 --library-path $objdir \
++      ./tst-foo arg1 arg2
++
++(where $objdir is the path to the top of the build tree, and the
++trailing backslash indicates a continuation of the command).  In other
++words, each test program invocation is 'wrapped up' inside an explicit
++invocation of the dynamic linker, which must itself execute the test
++program, having loaded shared libraries from the appropriate
++directories.
++
++To support cross-testing, GLIBC allows the developer to optionally
++set the 'cross-test-wrapper' Make variable to another wrapper command,
++to which it passes the entire dynamic linker invocation shown above as
++arguments.  For example, if the developer supplies a wrapper of
++'my-wrapper hostname', then GLIBC would run the test above as
++follows:
++
++    $ my-wrapper hostname \
++      $objdir/elf/ld-linux.so.3 --library-path $objdir \
++      ./tst-foo arg1 arg2
++
++The 'my-wrapper' command is responsible for executing the command
++given on the host system.
++
++Since tests are run in varying directories, the wrapper should either
++be in your command search path, or 'cross-test-wrapper' should give an
++absolute path for the wrapper.
++
++The wrapper must meet several requirements:
++
++- It must preserve the current directory.  As explained above, the
++  build directory tree must be visible on both the build and host
++  systems, at the same path.  The test wrapper must ensure that the
++  current directory it inherits is also inherited by the dynamic
++  linker (and thus the test program itself).
++
++- It must preserve environment variables' values.  Many GLIBC tests
++  set environment variables for test runs; in native testing, it
++  invokes programs like this:
++
++    $ GCONV_PATH=$objdir/iconvdata \
++      $objdir/elf/ld-linux.so.3 --library-path $objdir \
++      ./tst-foo arg1 arg2
++
++  With the cross-testing wrapper, that invocation becomes:
++
++    $ GCONV_PATH=$objdir/iconvdata \
++      my-wrapper hostname \
++      $objdir/elf/ld-linux.so.3 --library-path $objdir \
++      ./tst-foo arg1 arg2
++
++  Here, 'my-wrapper' must ensure that the value it sees for
++  'GCONV_PATH' will be seen by the dynamic linker, and thus 'tst-foo'
++  itself.  (The wrapper supplied with GLIBC simply preserves the
++  values of *all* enviroment variables, with a fixed set of
++  exceptions.)
++
++  If your wrapper is a shell script, take care to correctly propagate
++  environment variables whose values contain spaces and shell
++  metacharacters.
++
++- It must pass the command's arguments, unmodified.  The arguments
++  seen by the test program should be exactly those seen by the wrapper
++  (after whatever arguments are given to the wrapper itself).  The
++  GLIBC test framework performs all needed shell word splitting and
++  expansion (wildcard expansion, parameter substitution, and so on)
++  before invoking the wrapper; further expansion may break the tests.
++
++
++The 'cross-test-ssh.sh' script
++
++If you want to use 'ssh' (or something sufficiently similar) to run
++test programs on your host system, GLIBC includes a shell script,
++'scripts/cross-test-ssh.sh', which you can use as your wrapper
++command.  This script takes care of setting the test command's current
++directory, propagating environment variable values, and carrying
++command-line arguments, all across an 'ssh' connection.  You may even
++supply an alternative to 'ssh' on the command line, if needed.
++
++For more details, pass 'cross-test-ssh.sh' the '--help' option.
++
++
++The Cross-Compiling Locale Definition Command
++
++Some GLIBC tests rely on locales generated especially for the test
++process.  In a native configuration, these tests simply run the
++'localedef' command built by the normal GLIBC build process,
++'locale/localedef', to process and install their locales.  However, in
++a cross-compiling configuration, this 'localedef' is built for the
++host system, not the build system, and since it requires quite a bit
++of memory to run (we have seen it fail on systems with 64MiB of
++memory), it may not be practical to run it on the host system.
++
++If set, GLIBC uses the 'cross-localedef' Make variable as the command
++to run on the build system to process and install locales.  The
++localedef program built from the GLIBC 'localedef' module is
++suitable.
++
++The value of 'cross-localedef' may also include command-line arguments
++to be passed to the program; if you are using GLIBC's 'localedef',
++you may include endianness and 'uint32_t' alignment arguments here.
++
++
++Example
++
++In developing GLIBC's cross-testing facility, we invoked 'make' with
++the following script:
++
++    #!/bin/sh
++
++    srcdir=...
++    test_hostname=...
++    localedefdir=...
++    cross_gxx=...-g++
++
++    wrapper="$srcdir/scripts/cross-test-ssh.sh $test_hostname"
++    localedef="$localedefdir/localedef --little-endian --uint32-align=4"
++
++    make cross-test-wrapper="$wrapper" \
++         cross-localedef="$localedef" \
++         CXX="$cross_gxx" \
++         "$@"
++
++
++Other Cross-Testing Concerns
++
++Here are notes on some other issues which you may encounter in running
++the GLIBC tests in a cross-compiling environment:
++
++- Some tests require a C++ cross-compiler; you should set the 'CXX'
++  Make variable to the name of an appropriate cross-compiler.
++
++- Some tests require access to libstdc++.so.6 and libgcc_s.so.1; we
++  simply place copies of these libraries in the top GLIBC build
++  directory.
+-- 
+2.6.4
+

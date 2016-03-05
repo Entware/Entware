@@ -1,0 +1,208 @@
+From f936548decac99501f9a4c522a3211d16542fa49 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Wed, 18 Mar 2015 00:15:07 +0000
+Subject: [PATCH 07/24] ppc/sqrt: Fix undefined reference to `__sqrt_finite'
+
+on ppc fixes the errors like below
+| ./.libs/libpulsecore-1.1.so: undefined reference to `__sqrt_finite'
+| collect2: ld returned 1 exit status
+
+Upstream-Status: Pending
+
+ChangeLog
+
+2012-01-06  Khem Raj  <raj.khem@gmail.com>
+
+        * sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrtf.c: Add __*_finite alias.
+        Remove cruft.
+        * sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrt.c: Ditto.
+        * sysdeps/powerpc/powerpc32/603e/fpu/e_sqrt.c: Ditto.
+        * sysdeps/powerpc/powerpc32/603e/fpu/e_sqrtf.c: Ditto.
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ sysdeps/powerpc/powerpc32/603e/fpu/e_sqrt.c    | 7 +------
+ sysdeps/powerpc/powerpc32/603e/fpu/e_sqrtf.c   | 7 +------
+ sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrt.c  | 1 +
+ sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrtf.c | 1 +
+ sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrt.c   | 1 +
+ sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrtf.c  | 1 +
+ sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrt.c   | 1 +
+ sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrtf.c  | 1 +
+ sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrt.c   | 7 +------
+ sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrtf.c  | 7 +------
+ sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrt.c   | 1 +
+ sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrtf.c  | 1 +
+ 12 files changed, 12 insertions(+), 24 deletions(-)
+
+diff --git a/sysdeps/powerpc/powerpc32/603e/fpu/e_sqrt.c b/sysdeps/powerpc/powerpc32/603e/fpu/e_sqrt.c
+index 71e516d..1795fd6 100644
+--- a/sysdeps/powerpc/powerpc32/603e/fpu/e_sqrt.c
++++ b/sysdeps/powerpc/powerpc32/603e/fpu/e_sqrt.c
+@@ -39,14 +39,8 @@ static const float half = 0.5;
+    We find the actual square root and half of its reciprocal
+    simultaneously.  */
+ 
+-#ifdef __STDC__
+ double
+ __ieee754_sqrt (double b)
+-#else
+-double
+-__ieee754_sqrt (b)
+-     double b;
+-#endif
+ {
+   if (__builtin_expect (b > 0, 1))
+     {
+@@ -132,3 +126,4 @@ __ieee754_sqrt (b)
+     }
+   return f_wash (b);
+ }
++strong_alias (__ieee754_sqrt, __sqrt_finite)
+diff --git a/sysdeps/powerpc/powerpc32/603e/fpu/e_sqrtf.c b/sysdeps/powerpc/powerpc32/603e/fpu/e_sqrtf.c
+index 26fa067..a917f31 100644
+--- a/sysdeps/powerpc/powerpc32/603e/fpu/e_sqrtf.c
++++ b/sysdeps/powerpc/powerpc32/603e/fpu/e_sqrtf.c
+@@ -37,14 +37,8 @@ static const float threehalf = 1.5;
+    We find the reciprocal square root and use that to compute the actual
+    square root.  */
+ 
+-#ifdef __STDC__
+ float
+ __ieee754_sqrtf (float b)
+-#else
+-float
+-__ieee754_sqrtf (b)
+-     float b;
+-#endif
+ {
+   if (__builtin_expect (b > 0, 1))
+     {
+@@ -99,3 +93,4 @@ __ieee754_sqrtf (b)
+     }
+   return f_washf (b);
+ }
++strong_alias (__ieee754_sqrtf, __sqrtf_finite)
+diff --git a/sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrt.c b/sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrt.c
+index 71e516d..fc4a749 100644
+--- a/sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrt.c
++++ b/sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrt.c
+@@ -132,3 +132,4 @@ __ieee754_sqrt (b)
+     }
+   return f_wash (b);
+ }
++strong_alias (__ieee754_sqrt, __sqrt_finite)
+diff --git a/sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrtf.c b/sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrtf.c
+index 26fa067..9d17512 100644
+--- a/sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrtf.c
++++ b/sysdeps/powerpc/powerpc32/e500mc/fpu/e_sqrtf.c
+@@ -99,3 +99,4 @@ __ieee754_sqrtf (b)
+     }
+   return f_washf (b);
+ }
++strong_alias (__ieee754_sqrtf, __sqrtf_finite)
+diff --git a/sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrt.c b/sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrt.c
+index 71e516d..fc4a749 100644
+--- a/sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrt.c
++++ b/sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrt.c
+@@ -132,3 +132,4 @@ __ieee754_sqrt (b)
+     }
+   return f_wash (b);
+ }
++strong_alias (__ieee754_sqrt, __sqrt_finite)
+diff --git a/sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrtf.c b/sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrtf.c
+index 26fa067..9d17512 100644
+--- a/sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrtf.c
++++ b/sysdeps/powerpc/powerpc32/e5500/fpu/e_sqrtf.c
+@@ -99,3 +99,4 @@ __ieee754_sqrtf (b)
+     }
+   return f_washf (b);
+ }
++strong_alias (__ieee754_sqrtf, __sqrtf_finite)
+diff --git a/sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrt.c b/sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrt.c
+index 71e516d..fc4a749 100644
+--- a/sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrt.c
++++ b/sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrt.c
+@@ -132,3 +132,4 @@ __ieee754_sqrt (b)
+     }
+   return f_wash (b);
+ }
++strong_alias (__ieee754_sqrt, __sqrt_finite)
+diff --git a/sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrtf.c b/sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrtf.c
+index 26fa067..9d17512 100644
+--- a/sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrtf.c
++++ b/sysdeps/powerpc/powerpc32/e6500/fpu/e_sqrtf.c
+@@ -99,3 +99,4 @@ __ieee754_sqrtf (b)
+     }
+   return f_washf (b);
+ }
++strong_alias (__ieee754_sqrtf, __sqrtf_finite)
+diff --git a/sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrt.c b/sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrt.c
+index 71e516d..1795fd6 100644
+--- a/sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrt.c
++++ b/sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrt.c
+@@ -39,14 +39,8 @@ static const float half = 0.5;
+    We find the actual square root and half of its reciprocal
+    simultaneously.  */
+ 
+-#ifdef __STDC__
+ double
+ __ieee754_sqrt (double b)
+-#else
+-double
+-__ieee754_sqrt (b)
+-     double b;
+-#endif
+ {
+   if (__builtin_expect (b > 0, 1))
+     {
+@@ -132,3 +126,4 @@ __ieee754_sqrt (b)
+     }
+   return f_wash (b);
+ }
++strong_alias (__ieee754_sqrt, __sqrt_finite)
+diff --git a/sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrtf.c b/sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrtf.c
+index 26fa067..a917f31 100644
+--- a/sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrtf.c
++++ b/sysdeps/powerpc/powerpc64/e5500/fpu/e_sqrtf.c
+@@ -37,14 +37,8 @@ static const float threehalf = 1.5;
+    We find the reciprocal square root and use that to compute the actual
+    square root.  */
+ 
+-#ifdef __STDC__
+ float
+ __ieee754_sqrtf (float b)
+-#else
+-float
+-__ieee754_sqrtf (b)
+-     float b;
+-#endif
+ {
+   if (__builtin_expect (b > 0, 1))
+     {
+@@ -99,3 +93,4 @@ __ieee754_sqrtf (b)
+     }
+   return f_washf (b);
+ }
++strong_alias (__ieee754_sqrtf, __sqrtf_finite)
+diff --git a/sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrt.c b/sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrt.c
+index 71e516d..fc4a749 100644
+--- a/sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrt.c
++++ b/sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrt.c
+@@ -132,3 +132,4 @@ __ieee754_sqrt (b)
+     }
+   return f_wash (b);
+ }
++strong_alias (__ieee754_sqrt, __sqrt_finite)
+diff --git a/sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrtf.c b/sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrtf.c
+index 26fa067..9d17512 100644
+--- a/sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrtf.c
++++ b/sysdeps/powerpc/powerpc64/e6500/fpu/e_sqrtf.c
+@@ -99,3 +99,4 @@ __ieee754_sqrtf (b)
+     }
+   return f_washf (b);
+ }
++strong_alias (__ieee754_sqrtf, __sqrtf_finite)
+-- 
+2.6.4
+

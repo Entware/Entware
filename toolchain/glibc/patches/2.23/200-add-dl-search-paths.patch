@@ -1,0 +1,12 @@
+--- a/Makeconfig
++++ b/Makeconfig
+@@ -526,6 +526,9 @@
+ default-rpath = $(libdir)
+ endif
+ 
++# Add /opt/lib to default search path for the dynamic linker
++user-defined-trusted-dirs := /opt/lib
++
+ ifndef link-extra-libs
+ link-extra-libs = $(LDLIBS-$(@F))
+ link-extra-libs-static = $(link-extra-libs)

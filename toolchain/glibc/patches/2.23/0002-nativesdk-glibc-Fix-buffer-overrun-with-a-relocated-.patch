@@ -1,0 +1,50 @@
+From 179dc5f1e13c3ff96d5f21a2a78c089cf120ceb8 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Wed, 18 Mar 2015 01:50:00 +0000
+Subject: [PATCH 02/24] nativesdk-glibc: Fix buffer overrun with a relocated
+ SDK
+
+When ld-linux-*.so.2 is relocated to a path that is longer than the
+original fixed location, the dynamic loader will crash in open_path
+because it implicitly assumes that max_dirnamelen is a fixed size that
+never changes.
+
+The allocated buffer will not be large enough to contain the directory
+path string which is larger than the fixed location provided at build
+time.
+
+Upstream-Status: Inappropriate [OE SDK specific]
+
+Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ elf/dl-load.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/elf/dl-load.c b/elf/dl-load.c
+index ee3d1e6..c4a42e9 100644
+--- a/elf/dl-load.c
++++ b/elf/dl-load.c
+@@ -1793,7 +1793,19 @@ open_path (const char *name, size_t namelen, int mode,
+        given on the command line when rtld is run directly.  */
+     return -1;
+ 
++  do
++    {
++      struct r_search_path_elem *this_dir = *dirs;
++      if (this_dir->dirnamelen > max_dirnamelen)
++	{
++	  max_dirnamelen = this_dir->dirnamelen;
++	}
++    }
++  while (*++dirs != NULL);
++
+   buf = alloca (max_dirnamelen + max_capstrlen + namelen);
++
++  dirs = sps->dirs;
+   do
+     {
+       struct r_search_path_elem *this_dir = *dirs;
+-- 
+2.6.4
+

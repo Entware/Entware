@@ -1,0 +1,566 @@
+From a5695930aec68b3f501e475d8705cddbb63f695e Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Wed, 18 Mar 2015 01:33:49 +0000
+Subject: [PATCH 25/25] eglibc: Forward port cross locale generation support
+
+Upstream-Status: Pending
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ locale/Makefile               |  3 ++-
+ locale/catnames.c             | 48 +++++++++++++++++++++++++++++++++++
+ locale/localeinfo.h           |  2 +-
+ locale/programs/charmap-dir.c |  6 +++++
+ locale/programs/ld-collate.c  | 17 ++++++-------
+ locale/programs/ld-ctype.c    | 27 ++++++++++----------
+ locale/programs/ld-time.c     | 31 +++++++++++++++--------
+ locale/programs/linereader.c  |  2 +-
+ locale/programs/localedef.c   |  8 ++++++
+ locale/programs/locfile.c     |  5 +++-
+ locale/programs/locfile.h     | 59 +++++++++++++++++++++++++++++++++++++++++--
+ locale/setlocale.c            | 30 ----------------------
+ 12 files changed, 169 insertions(+), 69 deletions(-)
+ create mode 100644 locale/catnames.c
+
+diff --git a/locale/Makefile b/locale/Makefile
+index 75afbe1..d32523b 100644
+--- a/locale/Makefile
++++ b/locale/Makefile
+@@ -25,7 +25,8 @@ include ../Makeconfig
+ headers		= locale.h bits/locale.h langinfo.h xlocale.h
+ routines	= setlocale findlocale loadlocale loadarchive \
+ 		  localeconv nl_langinfo nl_langinfo_l mb_cur_max \
+-		  newlocale duplocale freelocale uselocale
++		  newlocale duplocale freelocale uselocale \
++		  catnames
+ tests		= tst-C-locale tst-locname tst-duplocale
+ categories	= ctype messages monetary numeric time paper name \
+ 		  address telephone measurement identification collate
+diff --git a/locale/catnames.c b/locale/catnames.c
+new file mode 100644
+index 0000000..9fad357
+--- /dev/null
++++ b/locale/catnames.c
+@@ -0,0 +1,48 @@
++/* Copyright (C) 2006  Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include "localeinfo.h"
++
++/* Define an array of category names (also the environment variable names).  */
++const union catnamestr_t _nl_category_names attribute_hidden =
++  {
++    {
++#define DEFINE_CATEGORY(category, category_name, items, a) \
++      category_name,
++#include "categories.def"
++#undef DEFINE_CATEGORY
++    }
++  };
++
++const uint8_t _nl_category_name_idxs[__LC_LAST] attribute_hidden =
++  {
++#define DEFINE_CATEGORY(category, category_name, items, a) \
++    [category] = offsetof (union catnamestr_t, CATNAMEMF (__LINE__)),
++#include "categories.def"
++#undef DEFINE_CATEGORY
++  };
++
++/* An array of their lengths, for convenience.  */
++const uint8_t _nl_category_name_sizes[] attribute_hidden =
++  {
++#define DEFINE_CATEGORY(category, category_name, items, a) \
++    [category] = sizeof (category_name) - 1,
++#include "categories.def"
++#undef	DEFINE_CATEGORY
++    [LC_ALL] = sizeof ("LC_ALL") - 1
++  };
+diff --git a/locale/localeinfo.h b/locale/localeinfo.h
+index 789da44..4ac9249 100644
+--- a/locale/localeinfo.h
++++ b/locale/localeinfo.h
+@@ -224,7 +224,7 @@ __libc_tsd_define (extern, __locale_t, LOCALE)
+    unused.  We can manage this playing some tricks with weak references.
+    But with thread-local locale settings, it becomes quite ungainly unless
+    we can use __thread variables.  So only in that case do we attempt this.  */
+-#ifndef SHARED
++#if !defined SHARED && !defined IN_GLIBC_LOCALEDEF
+ # include <tls.h>
+ # define NL_CURRENT_INDIRECT	1
+ #endif
+diff --git a/locale/programs/charmap-dir.c b/locale/programs/charmap-dir.c
+index cf7adea..ef3b811 100644
+--- a/locale/programs/charmap-dir.c
++++ b/locale/programs/charmap-dir.c
+@@ -19,7 +19,9 @@
+ #include <error.h>
+ #include <fcntl.h>
+ #include <libintl.h>
++#ifndef NO_UNCOMPRESS
+ #include <spawn.h>
++#endif
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+@@ -156,6 +158,7 @@ charmap_closedir (CHARMAP_DIR *cdir)
+   return closedir (dir);
+ }
+ 
++#ifndef NO_UNCOMPRESS
+ /* Creates a subprocess decompressing the given pathname, and returns
+    a stream reading its output (the decompressed data).  */
+ static
+@@ -204,6 +207,7 @@ fopen_uncompressed (const char *pathname, const char *compressor)
+     }
+   return NULL;
+ }
++#endif
+ 
+ /* Opens a charmap for reading, given its name (not an alias name).  */
+ FILE *
+@@ -226,6 +230,7 @@ charmap_open (const char *directory, const char *name)
+   if (stream != NULL)
+     return stream;
+ 
++#ifndef NO_UNCOMPRESS
+   memcpy (p, ".gz", 4);
+   stream = fopen_uncompressed (pathname, "gzip");
+   if (stream != NULL)
+@@ -235,6 +240,7 @@ charmap_open (const char *directory, const char *name)
+   stream = fopen_uncompressed (pathname, "bzip2");
+   if (stream != NULL)
+     return stream;
++#endif
+ 
+   return NULL;
+ }
+diff --git a/locale/programs/ld-collate.c b/locale/programs/ld-collate.c
+index dc0fe30..3c88c6d 100644
+--- a/locale/programs/ld-collate.c
++++ b/locale/programs/ld-collate.c
+@@ -350,7 +350,7 @@ new_element (struct locale_collate_t *collate, const char *mbs, size_t mbslen,
+     }
+   if (wcs != NULL)
+     {
+-      size_t nwcs = wcslen ((wchar_t *) wcs);
++      size_t nwcs = wcslen_uint32 (wcs);
+       uint32_t zero = 0;
+       /* Handle <U0000> as a single character.  */
+       if (nwcs == 0)
+@@ -1776,8 +1776,7 @@ symbol `%s' has the same encoding as"), (*eptr)->name);
+ 
+ 	      if ((*eptr)->nwcs == runp->nwcs)
+ 		{
+-		  int c = wmemcmp ((wchar_t *) (*eptr)->wcs,
+-				   (wchar_t *) runp->wcs, runp->nwcs);
++		  int c = wmemcmp_uint32 ((*eptr)->wcs, runp->wcs, runp->nwcs);
+ 
+ 		  if (c == 0)
+ 		    {
+@@ -2010,9 +2009,9 @@ add_to_tablewc (uint32_t ch, struct element_t *runp)
+ 	     one consecutive entry.  */
+ 	  if (runp->wcnext != NULL
+ 	      && runp->nwcs == runp->wcnext->nwcs
+-	      && wmemcmp ((wchar_t *) runp->wcs,
+-			  (wchar_t *)runp->wcnext->wcs,
+-			  runp->nwcs - 1) == 0
++	      && wmemcmp_uint32 (runp->wcs,
++				 runp->wcnext->wcs,
++				 runp->nwcs - 1) == 0
+ 	      && (runp->wcs[runp->nwcs - 1]
+ 		  == runp->wcnext->wcs[runp->nwcs - 1] + 1))
+ 	    {
+@@ -2036,9 +2035,9 @@ add_to_tablewc (uint32_t ch, struct element_t *runp)
+ 		runp = runp->wcnext;
+ 	      while (runp->wcnext != NULL
+ 		     && runp->nwcs == runp->wcnext->nwcs
+-		     && wmemcmp ((wchar_t *) runp->wcs,
+-				 (wchar_t *)runp->wcnext->wcs,
+-				 runp->nwcs - 1) == 0
++		     && wmemcmp_uint32 (runp->wcs,
++					runp->wcnext->wcs,
++					runp->nwcs - 1) == 0
+ 		     && (runp->wcs[runp->nwcs - 1]
+ 			 == runp->wcnext->wcs[runp->nwcs - 1] + 1));
+ 
+diff --git a/locale/programs/ld-ctype.c b/locale/programs/ld-ctype.c
+index 3f464ef..b7b6b51 100644
+--- a/locale/programs/ld-ctype.c
++++ b/locale/programs/ld-ctype.c
+@@ -926,7 +926,7 @@ ctype_output (struct localedef_t *locale, const struct charmap_t *charmap,
+   allocate_arrays (ctype, charmap, ctype->repertoire);
+ 
+   default_missing_len = (ctype->default_missing
+-			 ? wcslen ((wchar_t *) ctype->default_missing)
++			 ? wcslen_uint32 (ctype->default_missing)
+ 			 : 0);
+ 
+   init_locale_data (&file, nelems);
+@@ -1937,7 +1937,7 @@ read_translit_entry (struct linereader *ldfile, struct locale_ctype_t *ctype,
+ 	    ignore = 1;
+ 	  else
+ 	    /* This value is usable.  */
+-	    obstack_grow (ob, to_wstr, wcslen ((wchar_t *) to_wstr) * 4);
++	    obstack_grow (ob, to_wstr, wcslen_uint32 (to_wstr) * 4);
+ 
+ 	  first = 0;
+ 	}
+@@ -2471,8 +2471,8 @@ with character code range values one must use the absolute ellipsis `...'"));
+ 	    }
+ 
+ 	handle_tok_digit:
+-	  class_bit = _ISwdigit;
+-	  class256_bit = _ISdigit;
++	  class_bit = BITw (tok_digit);
++	  class256_bit = BIT (tok_digit);
+ 	  handle_digits = 1;
+ 	  goto read_charclass;
+ 
+@@ -3929,8 +3929,7 @@ allocate_arrays (struct locale_ctype_t *ctype, const struct charmap_t *charmap,
+ 
+ 	  while (idx < number)
+ 	    {
+-	      int res = wcscmp ((const wchar_t *) sorted[idx]->from,
+-				(const wchar_t *) runp->from);
++	      int res = wcscmp_uint32 (sorted[idx]->from, runp->from);
+ 	      if (res == 0)
+ 		{
+ 		  replace = 1;
+@@ -3967,11 +3966,11 @@ allocate_arrays (struct locale_ctype_t *ctype, const struct charmap_t *charmap,
+       for (size_t cnt = 0; cnt < number; ++cnt)
+ 	{
+ 	  struct translit_to_t *srunp;
+-	  from_len += wcslen ((const wchar_t *) sorted[cnt]->from) + 1;
++	  from_len += wcslen_uint32 (sorted[cnt]->from) + 1;
+ 	  srunp = sorted[cnt]->to;
+ 	  while (srunp != NULL)
+ 	    {
+-	      to_len += wcslen ((const wchar_t *) srunp->str) + 1;
++	      to_len += wcslen_uint32 (srunp->str) + 1;
+ 	      srunp = srunp->next;
+ 	    }
+ 	  /* Plus one for the extra NUL character marking the end of
+@@ -3995,18 +3994,18 @@ allocate_arrays (struct locale_ctype_t *ctype, const struct charmap_t *charmap,
+ 	  ctype->translit_from_idx[cnt] = from_len;
+ 	  ctype->translit_to_idx[cnt] = to_len;
+ 
+-	  len = wcslen ((const wchar_t *) sorted[cnt]->from) + 1;
+-	  wmemcpy ((wchar_t *) &ctype->translit_from_tbl[from_len],
+-		   (const wchar_t *) sorted[cnt]->from, len);
++	  len = wcslen_uint32 (sorted[cnt]->from) + 1;
++	  wmemcpy_uint32 (&ctype->translit_from_tbl[from_len],
++			  sorted[cnt]->from, len);
+ 	  from_len += len;
+ 
+ 	  ctype->translit_to_idx[cnt] = to_len;
+ 	  srunp = sorted[cnt]->to;
+ 	  while (srunp != NULL)
+ 	    {
+-	      len = wcslen ((const wchar_t *) srunp->str) + 1;
+-	      wmemcpy ((wchar_t *) &ctype->translit_to_tbl[to_len],
+-		       (const wchar_t *) srunp->str, len);
++	      len = wcslen_uint32 (srunp->str) + 1;
++	      wmemcpy_uint32 (&ctype->translit_to_tbl[to_len],
++			      srunp->str, len);
+ 	      to_len += len;
+ 	      srunp = srunp->next;
+ 	    }
+diff --git a/locale/programs/ld-time.c b/locale/programs/ld-time.c
+index db490c6..75dc505 100644
+--- a/locale/programs/ld-time.c
++++ b/locale/programs/ld-time.c
+@@ -215,8 +215,10 @@ No definition for %s category found"), "LC_TIME"));
+ 	}
+       else
+ 	{
++	  static const uint32_t wt_fmt_ampm[]
++	    = { '%','I',':','%','M',':','%','S',' ','%','p',0 };
+ 	  time->t_fmt_ampm = "%I:%M:%S %p";
+-	  time->wt_fmt_ampm = (const uint32_t *) L"%I:%M:%S %p";
++	  time->wt_fmt_ampm = wt_fmt_ampm;
+ 	}
+     }
+ 
+@@ -226,7 +228,7 @@ No definition for %s category found"), "LC_TIME"));
+       const int days_per_month[12] = { 31, 29, 31, 30, 31, 30,
+ 				       31, 31, 30, 31 ,30, 31 };
+       size_t idx;
+-      wchar_t *wstr;
++      uint32_t *wstr;
+ 
+       time->era_entries =
+ 	(struct era_data *) xmalloc (time->num_era
+@@ -464,18 +466,18 @@ No definition for %s category found"), "LC_TIME"));
+ 	    }
+ 
+ 	  /* Now generate the wide character name and format.  */
+-	  wstr = wcschr ((wchar_t *) time->wera[idx], L':');/* end direction */
+-	  wstr = wstr ? wcschr (wstr + 1, L':') : NULL;	/* end offset */
+-	  wstr = wstr ? wcschr (wstr + 1, L':') : NULL;	/* end start */
+-	  wstr = wstr ? wcschr (wstr + 1, L':') : NULL;	/* end end */
++	  wstr = wcschr_uint32 (time->wera[idx], L':'); /* end direction */
++	  wstr = wstr ? wcschr_uint32 (wstr + 1, L':') : NULL; /* end offset */
++	  wstr = wstr ? wcschr_uint32 (wstr + 1, L':') : NULL; /* end start */
++	  wstr = wstr ? wcschr_uint32 (wstr + 1, L':') : NULL; /* end end */
+ 	  if (wstr != NULL)
+ 	    {
+-	      time->era_entries[idx].wname = (uint32_t *) wstr + 1;
+-	      wstr = wcschr (wstr + 1, L':');	/* end name */
++	      time->era_entries[idx].wname = wstr + 1;
++	      wstr = wcschr_uint32 (wstr + 1, L':'); /* end name */
+ 	      if (wstr != NULL)
+ 		{
+ 		  *wstr = L'\0';
+-		  time->era_entries[idx].wformat = (uint32_t *) wstr + 1;
++		  time->era_entries[idx].wformat = wstr + 1;
+ 		}
+ 	      else
+ 		time->era_entries[idx].wname =
+@@ -530,7 +532,16 @@ No definition for %s category found"), "LC_TIME"));
+   if (time->date_fmt == NULL)
+     time->date_fmt = "%a %b %e %H:%M:%S %Z %Y";
+   if (time->wdate_fmt == NULL)
+-    time->wdate_fmt = (const uint32_t *) L"%a %b %e %H:%M:%S %Z %Y";
++    {
++      static const uint32_t wdate_fmt[] =
++	{ '%','a',' ',
++	  '%','b',' ',
++	  '%','e',' ',
++	  '%','H',':','%','M',':','%','S',' ',
++	  '%','Z',' ',
++	  '%','Y',0 };
++      time->wdate_fmt = wdate_fmt;
++    }
+ }
+ 
+ 
+diff --git a/locale/programs/linereader.c b/locale/programs/linereader.c
+index 2e05130..653b68c 100644
+--- a/locale/programs/linereader.c
++++ b/locale/programs/linereader.c
+@@ -595,7 +595,7 @@ get_string (struct linereader *lr, const struct charmap_t *charmap,
+ {
+   int return_widestr = lr->return_widestr;
+   char *buf;
+-  wchar_t *buf2 = NULL;
++  uint32_t *buf2 = NULL;
+   size_t bufact;
+   size_t bufmax = 56;
+ 
+diff --git a/locale/programs/localedef.c b/locale/programs/localedef.c
+index fd6ca51..328d36c 100644
+--- a/locale/programs/localedef.c
++++ b/locale/programs/localedef.c
+@@ -114,6 +114,7 @@ void (*argp_program_version_hook) (FILE *, struct argp_state *) = print_version;
+ #define OPT_LIST_ARCHIVE 309
+ #define OPT_LITTLE_ENDIAN 400
+ #define OPT_BIG_ENDIAN 401
++#define OPT_UINT32_ALIGN 402
+ 
+ /* Definitions of arguments for argp functions.  */
+ static const struct argp_option options[] =
+@@ -150,6 +151,8 @@ static const struct argp_option options[] =
+     N_("Generate little-endian output") },
+   { "big-endian", OPT_BIG_ENDIAN, NULL, 0,
+     N_("Generate big-endian output") },
++  { "uint32-align", OPT_UINT32_ALIGN, "ALIGNMENT", 0,
++    N_("Set the target's uint32_t alignment in bytes (default 4)") },
+   { NULL, 0, NULL, 0, NULL }
+ };
+ 
+@@ -239,12 +242,14 @@ main (int argc, char *argv[])
+      ctype locale.  (P1003.2 4.35.5.2)  */
+   setlocale (LC_CTYPE, "POSIX");
+ 
++#ifndef NO_SYSCONF
+   /* Look whether the system really allows locale definitions.  POSIX
+      defines error code 3 for this situation so I think it must be
+      a fatal error (see P1003.2 4.35.8).  */
+   if (sysconf (_SC_2_LOCALEDEF) < 0)
+     WITH_CUR_LOCALE (error (3, 0, _("\
+ FATAL: system does not define `_POSIX2_LOCALEDEF'")));
++#endif
+ 
+   /* Process charmap file.  */
+   charmap = charmap_read (charmap_file, verbose, 1, be_quiet, 1);
+@@ -338,6 +343,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
+     case OPT_BIG_ENDIAN:
+       set_big_endian (true);
+       break;
++    case OPT_UINT32_ALIGN:
++      uint32_align_mask = strtol (arg, NULL, 0) - 1;
++      break;
+     case 'c':
+       force_output = 1;
+       break;
+diff --git a/locale/programs/locfile.c b/locale/programs/locfile.c
+index 33da52e..f790c4c 100644
+--- a/locale/programs/locfile.c
++++ b/locale/programs/locfile.c
+@@ -544,6 +544,9 @@ compare_files (const char *filename1, const char *filename2, size_t size,
+    machine running localedef.  */
+ bool swap_endianness_p;
+ 
++/* The target's value of __align__(uint32_t) - 1.  */
++unsigned int uint32_align_mask = 3;
++
+ /* When called outside a start_locale_structure/end_locale_structure
+    or start_locale_prelude/end_locale_prelude block, record that the
+    next byte in FILE's obstack will be the first byte of a new element.
+@@ -621,7 +624,7 @@ add_locale_string (struct locale_file *file, const char *string)
+ void
+ add_locale_wstring (struct locale_file *file, const uint32_t *string)
+ {
+-  add_locale_uint32_array (file, string, wcslen ((const wchar_t *) string) + 1);
++  add_locale_uint32_array (file, string, wcslen_uint32 (string) + 1);
+ }
+ 
+ /* Record that FILE's next element is the 32-bit integer VALUE.  */
+diff --git a/locale/programs/locfile.h b/locale/programs/locfile.h
+index 6fc441b..118b171 100644
+--- a/locale/programs/locfile.h
++++ b/locale/programs/locfile.h
+@@ -71,6 +71,8 @@ extern void write_all_categories (struct localedef_t *definitions,
+ 
+ extern bool swap_endianness_p;
+ 
++extern unsigned int uint32_align_mask;
++
+ /* Change the output to be big-endian if BIG_ENDIAN is true and
+    little-endian otherwise.  */
+ static inline void
+@@ -89,7 +91,8 @@ maybe_swap_uint32 (uint32_t value)
+ }
+ 
+ /* Likewise, but munge an array of N uint32_ts starting at ARRAY.  */
+-static inline void
++static void
++__attribute__ ((unused))
+ maybe_swap_uint32_array (uint32_t *array, size_t n)
+ {
+   if (swap_endianness_p)
+@@ -99,7 +102,8 @@ maybe_swap_uint32_array (uint32_t *array, size_t n)
+ 
+ /* Like maybe_swap_uint32_array, but the array of N elements is at
+    the end of OBSTACK's current object.  */
+-static inline void
++static void
++__attribute__ ((unused))
+ maybe_swap_uint32_obstack (struct obstack *obstack, size_t n)
+ {
+   maybe_swap_uint32_array ((uint32_t *) obstack_next_free (obstack) - n, n);
+@@ -276,4 +280,55 @@ extern void identification_output (struct localedef_t *locale,
+ 				   const struct charmap_t *charmap,
+ 				   const char *output_path);
+ 
++static size_t wcslen_uint32 (const uint32_t *str) __attribute__ ((unused));
++static uint32_t * wmemcpy_uint32 (uint32_t *s1, const uint32_t *s2, size_t n) __attribute__ ((unused));
++static uint32_t * wcschr_uint32 (const uint32_t *s, uint32_t ch) __attribute__ ((unused));
++static int wcscmp_uint32 (const uint32_t *s1, const uint32_t *s2) __attribute__ ((unused));
++static int wmemcmp_uint32 (const uint32_t *s1, const uint32_t *s2, size_t n) __attribute__ ((unused));
++
++static size_t
++wcslen_uint32 (const uint32_t *str)
++{
++  size_t len = 0;
++  while (str[len] != 0)
++    len++;
++  return len;
++}
++
++static  int
++wmemcmp_uint32 (const uint32_t *s1, const uint32_t *s2, size_t n)
++{
++  while (n-- != 0)
++    {
++      int diff = *s1++ - *s2++;
++      if (diff != 0)
++	return diff;
++    }
++  return 0;
++}
++
++static int
++wcscmp_uint32 (const uint32_t *s1, const uint32_t *s2)
++{
++  while (*s1 != 0 && *s1 == *s2)
++    s1++, s2++;
++  return *s1 - *s2;
++}
++
++static uint32_t *
++wmemcpy_uint32 (uint32_t *s1, const uint32_t *s2, size_t n)
++{
++  return memcpy (s1, s2, n * sizeof (uint32_t));
++}
++
++static uint32_t *
++wcschr_uint32 (const uint32_t *s, uint32_t ch)
++{
++  do
++    if (*s == ch)
++      return (uint32_t *) s;
++  while (*s++ != 0);
++  return 0;
++}
++
+ #endif /* locfile.h */
+diff --git a/locale/setlocale.c b/locale/setlocale.c
+index ead030d..b551332 100644
+--- a/locale/setlocale.c
++++ b/locale/setlocale.c
+@@ -64,36 +64,6 @@ static char *const _nl_current_used[] =
+ #endif
+ 
+ 
+-/* Define an array of category names (also the environment variable names).  */
+-const union catnamestr_t _nl_category_names attribute_hidden =
+-  {
+-    {
+-#define DEFINE_CATEGORY(category, category_name, items, a) \
+-      category_name,
+-#include "categories.def"
+-#undef DEFINE_CATEGORY
+-    }
+-  };
+-
+-const uint8_t _nl_category_name_idxs[__LC_LAST] attribute_hidden =
+-  {
+-#define DEFINE_CATEGORY(category, category_name, items, a) \
+-    [category] = offsetof (union catnamestr_t, CATNAMEMF (__LINE__)),
+-#include "categories.def"
+-#undef DEFINE_CATEGORY
+-  };
+-
+-/* An array of their lengths, for convenience.  */
+-const uint8_t _nl_category_name_sizes[] attribute_hidden =
+-  {
+-#define DEFINE_CATEGORY(category, category_name, items, a) \
+-    [category] = sizeof (category_name) - 1,
+-#include "categories.def"
+-#undef	DEFINE_CATEGORY
+-    [LC_ALL] = sizeof ("LC_ALL") - 1
+-  };
+-
+-
+ #ifdef NL_CURRENT_INDIRECT
+ # define WEAK_POSTLOAD(postload) weak_extern (postload)
+ #else
+-- 
+2.6.4
+

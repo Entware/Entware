@@ -1,0 +1,56 @@
+From 8f483cb1f21ab6431ff99e8d30d56b91607ae918 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Wed, 18 Mar 2015 00:55:53 +0000
+Subject: [PATCH 22/24] eglibc: Resolve __fpscr_values on SH4
+
+2010-09-29  Nobuhiro Iwamatsu  <iwamatsu@nigauri.org>
+            Andrew Stubbs  <ams@codesourcery.com>
+
+        Resolve SH's __fpscr_values to symbol in libc.so.
+
+        * sysdeps/sh/sh4/fpu/fpu_control.h: Add C++ __set_fpscr prototype.
+        * sysdeps/unix/sysv/linux/sh/Versions (GLIBC_2.2): Add __fpscr_values.
+        * sysdeps/unix/sysv/linux/sh/sysdep.S (___fpscr_values): New constant.
+
+Upstream-Status: Pending
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ sysdeps/unix/sysv/linux/sh/Versions |  1 +
+ sysdeps/unix/sysv/linux/sh/sysdep.S | 11 +++++++++++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/sysdeps/unix/sysv/linux/sh/Versions b/sysdeps/unix/sysv/linux/sh/Versions
+index e0938c4..ca1d7da 100644
+--- a/sysdeps/unix/sysv/linux/sh/Versions
++++ b/sysdeps/unix/sysv/linux/sh/Versions
+@@ -2,6 +2,7 @@ libc {
+   GLIBC_2.2 {
+     # functions used in other libraries
+     __xstat64; __fxstat64; __lxstat64;
++    __fpscr_values;
+ 
+     # a*
+     alphasort64;
+diff --git a/sysdeps/unix/sysv/linux/sh/sysdep.S b/sysdeps/unix/sysv/linux/sh/sysdep.S
+index a02b7e2..b9be326 100644
+--- a/sysdeps/unix/sysv/linux/sh/sysdep.S
++++ b/sysdeps/unix/sysv/linux/sh/sysdep.S
+@@ -30,3 +30,14 @@ ENTRY (__syscall_error)
+ 
+ #define __syscall_error __syscall_error_1
+ #include <sysdeps/unix/sh/sysdep.S>
++
++       .data
++       .align 3
++       .globl ___fpscr_values
++       .type ___fpscr_values, @object
++       .size ___fpscr_values, 8
++___fpscr_values:
++       .long 0
++       .long 0x80000
++weak_alias (___fpscr_values, __fpscr_values)
++
+-- 
+2.6.4
+

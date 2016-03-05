@@ -1,0 +1,123 @@
+From 58d424884eed7efde6c90af0cd7c6c37cf9b444a Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Wed, 18 Mar 2015 01:57:01 +0000
+Subject: [PATCH 23/24] eglibc: Install PIC archives
+
+Forward port from eglibc
+
+2008-02-07  Joseph Myers  <joseph@codesourcery.com>
+
+        * Makerules (install-extras, install-map): New variables.
+        (installed-libcs): Add libc_pic.a.
+        (install-lib): Include _pic.a files for versioned shared
+        libraries.
+        (install-map-nosubdir, install-extras-nosubdir): Add rules for
+        installing extra files.
+        (install-no-libc.a-nosubdir): Depend on install-map-nosubdir and
+        install-extras-nosubdir.
+
+2008-04-01  Maxim Kuvyrkov  <maxim@codesourcery.com>
+
+        * Makerules (install-lib): Don't install libpthread_pic.a.
+        (install-map): Don't install libpthread_pic.map.
+
+Upstream-Status: Pending
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ Makerules | 42 ++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 40 insertions(+), 2 deletions(-)
+
+diff --git a/Makerules b/Makerules
+index fa24030..1ff4634 100644
+--- a/Makerules
++++ b/Makerules
+@@ -694,6 +694,9 @@ ifeq ($(build-shared),yes)
+ $(common-objpfx)libc.so: $(common-objpfx)libc.map
+ endif
+ common-generated += libc.so libc_pic.os
++ifndef subdir
++install-extras := soinit.o sofini.o
++endif
+ ifdef libc.so-version
+ $(common-objpfx)libc.so$(libc.so-version): $(common-objpfx)libc.so
+ 	$(make-link)
+@@ -936,6 +939,7 @@ endif
+ 
+ install: check-install-supported
+ 
++installed-libcs := $(installed-libcs) $(inst_libdir)/libc_pic.a
+ install: $(installed-libcs)
+ $(installed-libcs): $(inst_libdir)/lib$(libprefix)%: lib $(+force)
+ 	$(make-target-directory)
+@@ -964,6 +968,22 @@ versioned := $(strip $(foreach so,$(install-lib.so),\
+ install-lib.so-versioned := $(filter $(versioned), $(install-lib.so))
+ install-lib.so-unversioned := $(filter-out $(versioned), $(install-lib.so))
+ 
++# Install the _pic.a files for versioned libraries, and corresponding
++# .map files.
++# libpthread_pic.a breaks mklibs, so don't install it and its map.
++install-lib := $(install-lib) $(install-lib.so-versioned:%.so=%_pic.a)
++install-lib := $(filter-out libpthread_pic.a,$(install-lib))
++# Despite having a soname libhurduser and libmachuser do not use symbol
++# versioning, so don't install the corresponding .map files.
++ifeq ($(build-shared),yes)
++install-map := $(patsubst %.so,%.map,\
++			$(foreach L,$(install-lib.so-versioned),$(notdir $L)))
++install-map := $(filter-out libhurduser.map libmachuser.map libpthread.map,$(install-map))
++ifndef subdir
++install-map := $(install-map) libc.map
++endif
++endif
++
+ # For versioned libraries, we install three files:
+ #	$(inst_libdir)/libfoo.so	-- for linking, symlink or ld script
+ #	$(inst_slibdir)/libfoo.so.NN	-- for loading by SONAME, symlink
+@@ -1206,9 +1226,22 @@ $(addprefix $(inst_includedir)/,$(headers-nonh)): $(inst_includedir)/%: \
+ endif	# headers-nonh
+ endif	# headers
+ 
++ifdef install-map
++$(addprefix $(inst_libdir)/,$(patsubst lib%.map,lib%_pic.map,$(install-map))): \
++  $(inst_libdir)/lib%_pic.map: $(common-objpfx)lib%.map $(+force)
++	$(do-install)
++endif
++
++ifdef install-extras
++$(addprefix $(inst_libdir)/libc_pic/,$(install-extras)): \
++  $(inst_libdir)/libc_pic/%.o: $(elf-objpfx)%.os $(+force)
++	$(do-install)
++endif
++
+ .PHONY: install-bin-nosubdir install-bin-script-nosubdir \
+ 	install-rootsbin-nosubdir install-sbin-nosubdir install-lib-nosubdir \
+-	install-data-nosubdir install-headers-nosubdir
++	install-data-nosubdir install-headers-nosubdir install-map-nosubdir \
++	install-extras-nosubdir
+ install-bin-nosubdir: $(addprefix $(inst_bindir)/,$(install-bin))
+ install-bin-script-nosubdir: $(addprefix $(inst_bindir)/,$(install-bin-script))
+ install-rootsbin-nosubdir: \
+@@ -1221,6 +1254,10 @@ install-data-nosubdir: $(addprefix $(inst_datadir)/,$(install-data))
+ install-headers-nosubdir: $(addprefix $(inst_includedir)/,$(headers))
+ install-others-nosubdir: $(install-others)
+ install-others-programs-nosubdir: $(install-others-programs)
++install-map-nosubdir: $(addprefix $(inst_libdir)/,\
++		       $(patsubst lib%.map,lib%_pic.map,$(install-map)))
++install-extras-nosubdir: $(addprefix $(inst_libdir)/libc_pic/,\
++		       $(install-extras))
+ 
+ # We need all the `-nosubdir' targets so that `install' in the parent
+ # doesn't depend on several things which each iterate over the subdirs.
+@@ -1230,7 +1267,8 @@ install-%:: install-%-nosubdir ;
+ 
+ .PHONY: install install-no-libc.a-nosubdir
+ install-no-libc.a-nosubdir: install-headers-nosubdir install-data-nosubdir \
+-			    install-lib-nosubdir install-others-nosubdir
++			    install-lib-nosubdir install-others-nosubdir \
++			    install-map-nosubdir install-extras-nosubdir
+ ifeq ($(build-programs),yes)
+ install-no-libc.a-nosubdir: install-bin-nosubdir install-bin-script-nosubdir \
+ 			    install-rootsbin-nosubdir install-sbin-nosubdir \
+-- 
+2.6.4
+
