@@ -15,6 +15,8 @@ On behalf of szabolcs.nagy@arm.com
 git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@223749 138bc75d-0d04-0410-961f-82ee72b054a4
 ---
 
+Index: b/gcc/config/arm/linux-eabi.h
+===================================================================
 --- a/gcc/config/arm/linux-eabi.h
 +++ b/gcc/config/arm/linux-eabi.h
 @@ -77,6 +77,23 @@

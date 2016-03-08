@@ -17,9 +17,11 @@ On behalf of Szabolcs.Nagy@arm.com
 git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@222325 138bc75d-0d04-0410-961f-82ee72b054a4
 ---
 
+Index: b/libitm/config/arm/hwcap.cc
+===================================================================
 --- a/libitm/config/arm/hwcap.cc
 +++ b/libitm/config/arm/hwcap.cc
-@@ -40,7 +40,7 @@ int GTM_hwcap HIDDEN = 0
+@@ -40,7 +40,7 @@
  
  #ifdef __linux__
  #include <unistd.h>
@@ -28,6 +30,8 @@ git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@222325 138bc75d-0d04-0410-961f-8
  #include <elf.h>
  
  static void __attribute__((constructor))
+Index: b/libitm/config/linux/x86/tls.h
+===================================================================
 --- a/libitm/config/linux/x86/tls.h
 +++ b/libitm/config/linux/x86/tls.h
 @@ -25,16 +25,19 @@
@@ -52,7 +56,7 @@ git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@222325 138bc75d-0d04-0410-961f-8
  namespace GTM HIDDEN {
  
  #ifdef __x86_64__
-@@ -101,5 +104,6 @@ static inline void set_abi_disp(struct a
+@@ -101,5 +104,6 @@
  
  } // namespace GTM
  #endif /* >= GLIBC 2.10 */

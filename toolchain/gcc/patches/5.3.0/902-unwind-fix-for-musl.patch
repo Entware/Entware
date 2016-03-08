@@ -17,6 +17,8 @@ On behalf of szabolcs.nagy@arm.com
 git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@222328 138bc75d-0d04-0410-961f-82ee72b054a4
 ---
 
+Index: b/libgcc/unwind-dw2-fde-dip.c
+===================================================================
 --- a/libgcc/unwind-dw2-fde-dip.c
 +++ b/libgcc/unwind-dw2-fde-dip.c
 @@ -59,6 +59,12 @@

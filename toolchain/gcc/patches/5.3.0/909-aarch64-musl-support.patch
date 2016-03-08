@@ -17,6 +17,8 @@ gcc/Changelog:
 git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@223766 138bc75d-0d04-0410-961f-82ee72b054a4
 ---
 
+Index: b/gcc/config/aarch64/aarch64-linux.h
+===================================================================
 --- a/gcc/config/aarch64/aarch64-linux.h
 +++ b/gcc/config/aarch64/aarch64-linux.h
 @@ -23,6 +23,9 @@
