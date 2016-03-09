@@ -53,5 +53,5 @@ endif
 # Compile with gccgo using special patched ego version of go
 
 define Build/Compile
-	GOPATH=$(PKG_BUILD_DIR) gcc=$(TARGET_CC) ego get -x -compiler gccgo -gccgoflags '$(TARGET_GCCGOFLAGS)' $(PKG_GOGET)
+	GOPATH=$(PKG_BUILD_DIR) gcc=$(TARGET_CC) ego get -x -v -compiler gccgo -gccgoflags '$(TARGET_GCCGOFLAGS)' $(PKG_GOGET)
 endef
