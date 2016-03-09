@@ -8,10 +8,10 @@
 
 include $(TOPDIR)/rules.mk
 PKG_NAME:=toolchain
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 ifeq ($(CONFIG_USE_GLIBC),y)
-        PKG_RELEASE=3
+        PKG_RELEASE=4
 endif
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
@@ -72,21 +72,37 @@ define Package/locales/postinst
 #!/bin/sh
 
 echo "Entware uses separate locale-archive file independent from main system"
+if [ -f '/opt/usr/lib/locale/locale-archive' ]
+then
+	echo "locale-archive file found, checking format"
+	/opt/bin/locale.new -a 2>&1 >/dev/null | grep 'LC_COLLATE' > /dev/null
+	if [ $$? -eq 0 ] ; then
+		echo "Old format locale archive found. Deleting!"
+		rm -f /opt/usr/lib/locale/locale-archive
+	fi
+fi
 if ! [ -f '/opt/usr/lib/locale/locale-archive' ]
 then
 	mkdir -p /opt/usr/lib/locale
-        echo "Creating locale archive - /opt/usr/lib/locale/locale-archive"
-        echo "Adding en_EN.UTF-8"
-        /opt/bin/localedef.new -c -f UTF-8 -i en_US en_US.UTF-8
-        echo "Adding ru_RU.UTF-8"
-        /opt/bin/localedef.new -c -f UTF-8 -i ru_RU ru_RU.UTF-8
+	echo "Creating locale archive - /opt/usr/lib/locale/locale-archive"
+	echo "Adding en_EN.UTF-8"
+	/opt/bin/localedef.new -c -f UTF-8 -i en_US en_US.UTF-8
+	echo "Adding ru_RU.UTF-8"
+	/opt/bin/localedef.new -c -f UTF-8 -i ru_RU ru_RU.UTF-8
 fi
 if [ -f '/opt/usr/lib/locale/locale-archive' ]
 then
-        echo "/opt/usr/lib/locale/locale-archive found"
-        echo "You can download locale sources from http://entware.zyxmon.org/sources/i18n_glib222.tar.gz"
-        echo "You can add new locales to Entware using /opt/bin/localedef.new"
+	echo "You can download locale sources from http://pkg.entware.net/sources/i18n_glib223.tar.gz"
+	echo "You can add new locales to Entware using /opt/bin/localedef.new"
 fi
+if ! [ -f '/opt/usr/lib/locale/locale-archive' ]
+then
+	echo "locale-archive file was not created, not enough memory? Downloading..."
+	wget http://pkg.entware.net/binaries/other/locale-archive.2.23 -O /opt/usr/lib/locale/locale-archive
+	echo "You can download locale sources from http://pkg.entware.net/sources/i18n_glib223.tar.gz"
+	echo "You can add new locales to Entware using /opt/bin/localedef.new"
+fi
+
 endef
 
 
