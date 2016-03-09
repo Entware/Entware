@@ -9,9 +9,6 @@ choice
 	config GCC_USE_VERSION_4_8_5
 		select GCC_VERSION_4_8_5
 		bool "gcc 4.8.5"
-	config GCC_USE_VERSION_5_2_0
-		select GCC_VERSION_5_2_0
-		bool "gcc 5.2.0"
 	config GCC_USE_VERSION_5_3_0
 		select GCC_VERSION_5_3_0
 		bool "gcc 5.3.0"
