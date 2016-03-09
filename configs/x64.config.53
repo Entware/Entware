@@ -5,24 +5,29 @@
 CONFIG_MODULES=y
 CONFIG_HAVE_DOT_CONFIG=y
 # CONFIG_TARGET_armv5soft is not set
-CONFIG_TARGET_armv7soft=y
+# CONFIG_TARGET_armv7soft is not set
 # CONFIG_TARGET_x86_32 is not set
-# CONFIG_TARGET_x86_64 is not set
+CONFIG_TARGET_x86_64=y
 # CONFIG_TARGET_mipselsf is not set
-CONFIG_TARGET_armv7soft_Default=y
-CONFIG_TARGET_BOARD="armv7soft"
-CONFIG_TARGET_ARCH_PACKAGES="armv7soft"
-CONFIG_DEFAULT_TARGET_OPTIMIZATION="-Os -pipe -march=armv7-a -mtune=cortex-a9"
-CONFIG_CPU_TYPE="cortex-a9"
-CONFIG_LINUX_2_6_36=y
+CONFIG_TARGET_x86_64_Default=y
+CONFIG_TARGET_BOARD="x86-64"
+CONFIG_TARGET_ARCH_PACKAGES="x86-64"
+CONFIG_DEFAULT_TARGET_OPTIMIZATION="-Os -pipe"
+CONFIG_CPU_TYPE=" "
+CONFIG_LINUX_2_6_32=y
 CONFIG_DEFAULT_busybox=y
 CONFIG_DEFAULT_dropbear=y
 CONFIG_DEFAULT_libc=y
 CONFIG_DEFAULT_libgcc=y
 CONFIG_AUDIO_SUPPORT=y
+CONFIG_PCI_SUPPORT=y
+CONFIG_PCIE_SUPPORT=y
+CONFIG_PCMCIA_SUPPORT=y
 CONFIG_USB_SUPPORT=y
-CONFIG_arm=y
-CONFIG_ARCH="arm"
+CONFIG_RTC_SUPPORT=y
+CONFIG_ARCH_64BIT=y
+CONFIG_x86_64=y
+CONFIG_ARCH="x86_64"
 
 #
 # Global build settings
@@ -47,6 +52,7 @@ CONFIG_SHADOW_PASSWORDS=y
 CONFIG_KERNEL_BUILD_USER=""
 CONFIG_KERNEL_BUILD_DOMAIN=""
 # CONFIG_KERNEL_PRINTK is not set
+CONFIG_KERNEL_CRASHLOG=y
 # CONFIG_KERNEL_SWAP is not set
 # CONFIG_KERNEL_DEBUG_FS is not set
 # CONFIG_KERNEL_PERF_EVENTS is not set
@@ -55,10 +61,7 @@ CONFIG_KERNEL_BUILD_DOMAIN=""
 # CONFIG_KERNEL_FTRACE is not set
 # CONFIG_KERNEL_DEBUG_KERNEL is not set
 # CONFIG_KERNEL_DEBUG_INFO is not set
-# CONFIG_KERNEL_DEBUG_LL_UART_NONE is not set
-# CONFIG_KERNEL_DEBUG_LL is not set
 # CONFIG_KERNEL_DYNAMIC_DEBUG is not set
-# CONFIG_KERNEL_EARLY_PRINTK is not set
 # CONFIG_KERNEL_KPROBES is not set
 # CONFIG_KERNEL_AIO is not set
 # CONFIG_KERNEL_DIRECT_IO is not set
@@ -110,8 +113,6 @@ CONFIG_USE_LIBSTDCXX=y
 # Hardening build options
 #
 # CONFIG_PKG_CHECK_FORMAT_SECURITY is not set
-CONFIG_KERNEL_CC_STACKPROTECTOR_NONE=y
-# CONFIG_KERNEL_CC_STACKPROTECTOR_REGULAR is not set
 CONFIG_PKG_FORTIFY_SOURCE_NONE=y
 # CONFIG_PKG_FORTIFY_SOURCE_1 is not set
 # CONFIG_PKG_FORTIFY_SOURCE_2 is not set
@@ -133,8 +134,7 @@ CONFIG_KERNEL_GIT_CLONE_URI=""
 # CONFIG_SRC_TREE_OVERRIDE is not set
 CONFIG_EXTRA_OPTIMIZATION="-fno-caller-saves"
 CONFIG_TARGET_OPTIONS=y
-CONFIG_TARGET_OPTIMIZATION="-O2 -pipe -march=armv7-a -mtune=cortex-a9"
-CONFIG_SOFT_FLOAT=y
+CONFIG_TARGET_OPTIMIZATION="-O2 -pipe -fomit-frame-pointer"
 # CONFIG_EXTERNAL_TOOLCHAIN is not set
 CONFIG_NEED_TOOLCHAIN=y
 CONFIG_TOOLCHAINOPTS=y
@@ -152,7 +152,6 @@ CONFIG_BINUTILS_VERSION="2.25.1"
 # Compiler
 #
 # CONFIG_GCC_USE_VERSION_4_8_5 is not set
-# CONFIG_GCC_USE_VERSION_5_2_0 is not set
 CONFIG_GCC_USE_VERSION_5_3_0=y
 # CONFIG_GCC_USE_GRAPHITE is not set
 CONFIG_EXTRA_GCC_CONFIG_OPTIONS="--with-default-libstdcxx-abi=gcc4-compatible"
@@ -167,8 +166,8 @@ CONFIG_INSTALL_GCCGO=y
 #
 CONFIG_LIBC_USE_GLIBC=y
 # CONFIG_LIBC_USE_UCLIBC is not set
-# CONFIG_LIBC_USE_MUSL is not set
-CONFIG_GLIBC_USE_VERSION_2_22=y
+# CONFIG_GLIBC_USE_VERSION_2_22 is not set
+CONFIG_GLIBC_USE_VERSION_2_23=y
 
 #
 # Debuggers
@@ -178,12 +177,11 @@ CONFIG_GLIBC_USE_VERSION_2_22=y
 CONFIG_USE_GLIBC=y
 CONFIG_GCC_VERSION="5.3.0"
 CONFIG_GCC_VERSION_5_3_0=y
-CONFIG_GLIBC_VERSION="2.22"
-CONFIG_GLIBC_VERSION_2_22=y
-CONFIG_GLIBC_REVISION=""
+CONFIG_GLIBC_VERSION="2.23"
+CONFIG_GLIBC_VERSION_2_23=y
 CONFIG_LIBC="glibc"
-CONFIG_LIBC_VERSION="2.22"
-CONFIG_TARGET_SUFFIX="gnueabi"
+CONFIG_LIBC_VERSION="2.23"
+CONFIG_TARGET_SUFFIX="gnu"
 CONFIG_IMAGEOPT=y
 # CONFIG_PREINITOPT is not set
 CONFIG_TARGET_PREINIT_SUPPRESS_STDERR=y
@@ -2009,6 +2007,7 @@ CONFIG_DROPBEAR_ECC=y
 CONFIG_PACKAGE_libatomic=m
 CONFIG_PACKAGE_libc=y
 CONFIG_PACKAGE_libgcc=y
+CONFIG_PACKAGE_libgo=m
 CONFIG_PACKAGE_libpthread=y
 CONFIG_PACKAGE_librt=y
 CONFIG_PACKAGE_libssp=y
@@ -2087,7 +2086,13 @@ CONFIG_PACKAGE_patch=m
 CONFIG_PACKAGE_pkg-config=m
 # CONFIG_PACKAGE_trace-cmd is not set
 # CONFIG_PACKAGE_trace-cmd-extra is not set
-# CONFIG_PACKAGE_valgrind is not set
+CONFIG_PACKAGE_valgrind=m
+CONFIG_PACKAGE_valgrind-cachegrind=m
+CONFIG_PACKAGE_valgrind-callgrind=m
+CONFIG_PACKAGE_valgrind-drd=m
+CONFIG_PACKAGE_valgrind-helgrind=m
+CONFIG_PACKAGE_valgrind-massif=m
+CONFIG_PACKAGE_valgrind-vgdb=m
 
 #
 # Games
@@ -2101,6 +2106,15 @@ CONFIG_PACKAGE_superstartrek=m
 CONFIG_PACKAGE_tty-solitaire=m
 CONFIG_PACKAGE_vitetris=m
 CONFIG_PACKAGE_zork=m
+
+#
+# Go
+#
+CONFIG_PACKAGE_asciinema-ng=m
+CONFIG_PACKAGE_gotty=m
+CONFIG_PACKAGE_rclone=m
+CONFIG_PACKAGE_shell2http=m
+CONFIG_PACKAGE_syncthing=m
 
 #
 # Kernel modules
@@ -2240,8 +2254,14 @@ CONFIG_PACKAGE_luasocket=m
 #
 # Node.js
 #
+CONFIG_PACKAGE_node=m
+# CONFIG_PACKAGE_node-arduino-firmata is not set
+# CONFIG_PACKAGE_node-cylon is not set
+# CONFIG_PACKAGE_node-cylon-firmata is not set
+# CONFIG_PACKAGE_node-cylon-gpio is not set
+# CONFIG_PACKAGE_node-cylon-i2c is not set
 # CONFIG_PACKAGE_node-hid is not set
-CONFIG_PACKAGE_node_legacy=m
+# CONFIG_PACKAGE_node-serialport is not set
 
 #
 # PHP
@@ -3966,7 +3986,7 @@ CONFIG_PACKAGE_asterisk11-app-chanspy=m
 CONFIG_PACKAGE_asterisk11-app-confbridge=m
 # CONFIG_PACKAGE_asterisk11-app-dahdiras is not set
 CONFIG_PACKAGE_asterisk11-app-directed_pickup=m
-# CONFIG_PACKAGE_asterisk11-app-directory is not set
+CONFIG_PACKAGE_asterisk11-app-directory=m
 CONFIG_PACKAGE_asterisk11-app-disa=m
 CONFIG_PACKAGE_asterisk11-app-exec=m
 CONFIG_PACKAGE_asterisk11-app-minivm=m
@@ -4033,7 +4053,7 @@ CONFIG_PACKAGE_asterisk11-func-global=m
 CONFIG_PACKAGE_asterisk11-func-groupcount=m
 CONFIG_PACKAGE_asterisk11-func-math=m
 CONFIG_PACKAGE_asterisk11-func-module=m
-# CONFIG_PACKAGE_asterisk11-func-realtime is not set
+CONFIG_PACKAGE_asterisk11-func-realtime=m
 CONFIG_PACKAGE_asterisk11-func-shell=m
 CONFIG_PACKAGE_asterisk11-func-uri=m
 CONFIG_PACKAGE_asterisk11-func-vmcount=m
@@ -4042,13 +4062,13 @@ CONFIG_PACKAGE_asterisk11-odbc=m
 CONFIG_PACKAGE_asterisk11-pbx-ael=m
 CONFIG_PACKAGE_asterisk11-pbx-dundi=m
 CONFIG_PACKAGE_asterisk11-pbx-lua=m
-# CONFIG_PACKAGE_asterisk11-pbx-realtime is not set
+CONFIG_PACKAGE_asterisk11-pbx-realtime=m
 CONFIG_PACKAGE_asterisk11-pbx-spool=m
 CONFIG_PACKAGE_asterisk11-pgsql=m
 CONFIG_PACKAGE_asterisk11-res-adsi=m
 CONFIG_PACKAGE_asterisk11-res-ael-share=m
 CONFIG_PACKAGE_asterisk11-res-agi=m
-# CONFIG_PACKAGE_asterisk11-res-calendar is not set
+CONFIG_PACKAGE_asterisk11-res-calendar=m
 CONFIG_PACKAGE_asterisk11-res-clioriginate=m
 CONFIG_PACKAGE_asterisk11-res-fax=m
 CONFIG_PACKAGE_asterisk11-res-fax-spandsp=m
@@ -4056,7 +4076,7 @@ CONFIG_PACKAGE_asterisk11-res-monitor=m
 CONFIG_PACKAGE_asterisk11-res-musiconhold=m
 CONFIG_PACKAGE_asterisk11-res-phoneprov=m
 CONFIG_PACKAGE_asterisk11-res-pktccops=m
-# CONFIG_PACKAGE_asterisk11-res-realtime is not set
+CONFIG_PACKAGE_asterisk11-res-realtime=m
 CONFIG_PACKAGE_asterisk11-res-smdi=m
 CONFIG_PACKAGE_asterisk11-res-srtp=m
 # CONFIG_PACKAGE_asterisk11-res-timing-dahdi is not set
@@ -4576,7 +4596,7 @@ CONFIG_PACKAGE_lynx=m
 # CONFIG_PACKAGE_map-t is not set
 # CONFIG_PACKAGE_mdns is not set
 # CONFIG_PACKAGE_memcached is not set
-CONFIG_PACKAGE_mini-snmpd=m
+# CONFIG_PACKAGE_mini-snmpd is not set
 # CONFIG_PACKAGE_minimalist-pcproxy is not set
 CONFIG_PACKAGE_mosquitto=m
 # CONFIG_MOSQUITTO_LWS is not set
@@ -5000,6 +5020,7 @@ CONFIG_PACKAGE_zoneinfo-poles=m
 CONFIG_PACKAGE_zoneinfo-simple=m
 CONFIG_PACKAGE_zoneinfo-southamerica=m
 CONFIG_PACKAGE_25volt=m
+# CONFIG_PACKAGE_acpid is not set
 CONFIG_PACKAGE_alsa-utils=m
 CONFIG_PACKAGE_alsa-utils-seq=m
 CONFIG_PACKAGE_alsa-utils-tests=m
@@ -5154,6 +5175,7 @@ CONFIG_PACKAGE_dialog=m
 CONFIG_PACKAGE_digitemp=m
 CONFIG_PACKAGE_digitemp-usb=m
 CONFIG_PACKAGE_dmesg=m
+# CONFIG_PACKAGE_dmidecode is not set
 CONFIG_PACKAGE_dos2unix=m
 CONFIG_PACKAGE_dropbearconvert=m
 CONFIG_PACKAGE_dstat=m
