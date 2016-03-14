@@ -29,7 +29,7 @@ define Host/Compile
 	(cd $(STAGING_DIR_HOST)/go/src ; \
 		GOOS=linux GOARCH=386 GOROOT=$(STAGING_DIR_HOST)/go CGO_ENABLED=0 ./make.bash --no-clean ; \
 		GOOS=linux GOARCH=amd64 GOROOT=$(STAGING_DIR_HOST)/go CGO_ENABLED=0 ./make.bash --no-clean ; \
-		GOOS=linux GOARCH=arm GOROOT=$(STAGING_DIR_HOST)/go CGO_ENABLED=0 ./make.bash --no-clean ; \
+		GOOS=linux GOARCH=arm GOARM=5 GOROOT=$(STAGING_DIR_HOST)/go CGO_ENABLED=0 ./make.bash --no-clean ; \
 	)
 endef
 
