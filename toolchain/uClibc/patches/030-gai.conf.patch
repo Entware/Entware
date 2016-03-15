@@ -1,6 +1,6 @@
 --- a/libc/inet/getaddrinfo.c
 +++ b/libc/inet/getaddrinfo.c
-@@ -838,7 +838,7 @@
+@@ -837,7 +837,7 @@
  	parser_t *parser;
  	char **tok = NULL;
  
