@@ -5302,6 +5302,7 @@ CONFIG_MC_BACKGROUND=y
 CONFIG_MC_CHARSET=y
 CONFIG_MC_VFS=y
 CONFIG_PACKAGE_mcookie=m
+CONFIG_PACKAGE_md5deep=m
 # CONFIG_PACKAGE_mdadm is not set
 CONFIG_PACKAGE_memtester=m
 CONFIG_PACKAGE_mlocate=m
@@ -5329,6 +5330,7 @@ CONFIG_PACKAGE_openldap-utils=m
 CONFIG_PACKAGE_openssl-util=m
 CONFIG_PACKAGE_opus-tools=m
 # CONFIG_PACKAGE_owipcalc is not set
+CONFIG_PACKAGE_pcal=m
 CONFIG_PACKAGE_pciutils=m
 CONFIG_PACKAGE_pcscd=m
 # CONFIG_PACKAGE_pps-tools is not set
