@@ -9,13 +9,10 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=go-bin
 PKG_VERSION:=1.4.2
 
-uname_m=$(shell uname -m)
-ifeq ($(uname_m),i386)
-bintype=386
-endif
-ifeq ($(uname_m),x86_64)
-bintype=amd64
-endif
+bintype:=$(shell uname -m | sed \
+        -e 's/i[3-9]86/386/' \
+        -e 's/x86_64/amd64/' \
+)
 
 PKG_SOURCE:=go$(PKG_VERSION).linux-$(bintype).tar.gz
 PKG_SOURCE_URL:=https://storage.googleapis.com/golang
