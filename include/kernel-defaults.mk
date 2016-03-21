@@ -104,29 +104,16 @@ define Kernel/SetNoInitramfs
 	echo 'CONFIG_INITRAMFS_SOURCE=""' >> $(LINUX_DIR)/.config.set
 endef
 
-ifeq ($(CONFIG_KERNEL_ROOT_NFS),y)
-  define Kernel/SetNfsCmdline
-	rm -f $(LINUX_DIR)/.config.prev
-	mv $(LINUX_DIR)/.config $(LINUX_DIR)/.config.old
-	grep -v "CONFIG_CMDLINE=" $(LINUX_DIR)/.config.old > $(LINUX_DIR)/.config
-	grep "CONFIG_CMDLINE=" $(LINUX_DIR)/.config.old | cut -d\" -f2 | sed 's/root=\/dev\/\([a-z0-9]*\)\(.*\)/CONFIG_CMDLINE=\"root=\/dev\/nfs ip=dhcp\2\"/' >> $(LINUX_DIR)/.config
-  endef
-else
-  define Kernel/SetNfsCmdline
-  endef
-endif
-
 define Kernel/Configure/Default
 	$(LINUX_CONF_CMD) > $(LINUX_DIR)/.config.target
 # copy CONFIG_KERNEL_* settings over to .config.target
 	awk '/^(#[[:space:]]+)?CONFIG_KERNEL/{sub("CONFIG_KERNEL_","CONFIG_");print}' $(TOPDIR)/.config >> $(LINUX_DIR)/.config.target
 	echo "# CONFIG_KALLSYMS_EXTRA_PASS is not set" >> $(LINUX_DIR)/.config.target
 	echo "# CONFIG_KALLSYMS_ALL is not set" >> $(LINUX_DIR)/.config.target
-	echo "# CONFIG_KALLSYMS_UNCOMPRESSED is not set" >> $(LINUX_DIR)/.config.target
+	echo "CONFIG_KALLSYMS_UNCOMPRESSED=y" >> $(LINUX_DIR)/.config.target
 	$(SCRIPT_DIR)/metadata.pl kconfig $(TMP_DIR)/.packageinfo $(TOPDIR)/.config $(KERNEL_PATCHVER) > $(LINUX_DIR)/.config.override
 	$(SCRIPT_DIR)/kconfig.pl 'm+' '+' $(LINUX_DIR)/.config.target /dev/null $(LINUX_DIR)/.config.override > $(LINUX_DIR)/.config.set
 	$(call Kernel/SetNoInitramfs)
-	$(call Kernel/SetNfsCmdline)
 	rm -rf $(KERNEL_BUILD_DIR)/modules
 	cmp -s $(LINUX_DIR)/.config.set $(LINUX_DIR)/.config.prev || { \
 		cp $(LINUX_DIR)/.config.set $(LINUX_DIR)/.config; \

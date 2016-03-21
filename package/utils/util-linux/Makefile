@@ -138,6 +138,18 @@ define Package/agetty/description
  /bin/login command
 endef
 
+define Package/blkdiscard
+$(call Package/util-linux/Default)
+  TITLE:=discard sectors on a device
+  SUBMENU=disc
+endef
+
+define Package/blkdiscard/description
+ The blkdiscard is used to discard device sectors. This is useful for
+ solid-state drivers (SSDs) and thinly-provisioned storage. Unlike fstrim,
+ this command is used directly on the block device.
+endef
+
 define Package/blkid
 $(call Package/util-linux/Default)
   TITLE:=locate/print block device attributes
@@ -472,6 +484,11 @@ define Package/agetty/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/agetty $(1)/opt/sbin/
 endef
 
+define Package/blkdiscard/install
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/blkdiscard $(1)/opt/sbin/
+endef
+
 define Package/blkid/install
 	$(INSTALL_DIR) $(1)/opt/sbin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/.libs/blkid $(1)/opt/sbin/
@@ -629,6 +646,7 @@ $(eval $(call BuildPackage,libmount))
 $(eval $(call BuildPackage,libsmartcols))
 $(eval $(call BuildPackage,libuuid))
 $(eval $(call BuildPackage,agetty))
+$(eval $(call BuildPackage,blkdiscard))
 $(eval $(call BuildPackage,blkid))
 $(eval $(call BuildPackage,cal))
 $(eval $(call BuildPackage,cfdisk))

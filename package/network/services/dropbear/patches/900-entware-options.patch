@@ -26,7 +26,7 @@
  #endif
  
  /* Authentication Types - at least one required.
-@@ -281,25 +281,25 @@
+@@ -287,25 +287,25 @@
  /* The default file to store the daemon's process ID, for shutdown
     scripts etc. This can be overridden with the -P flag */
  #ifndef DROPBEAR_PIDFILE
@@ -56,12 +56,3 @@
  
  /* Whether to log commands executed by a client. This only logs the 
   * (single) command sent to the server, not what a user did in a 
-@@ -341,7 +341,7 @@
- #define DEFAULT_IDLE_TIMEOUT 0
- 
- /* The default path. This will often get replaced by the shell */
--#define DEFAULT_PATH "/bin:/sbin:/usr/bin:/usr/sbin"
-+#define DEFAULT_PATH "/bin:/sbin:/usr/bin:/usr/sbin:/opt/bin:/opt/sbin"
- 
- /* Some other defines (that mostly should be left alone) are defined
-  * in sysoptions.h */

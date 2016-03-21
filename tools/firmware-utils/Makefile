@@ -32,7 +32,7 @@ define Host/Compile
 	$(call cc,mkzynfw)
 	$(call cc,lzma2eva,-lz)
 	$(call cc,mkcasfw)
-	$(call cc,mkfwimage,-lz)
+	$(call cc,mkfwimage,-lz -Wall)
 	$(call cc,mkfwimage2,-lz)
 	$(call cc,imagetag imagetag_cmdline cyg_crc32)
 	$(call cc,add_header)
@@ -75,6 +75,7 @@ define Host/Compile
 	$(call cc,dgn3500sum)
 	$(call cc,edimax_fw_header, -Wall)
 	$(call cc,mkmerakifw sha1, -Wall)
+	$(call cc,jcgimage, -lz -Wall)
 endef
 
 define Host/Install

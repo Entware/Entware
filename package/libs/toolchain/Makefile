@@ -530,10 +530,6 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
 	$(CP) $(TOOLCHAIN_DIR)/lib/libstdc++.so.* $(1)/opt/lib/
   endef
 
-  use_libutil=$(if $(CONFIG_USE_GLIBC),libutil)
-  use_libnsl=$(if $(CONFIG_USE_GLIBC),libnsl)
-  use_nsswitch=$(if $(CONFIG_USE_GLIBC),libnss_dns libnss_files libnss_compat libnss_nisplus libnss_hesiod libnss_db libnss_nis)
-
   define Package/glibc/install
 	$(INSTALL_DIR) $(1)/opt/etc
 	$(CP) ./glibc-files/etc/* $(1)/opt/etc
@@ -544,7 +540,7 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
 		$(TOOLCHAIN_DIR)/lib/libmemusage.so \
 		$(TOOLCHAIN_DIR)/lib/libpcprofile.so \
 		$(1)/opt/lib/
-	for file in libanl libc libcidn libcrypt libdl libm $(use_libnsl) $(use_nsswitch) libresolv $(use_libutil); do \
+	for file in libanl libc libcidn libcrypt libdl libm libnsl libnss_dns libnss_files libresolv libutil; do \
 		for file in $(TOOLCHAIN_DIR)/lib/$$$$file.so.* $(TOOLCHAIN_DIR)/lib/$$$$file-$(LIBC_SO_VERSION).so; do \
 			if [ -e "$$$$file" ]; then \
 				$(CP) $$$$file $(1)/opt/lib/; \

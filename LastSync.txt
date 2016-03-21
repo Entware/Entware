@@ -1,5 +1,5 @@
-commit d0c7accbeb078f8dbb03781b1d1c9cef32744aa5
-Author: hauke <hauke@3c298f89-4303-0410-b956-a3cf2f4a3e73>
-Date:   Mon Feb 1 22:38:28 2016 +0000
-git-svn-id: svn://svn.openwrt.org/openwrt/trunk@48616
+commit 54eb6ade49863de101866981e917e732fc75d4e3
+Author: blogic <blogic@3c298f89-4303-0410-b956-a3cf2f4a3e73>
+Date:   Sun Mar 20 18:48:59 2016 +0000
 
+    odhcp6c : Silence mtu write error warnings

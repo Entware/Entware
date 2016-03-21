@@ -56,14 +56,14 @@ DEFAULT_PACKAGES += $(DEFAULT_PACKAGES.$(DEVICE_TYPE))
 filter_packages = $(filter-out -% $(patsubst -%,%,$(filter -%,$(1))),$(1))
 extra_packages = $(if $(filter wpad-mini wpad nas,$(1)),iwinfo)
 
-define Profile/Default
+define ProfileDefault
   NAME:=
   PACKAGES:=
 endef
 
 ifndef Profile
 define Profile
-  $(eval $(call Profile/Default))
+  $(eval $(call ProfileDefault))
   $(eval $(call Profile/$(1)))
   dumpinfo : $(call shexport,Profile/$(1)/Config)
   dumpinfo : $(call shexport,Profile/$(1)/Description)
@@ -237,6 +237,7 @@ ifeq ($(DUMP),1)
     CPU_CFLAGS_cortex-a8 = -march=armv7-a -mtune=cortex-a8
     CPU_CFLAGS_cortex-a9 = -march=armv7-a -mtune=cortex-a9
     CPU_CFLAGS_cortex-a15 = -march=armv7-a -mtune=cortex-a15
+    CPU_CFLAGS_cortex-a53 = -march=armv8-a -mtune=cortex-a53
     CPU_CFLAGS_fa526 = -march=armv4 -mtune=fa526
     CPU_CFLAGS_mpcore = -march=armv6k -mtune=mpcore
     CPU_CFLAGS_xscale = -march=armv5te -mtune=xscale
@@ -265,6 +266,7 @@ ifeq ($(DUMP),1)
     CPU_TYPE ?= arc700
     CPU_CFLAGS += -matomic
     CPU_CFLAGS_arc700 = -marc700
+    CPU_CFLAGS_archs = -marchs
   endif
   DEFAULT_CFLAGS=$(strip $(CPU_CFLAGS) $(CPU_CFLAGS_$(CPU_TYPE)) $(CPU_CFLAGS_$(CPU_SUBTYPE)))
 endif

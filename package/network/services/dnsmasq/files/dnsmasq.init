@@ -128,7 +128,8 @@ dnsmasq() {
 	append_bool "$cfg" dbus "--enable-dbus"
 	append_bool "$cfg" boguspriv "--bogus-priv"
 	append_bool "$cfg" expandhosts "--expand-hosts"
-	append_bool "$cfg" enable_tftp "--enable-tftp"
+	config_get tftp_root "$cfg" "tftp_root"
+	[ -d "$tftp_root" ] && append_bool "$cfg" enable_tftp "--enable-tftp"
 	append_bool "$cfg" tftp_no_fail "--tftp-no-fail"
 	append_bool "$cfg" nonwildcard "--bind-dynamic"
 	append_bool "$cfg" fqdn "--dhcp-fqdn"
@@ -219,6 +220,12 @@ dnsmasq() {
 	xappend "--conf-dir=/tmp/dnsmasq.d"
 
 	echo >> $CONFIGFILE
+
+	config_get_bool enable_tftp "$cfg" enable_tftp 0
+	[ "$enable_tftp" -gt 0 ] && {
+		config_get tftp_root "$cfg" tftp_root
+		append EXTRA_MOUNT $tftp_root
+	}
 }
 
 dhcp_subscrid_add() {
@@ -335,7 +342,9 @@ dhcp_host_add() {
 	config_get_bool broadcast "$cfg" broadcast 0
 	[ "$broadcast" = "0" ] && broadcast=
 
-	xappend "--dhcp-host=$macs${networkid:+,net:$networkid}${broadcast:+,set:needs-broadcast}${tag:+,set:$tag}${ip:+,$ip}${name:+,$name}"
+	config_get leasetime "$cfg" leasetime
+
+	xappend "--dhcp-host=$macs${networkid:+,net:$networkid}${broadcast:+,set:needs-broadcast}${tag:+,set:$tag}${ip:+,$ip}${name:+,$name}${leasetime:+,$leasetime}"
 }
 
 dhcp_tag_add() {
@@ -539,6 +548,24 @@ dhcp_hostrecord_add() {
 	xappend "--host-record=$record"
 }
 
+dhcp_relay_add() {
+	local cfg="$1"
+	local local_addr server_addr interface
+
+	config_get local_addr "$cfg" local_addr
+	[ -n "$local_addr" ] || return 0
+
+	config_get server_addr "$cfg" server_addr
+	[ -n "$server_addr" ] || return 0
+
+	config_get interface "$cfg" interface
+	if [ -z "$interface" ]; then
+		xappend "--dhcp-relay=$local_addr,$server_addr"
+	else
+		xappend "--dhcp-relay=$local_addr,$server_addr,$interface"
+	fi
+}
+
 service_triggers()
 {
 	procd_add_reload_trigger "dhcp"
@@ -553,17 +580,6 @@ start_service() {
 	include /lib/functions
 
 	config_load dhcp
-
-	procd_open_instance
-	procd_set_param command $PROG -C $CONFIGFILE -k -x /var/run/dnsmasq/dnsmasq.pid
-	procd_set_param file $CONFIGFILE
-	procd_set_param respawn
-
-	procd_add_jail dnsmasq ubus log
-	procd_add_jail_mount $CONFIGFILE $TRUSTANCHORSFILE $HOSTFILE /etc/passwd /etc/group /etc/TZ /dev/null /dev/urandom /etc/dnsmasq.conf /tmp/dnsmasq.d /tmp/resolv.conf.auto /etc/hosts /etc/ethers
-	procd_add_jail_mount_rw /var/run/dnsmasq/ /tmp/dhcp.leases $TIMESTAMPFILE
-	
-	procd_close_instance
 
 	# before we can call xappend
 	mkdir -p /var/run/dnsmasq/
@@ -598,6 +614,7 @@ start_service() {
 	config_foreach dhcp_subscrid_add subscrid
 	config_foreach dhcp_domain_add domain
 	config_foreach dhcp_hostrecord_add hostrecord
+	config_foreach dhcp_relay_add relay
 
 	# add own hostname
 	[ $ADD_LOCAL_HOSTNAME -eq 1 ] && {
@@ -642,6 +659,17 @@ start_service() {
 	for DNS_SERVER in $DNS_SERVERS ; do
 		echo "nameserver $DNS_SERVER" >> /tmp/resolv.conf
 	done
+
+	procd_open_instance
+	procd_set_param command $PROG -C $CONFIGFILE -k -x /var/run/dnsmasq/dnsmasq.pid
+	procd_set_param file $CONFIGFILE
+	procd_set_param respawn
+
+	procd_add_jail dnsmasq ubus log
+	procd_add_jail_mount $CONFIGFILE $TRUSTANCHORSFILE $HOSTFILE /etc/passwd /etc/group /etc/TZ /dev/null /dev/urandom /etc/dnsmasq.conf /tmp/dnsmasq.d /tmp/resolv.conf.auto /etc/hosts /etc/ethers $EXTRA_MOUNT
+	procd_add_jail_mount_rw /var/run/dnsmasq/ /tmp/dhcp.leases $TIMESTAMPFILE
+
+	procd_close_instance
 }
 
 reload_service() {

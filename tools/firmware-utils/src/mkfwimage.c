@@ -79,6 +79,12 @@ fw_layout_t fw_layout_data[] = {
 		.name		=	"XM",
 		.kern_start	=	0x9f050000,
 		.kern_entry	=	0x80002000,
+		.firmware_max_length=	0x00760000,
+	},
+	{
+		.name		=	"UBDEV01",
+		.kern_start	=	0x9f050000,
+		.kern_entry	=	0x80002000,
 		.firmware_max_length=	0x006A0000,
 	},
 	{	.name		=	"",
@@ -103,8 +109,6 @@ typedef struct part_data {
 #define DEFAULT_VERSION		"UNKNOWN"
 
 #define OPTIONS "B:hv:m:o:r:k:"
-
-static int debug = 0;
 
 typedef struct image_info {
 	char magic[16];
@@ -236,9 +240,9 @@ static int create_image_layout(const char* kernelfile, const char* rootfsfile, c
 	fw_layout_t* p;
 
 	p = &fw_layout_data[0];
-	while ((strlen(p->name) != 0) && (strncmp(p->name, board_name, sizeof(board_name)) != 0))
+	while (*p->name && (strcmp(p->name, board_name) != 0))
 		p++;
-	if (p->name == NULL) {
+	if (!*p->name) {
 		printf("BUG! Unable to find default fw layout!\n");
 		exit(-1);
 	}
@@ -247,7 +251,7 @@ static int create_image_layout(const char* kernelfile, const char* rootfsfile, c
 	strcpy(kernel->partition_name, "kernel");
 	kernel->partition_index = 1;
 	kernel->partition_baseaddr = p->kern_start;
-	if ( (kernel->partition_length = filelength(kernelfile)) < 0) return (-1);
+	if ( (kernel->partition_length = filelength(kernelfile)) == (u_int32_t)-1) return (-1);
 	kernel->partition_memaddr = p->kern_entry;
 	kernel->partition_entryaddr = p->kern_entry;
 	strncpy(kernel->filename, kernelfile, sizeof(kernel->filename));
@@ -263,8 +267,8 @@ static int create_image_layout(const char* kernelfile, const char* rootfsfile, c
 	rootfs->partition_entryaddr = 0x00000000;
 	strncpy(rootfs->filename, rootfsfile, sizeof(rootfs->filename));
 
-printf("kernel: %d 0x%08x\n", kernel->partition_length, kernel->partition_baseaddr);
-printf("root: %d 0x%08x\n", rootfs->partition_length, rootfs->partition_baseaddr);
+	printf("kernel: %d 0x%08x\n", kernel->partition_length, kernel->partition_baseaddr);
+	printf("root: %d 0x%08x\n", rootfs->partition_length, rootfs->partition_baseaddr);
 	im->part_count = 2;
 
 	return 0;
