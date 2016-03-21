@@ -142,31 +142,31 @@ CONFIG_TOOLCHAINOPTS=y
 #
 # Binary tools
 #
-# CONFIG_BINUTILS_VERSION_2_24 is not set
-CONFIG_BINUTILS_VERSION_2_25_1=y
+CONFIG_BINUTILS_VERSION_2_24=y
+# CONFIG_BINUTILS_VERSION_2_25_1 is not set
 CONFIG_EXTRA_BINUTILS_CONFIG_OPTIONS=""
-CONFIG_BINUTILS_VERSION="2.25.1"
+CONFIG_BINUTILS_VERSION="2.24"
 
 #
 # Compiler
 #
-# CONFIG_GCC_USE_VERSION_4_8_5 is not set
-CONFIG_GCC_USE_VERSION_5_3_0=y
-# CONFIG_GCC_USE_GRAPHITE is not set
-CONFIG_EXTRA_GCC_CONFIG_OPTIONS="--with-default-libstdcxx-abi=gcc4-compatible"
+CONFIG_GCC_USE_VERSION_4_8_5=y
+# CONFIG_GCC_USE_VERSION_5 is not set
+CONFIG_GCC_USE_GRAPHITE=y
+# CONFIG_GCC_USE_SYSTEM_ISL_CLOOG is not set
+CONFIG_EXTRA_GCC_CONFIG_OPTIONS=""
 CONFIG_SSP_SUPPORT=y
 # CONFIG_SJLJ_EXCEPTIONS is not set
 # CONFIG_INSTALL_LIBGCJ is not set
 # CONFIG_INSTALL_GFORTRAN is not set
-CONFIG_INSTALL_GCCGO=y
 
 #
 # C Library
 #
 CONFIG_LIBC_USE_GLIBC=y
 # CONFIG_LIBC_USE_UCLIBC is not set
-# CONFIG_GLIBC_USE_VERSION_2_22 is not set
-CONFIG_GLIBC_USE_VERSION_2_23=y
+# CONFIG_LIBC_USE_MUSL is not set
+CONFIG_GLIBC_USE_VERSION_2_22=y
 
 #
 # Debuggers
@@ -174,12 +174,13 @@ CONFIG_GLIBC_USE_VERSION_2_23=y
 # CONFIG_GDB is not set
 # CONFIG_INSIGHT is not set
 CONFIG_USE_GLIBC=y
-CONFIG_GCC_VERSION="5.3.0"
-CONFIG_GCC_VERSION_5_3_0=y
-CONFIG_GLIBC_VERSION="2.23"
-CONFIG_GLIBC_VERSION_2_23=y
+CONFIG_GCC_VERSION="4.8.5"
+CONFIG_GCC_VERSION_4_8_5=y
+CONFIG_GLIBC_VERSION="2.22"
+CONFIG_GLIBC_VERSION_2_22=y
+CONFIG_GLIBC_REVISION=""
 CONFIG_LIBC="glibc"
-CONFIG_LIBC_VERSION="2.23"
+CONFIG_LIBC_VERSION="2.22"
 CONFIG_TARGET_SUFFIX="gnu"
 CONFIG_IMAGEOPT=y
 # CONFIG_PREINITOPT is not set
@@ -2006,7 +2007,6 @@ CONFIG_DROPBEAR_ECC=y
 CONFIG_PACKAGE_libatomic=m
 CONFIG_PACKAGE_libc=y
 CONFIG_PACKAGE_libgcc=y
-CONFIG_PACKAGE_libgo=m
 CONFIG_PACKAGE_libpthread=y
 CONFIG_PACKAGE_librt=y
 CONFIG_PACKAGE_libssp=y
@@ -2105,15 +2105,6 @@ CONFIG_PACKAGE_superstartrek=m
 CONFIG_PACKAGE_tty-solitaire=m
 CONFIG_PACKAGE_vitetris=m
 CONFIG_PACKAGE_zork=m
-
-#
-# Go
-#
-CONFIG_PACKAGE_asciinema-ng=m
-CONFIG_PACKAGE_gotty=m
-CONFIG_PACKAGE_rclone=m
-CONFIG_PACKAGE_shell2http=m
-CONFIG_PACKAGE_syncthing=m
 
 #
 # Kernel modules
@@ -3985,7 +3976,7 @@ CONFIG_PACKAGE_asterisk11-app-chanspy=m
 CONFIG_PACKAGE_asterisk11-app-confbridge=m
 # CONFIG_PACKAGE_asterisk11-app-dahdiras is not set
 CONFIG_PACKAGE_asterisk11-app-directed_pickup=m
-CONFIG_PACKAGE_asterisk11-app-directory=m
+# CONFIG_PACKAGE_asterisk11-app-directory is not set
 CONFIG_PACKAGE_asterisk11-app-disa=m
 CONFIG_PACKAGE_asterisk11-app-exec=m
 CONFIG_PACKAGE_asterisk11-app-minivm=m
@@ -4052,7 +4043,7 @@ CONFIG_PACKAGE_asterisk11-func-global=m
 CONFIG_PACKAGE_asterisk11-func-groupcount=m
 CONFIG_PACKAGE_asterisk11-func-math=m
 CONFIG_PACKAGE_asterisk11-func-module=m
-CONFIG_PACKAGE_asterisk11-func-realtime=m
+# CONFIG_PACKAGE_asterisk11-func-realtime is not set
 CONFIG_PACKAGE_asterisk11-func-shell=m
 CONFIG_PACKAGE_asterisk11-func-uri=m
 CONFIG_PACKAGE_asterisk11-func-vmcount=m
@@ -4061,13 +4052,13 @@ CONFIG_PACKAGE_asterisk11-odbc=m
 CONFIG_PACKAGE_asterisk11-pbx-ael=m
 CONFIG_PACKAGE_asterisk11-pbx-dundi=m
 CONFIG_PACKAGE_asterisk11-pbx-lua=m
-CONFIG_PACKAGE_asterisk11-pbx-realtime=m
+# CONFIG_PACKAGE_asterisk11-pbx-realtime is not set
 CONFIG_PACKAGE_asterisk11-pbx-spool=m
 CONFIG_PACKAGE_asterisk11-pgsql=m
 CONFIG_PACKAGE_asterisk11-res-adsi=m
 CONFIG_PACKAGE_asterisk11-res-ael-share=m
 CONFIG_PACKAGE_asterisk11-res-agi=m
-CONFIG_PACKAGE_asterisk11-res-calendar=m
+# CONFIG_PACKAGE_asterisk11-res-calendar is not set
 CONFIG_PACKAGE_asterisk11-res-clioriginate=m
 CONFIG_PACKAGE_asterisk11-res-fax=m
 CONFIG_PACKAGE_asterisk11-res-fax-spandsp=m
@@ -4075,7 +4066,7 @@ CONFIG_PACKAGE_asterisk11-res-monitor=m
 CONFIG_PACKAGE_asterisk11-res-musiconhold=m
 CONFIG_PACKAGE_asterisk11-res-phoneprov=m
 CONFIG_PACKAGE_asterisk11-res-pktccops=m
-CONFIG_PACKAGE_asterisk11-res-realtime=m
+# CONFIG_PACKAGE_asterisk11-res-realtime is not set
 CONFIG_PACKAGE_asterisk11-res-smdi=m
 CONFIG_PACKAGE_asterisk11-res-srtp=m
 # CONFIG_PACKAGE_asterisk11-res-timing-dahdi is not set
@@ -5313,7 +5304,6 @@ CONFIG_MC_BACKGROUND=y
 CONFIG_MC_CHARSET=y
 CONFIG_MC_VFS=y
 CONFIG_PACKAGE_mcookie=m
-CONFIG_PACKAGE_md5deep=m
 # CONFIG_PACKAGE_mdadm is not set
 CONFIG_PACKAGE_memtester=m
 CONFIG_PACKAGE_mlocate=m
@@ -5341,7 +5331,6 @@ CONFIG_PACKAGE_openldap-utils=m
 CONFIG_PACKAGE_openssl-util=m
 CONFIG_PACKAGE_opus-tools=m
 # CONFIG_PACKAGE_owipcalc is not set
-CONFIG_PACKAGE_pcal=m
 CONFIG_PACKAGE_pciutils=m
 CONFIG_PACKAGE_pcscd=m
 # CONFIG_PACKAGE_pps-tools is not set
