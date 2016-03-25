@@ -3,8 +3,9 @@ STRIP:=:
 
 # Template for GO package 
 define Package/gopackage/Default
-	SECTION:=Go
-	CATEGORY:=Go
+	SUBMENU:=Go
+	SECTION:=lang
+	CATEGORY:=Languages
 	DEPENDS:=@INSTALL_GCCGO +libgo +libpthread
 	MAINTAINER:=Entware team, http://entware.net
 endef
