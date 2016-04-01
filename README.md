@@ -14,4 +14,4 @@ Browse through ~1800 packages for different platforms:
 
 [See how](https://github.com/Entware-ng/Entware-ng/wiki) to use it.
 
-Feel free to [ask new packages](https://github.com/Entware-ng/Entware-ng/issues) or report any bugs you found.
+Feel free to [ask new packages](https://github.com/Entware-ng/Entware-ng/issues) or report any bugs you've found.
