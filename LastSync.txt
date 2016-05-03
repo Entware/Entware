@@ -1,5 +1,6 @@
-commit 54eb6ade49863de101866981e917e732fc75d4e3
+commit e737bc7e0799fb381dfc3859dea93b5d1999dfc1
 Author: blogic <blogic@3c298f89-4303-0410-b956-a3cf2f4a3e73>
-Date:   Sun Mar 20 18:48:59 2016 +0000
+Date:   Mon May 2 18:51:20 2016 +0000
 
-    odhcp6c : Silence mtu write error warnings
+    ramips: Drop hacky switch workaround for failsafe on rt3x5x and rt5350.
+....
