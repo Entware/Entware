@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2007-2015 OpenWrt.org
+# Copyright (C) 2007-2016 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -65,7 +65,8 @@ PKG_CONFIG_DEPENDS:= \
   CONFIG_LIBCURL_THREADED_RESOLVER \
   CONFIG_LIBCURL_TLS_SRP \
   CONFIG_LIBCURL_UNIX_SOCKETS \
-  CONFIG_LIBCURL_VERBOSE
+  CONFIG_LIBCURL_VERBOSE \
+  CONFIG_LIBCURL_NTLM
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -98,7 +99,9 @@ define Package/libcurl/config
   source "$(SOURCE)/Config.in"
 endef
 
-TARGET_CFLAGS += $(FPIC)
+TARGET_CFLAGS += $(FPIC) -ffunction-sections -fdata-sections
+TARGET_CPPFLAGS += $(if $(CONFIG_LIBCURL_NTLM),,-DCURL_DISABLE_NTLM)
+TARGET_LDFLAGS += -Wl,--gc-sections
 
 CONFIGURE_ARGS += \
 	--disable-debug \
@@ -115,7 +118,7 @@ CONFIGURE_ARGS += \
 	\
 	$(if $(CONFIG_LIBCURL_AXTLS),--with-axtls="$(STAGING_DIR)/opt" --without-ca-path,--without-axtls) \
 	$(if $(CONFIG_LIBCURL_CYASSL),--with-cyassl="$(STAGING_DIR)/opt" --without-ca-path,--without-cyassl) \
-	$(if $(CONFIG_LIBCURL_GNUTLS),--with-gnutls="$(STAGING_DIR)/opt" --without-ca-path,--without-gnutls) \
+	$(if $(CONFIG_LIBCURL_GNUTLS),--with-gnutls="$(STAGING_DIR)/opt" --with-ca-path,--without-gnutls) \
 	$(if $(CONFIG_LIBCURL_OPENSSL),--with-ssl="$(STAGING_DIR)/opt" --with-ca-path=/opt/etc/ssl/certs,--without-ssl) \
 	$(if $(CONFIG_LIBCURL_POLARSSL),--with-polarssl="$(STAGING_DIR)/opt" --with-ca-path=/opt/etc/ssl/certs,--without-polarssl) \
 	$(if $(CONFIG_LIBCURL_MBEDTLS),--with-mbedtls="$(STAGING_DIR)/opt" --without-ca-path,--without-mbedtls) \
