@@ -94,7 +94,7 @@ PACKAGE_INSTALL_FILES:= \
 $(curdir)/cleanup: $(TMP_DIR)/.build
 	rm -rf $(STAGING_DIR_ROOT)
 
-$(curdir)/install: $(TMP_DIR)/.build
+$(curdir)/install: $(TMP_DIR)/.build $(curdir)/system/opkg/host/install
 	- find $(STAGING_DIR_ROOT) -type d | $(XARGS) chmod 0755
 	rm -rf $(TARGET_DIR)
 	[ -d $(TARGET_DIR)/tmp ] || mkdir -p $(TARGET_DIR)/tmp
@@ -120,8 +120,10 @@ $(curdir)/install: $(TMP_DIR)/.build
 			IPKG_INSTROOT=$(TARGET_DIR) $$(which bash) ./opt/etc/rc.common $$script enable; \
 		done || true \
 	)
+	$(if $(SOURCE_DATE_EPOCH),sed -i "s/Installed-Time: .*/Installed-Time: $(SOURCE_DATE_EPOCH)/" $(TARGET_DIR)/opt/lib/opkg/status)
 	@-find $(TARGET_DIR) -name CVS   | $(XARGS) rm -rf
 	@-find $(TARGET_DIR) -name .svn  | $(XARGS) rm -rf
+	@-find $(TARGET_DIR) -name .git  | $(XARGS) rm -rf
 	@-find $(TARGET_DIR) -name '.#*' | $(XARGS) rm -f
 	rm -f $(TARGET_DIR)/opt/lib/opkg/info/*.postinst*
 	rm -f $(TARGET_DIR)/opt/lib/opkg/info/*.prerm*

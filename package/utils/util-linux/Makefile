@@ -4,17 +4,17 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-# ionice package added, add swapon/swapoff binaries
+# ionice and fsfreeze packages added, add swapon/swapoff binaries
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=util-linux
-PKG_VERSION:=2.25.2
-PKG_RELEASE:=4
+PKG_VERSION:=2.28
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.25
-PKG_MD5SUM:=cab3d7be354000f629bc601238b629b3
+PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.28
+PKG_MD5SUM:=e534e6ccc49107e5d31c329af798ef7d
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=COPYING getopt/COPYING libblkid/COPYING libmount/COPYING Documentation/licenses/COPYING.GPLv2 Documentation/licenses/COPYING.LGPLv2.1 libuuid/COPYING Documentation/licenses/COPYING.BSD-3
@@ -42,6 +42,7 @@ CONFIGURE_ARGS += \
 	--disable-sulogin	\
 	--without-python	\
 	--without-udev		\
+	--without-readline	\
 	$(if $(CONFIG_PACKAGE_cal)$(CONFIG_PACKAGE_cfdisk)$(CONFIG_PACKAGE_setterm),--with-ncurses,--without-ncurses)
 
 TARGET_CFLAGS += $(FPIC) -std=gnu99
@@ -54,12 +55,15 @@ define Build/InstallDev
 
 	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
 	$(CP) $(PKG_BUILD_DIR)/libblkid/blkid.pc $(1)/opt/lib/pkgconfig
+	$(CP) $(PKG_BUILD_DIR)/libfdisk/fdisk.pc $(1)/opt/lib/pkgconfig
 	$(CP) $(PKG_BUILD_DIR)/libmount/mount.pc $(1)/opt/lib/pkgconfig
 	$(CP) $(PKG_BUILD_DIR)/libsmartcols/smartcols.pc $(1)/opt/lib/pkgconfig
 	$(CP) $(PKG_BUILD_DIR)/libuuid/uuid.pc $(1)/opt/lib/pkgconfig
 
 	$(INSTALL_DIR) $(1)/opt/include/blkid
 	$(CP) $(PKG_BUILD_DIR)/libblkid/src/blkid.h $(1)/opt/include/blkid
+	$(INSTALL_DIR) $(1)/opt/include/fdisk
+	$(CP) $(PKG_BUILD_DIR)/libfdisk/src/libfdisk.h $(1)/opt/include/fdisk
 	$(INSTALL_DIR) $(1)/opt/include/libmount
 	$(CP) $(PKG_BUILD_DIR)/libmount/src/libmount.h $(1)/opt/include/libmount
 	$(INSTALL_DIR) $(1)/opt/include/uuid
@@ -69,6 +73,7 @@ define Build/InstallDev
 
 	$(INSTALL_DIR) $(1)/opt/lib
 	$(CP) $(PKG_BUILD_DIR)/.libs/libblkid.{a,so*} $(1)/opt/lib
+	$(CP) $(PKG_BUILD_DIR)/.libs/libfdisk.{a,so*} $(1)/opt/lib
 	$(CP) $(PKG_BUILD_DIR)/.libs/libmount.{a,so*} $(1)/opt/lib
 	$(CP) $(PKG_BUILD_DIR)/.libs/libuuid.{a,so*} $(1)/opt/lib
 	$(CP) $(PKG_BUILD_DIR)/.libs/libsmartcols.{a,so*} $(1)/opt/lib
@@ -89,9 +94,21 @@ define Package/libblkid/description
  identifiers/serial numbers...
 endef
 
+define Package/libfdisk
+$(call Package/util-linux/Default)
+  DEPENDS:=+libuuid +libblkid +librt
+  TITLE:=partition manipulating library
+  SECTION:=libs
+  CATEGORY:=Libraries
+endef
+
+define Package/libfdisk/description
+  The libfdisk library is used for manipulating with partition tables. 
+endef
+
 define Package/libmount
 $(call Package/util-linux/Default)
-  DEPENDS:=+libblkid
+  DEPENDS:=+libblkid +librt
   TITLE:=mount library
   SECTION:=libs
   CATEGORY:=Libraries
@@ -140,6 +157,7 @@ endef
 
 define Package/blkdiscard
 $(call Package/util-linux/Default)
+  DEPENDS:=+librt
   TITLE:=discard sectors on a device
   SUBMENU=disc
 endef
@@ -175,7 +193,7 @@ endef
 define Package/cfdisk
 $(call Package/util-linux/Default)
   TITLE:=display or manipulate disk partition table
-  DEPENDS:= +libblkid +libncurses +libsmartcols
+  DEPENDS:= +libblkid +libncurses +libsmartcols +libfdisk +libmount
   SUBMENU:=disc
 endef
 
@@ -196,7 +214,7 @@ endef
 define Package/fdisk
 $(call Package/util-linux/Default)
   TITLE:=manipulate disk partition table
-  DEPENDS:= +libblkid +libsmartcols
+  DEPENDS:= +libblkid +libsmartcols +libfdisk
   SUBMENU=disc
 endef
 
@@ -219,6 +237,7 @@ endef
 define Package/flock
 $(call Package/util-linux/Default)
   TITLE:=manage locks from shell scripts
+  DEPENDS:= +librt
 endef
 
 define Package/flock/description
@@ -251,6 +270,16 @@ endef
 
 define Package/ionice/description
  This program sets or gets the io scheduling class and priority for a program. If no arguments or just -p is given, ionice will query the current io scheduling class and priority for that process. 
+endef
+
+define Package/fsfreeze
+$(call Package/util-linux/Default)
+  TITLE:=fsfreeze - suspends and resumes access to an filesystem 
+endef
+
+define Package/fsfreeze/description
+ fsfreeze halts new access to the filesystem and creates a stable image on disk.
+ fsfreeze is intended to be used with hardware RAID devices that support the creation of snapshots.
 endef
 
 define Package/logger
@@ -359,6 +388,7 @@ endef
 define Package/script-utils
 $(call Package/util-linux/Default)
   TITLE:=make and replay typescript of terminal session
+  DEPENDS:= +librt
   SUBMENU=Terminal
 endef
 
@@ -392,7 +422,7 @@ endef
 define Package/swap-utils
 $(call Package/util-linux/Default)
   TITLE:=swap space management utilities
-  DEPENDS+= +libblkid +libmount +libsmartcols
+  DEPENDS+= +libblkid +libmount +librt +libsmartcols
   SUBMENU:=disc
 endef
 
@@ -403,7 +433,7 @@ endef
 define Package/uuidd
 $(call Package/util-linux/Default)
   TITLE:=UUID generation daemon
-  DEPENDS:= +libuuid
+  DEPENDS:= +libuuid +librt
 endef
 
 define Package/uuidd/description
@@ -457,6 +487,11 @@ define Package/wipefs/description
  wipefs can erase filesystem, raid or partition table signatures (magic
  strings) from the specified device to make the signature invisible for
  libblkid.
+endef
+
+define Package/libfdisk/install
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_BUILD_DIR)/.libs/libfdisk.so* $(1)/opt/lib/
 endef
 
 define Package/libblkid/install
@@ -522,6 +557,11 @@ endef
 define Package/flock/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/flock $(1)/opt/bin/
+endef
+
+define Package/fsfreeze/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/fsfreeze $(1)/opt/bin/
 endef
 
 define Package/getopt/install
@@ -642,6 +682,7 @@ define Package/wipefs/install
 endef
 
 $(eval $(call BuildPackage,libblkid))
+$(eval $(call BuildPackage,libfdisk))
 $(eval $(call BuildPackage,libmount))
 $(eval $(call BuildPackage,libsmartcols))
 $(eval $(call BuildPackage,libuuid))
@@ -654,6 +695,7 @@ $(eval $(call BuildPackage,dmesg))
 $(eval $(call BuildPackage,fdisk))
 $(eval $(call BuildPackage,findfs))
 $(eval $(call BuildPackage,flock))
+$(eval $(call BuildPackage,fsfreeze))
 $(eval $(call BuildPackage,getopt))
 $(eval $(call BuildPackage,ionice))
 $(eval $(call BuildPackage,hwclock))
