@@ -47,25 +47,25 @@ CONFIGURE_ARGS += \
 	--enable-shared
 
 define Build/InstallDev
-	$(INSTALL_DIR) $(1)/usr/include/libnfnetlink
+	$(INSTALL_DIR) $(1)/opt/include/libnfnetlink
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/include/libnfnetlink/{libnfnetlink,linux_nfnetlink,linux_nfnetlink_compat}.h \
-		$(1)/usr/include/libnfnetlink/
-	$(INSTALL_DIR) $(1)/usr/lib
+		$(PKG_INSTALL_DIR)/opt/include/libnfnetlink/{libnfnetlink,linux_nfnetlink,linux_nfnetlink_compat}.h \
+		$(1)/opt/include/libnfnetlink/
+	$(INSTALL_DIR) $(1)/opt/lib
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/lib/libnfnetlink.{a,so*} \
-		$(1)/usr/lib/
-	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
+		$(PKG_INSTALL_DIR)/opt/lib/libnfnetlink.{a,so*} \
+		$(1)/opt/lib/
+	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/lib/pkgconfig/libnfnetlink.pc \
-		$(1)/usr/lib/pkgconfig/
+		$(PKG_INSTALL_DIR)/opt/lib/pkgconfig/libnfnetlink.pc \
+		$(1)/opt/lib/pkgconfig/
 endef
 
 define Package/libnfnetlink/install
-	$(INSTALL_DIR) $(1)/usr/lib
+	$(INSTALL_DIR) $(1)/opt/lib
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/lib/libnfnetlink.so.* \
-		$(1)/usr/lib/
+		$(PKG_INSTALL_DIR)/opt/lib/libnfnetlink.so.* \
+		$(1)/opt/lib/
 endef
 
 $(eval $(call BuildPackage,libnfnetlink))
