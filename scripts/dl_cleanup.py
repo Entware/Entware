@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 # OpenWrt download directory cleanup utility.
 # Delete all but the very last version of the program tarballs.
