@@ -1,6 +1,6 @@
-commit e737bc7e0799fb381dfc3859dea93b5d1999dfc1
-Author: blogic <blogic@3c298f89-4303-0410-b956-a3cf2f4a3e73>
-Date:   Mon May 2 18:51:20 2016 +0000
+commit a4953d94d3a5f86658dd8d210356ff35849a6e31
+Author: rmilecki <rmilecki@3c298f89-4303-0410-b956-a3cf2f4a3e73>
+Date:   Mon May 9 18:10:35 2016 +0000
 
-    ramips: Drop hacky switch workaround for failsafe on rt3x5x and rt5350.
-....
+    mtd: add -c option for specifying amount of data to be used for checksum
+    

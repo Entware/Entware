@@ -36,6 +36,8 @@
 #include "crc32.h"
 
 #define TRX_MAGIC       0x30524448      /* "HDR0" */
+#define TRX_CRC32_DATA_OFFSET	12	/* First 12 bytes are not covered by CRC32 */
+#define TRX_CRC32_DATA_SIZE	16
 struct trx_header {
 	uint32_t magic;		/* "HDR0" */
 	uint32_t len;		/* Length of file including header */
@@ -148,10 +150,12 @@ trx_check(int imagefd, const char *mtd, char *buf, int *len)
 #endif
 
 int
-mtd_fixtrx(const char *mtd, size_t offset)
+mtd_fixtrx(const char *mtd, size_t offset, size_t data_size)
 {
+	size_t data_offset;
 	int fd;
 	struct trx_header *trx;
+	char *first_block;
 	char *buf;
 	ssize_t res;
 	size_t block_offset;
@@ -165,42 +169,60 @@ mtd_fixtrx(const char *mtd, size_t offset)
 		exit(1);
 	}
 
+	data_offset = offset + TRX_CRC32_DATA_OFFSET;
+	if (data_size)
+		data_size += TRX_CRC32_DATA_SIZE;
+	else
+		data_size = erasesize - TRX_CRC32_DATA_OFFSET;
+
 	block_offset = offset & ~(erasesize - 1);
 	offset -= block_offset;
 
-	if (block_offset + erasesize > mtdsize) {
+	if (data_offset + data_size > mtdsize) {
 		fprintf(stderr, "Offset too large, device size 0x%x\n", mtdsize);
 		exit(1);
 	}
 
-	buf = malloc(erasesize);
-	if (!buf) {
+	first_block = malloc(erasesize);
+	if (!first_block) {
 		perror("malloc");
 		exit(1);
 	}
 
-	res = pread(fd, buf, erasesize, block_offset);
+	res = pread(fd, first_block, erasesize, block_offset);
 	if (res != erasesize) {
 		perror("pread");
 		exit(1);
 	}
 
-	trx = (struct trx_header *) (buf + offset);
+	trx = (struct trx_header *)(first_block + offset);
 	if (trx->magic != STORE32_LE(0x30524448)) {
 		fprintf(stderr, "No trx magic found\n");
 		exit(1);
 	}
 
-	if (trx->len == STORE32_LE(erasesize - offset)) {
+	if (trx->len == STORE32_LE(data_size + TRX_CRC32_DATA_OFFSET)) {
 		if (quiet < 2)
 			fprintf(stderr, "Header already fixed, exiting\n");
 		close(fd);
 		return 0;
 	}
 
-	trx->len = STORE32_LE(erasesize - offset);
+	buf = malloc(data_size);
+	if (!buf) {
+		perror("malloc");
+		exit(1);
+	}
 
-	trx->crc32 = STORE32_LE(crc32buf((char*) &trx->flag_version, erasesize - offset - 3*4));
+	res = pread(fd, buf, data_size, data_offset);
+	if (res != data_size) {
+		perror("pread");
+		exit(1);
+	}
+
+	trx->len = STORE32_LE(data_size + offsetof(struct trx_header, flag_version));
+
+	trx->crc32 = STORE32_LE(crc32buf(buf, data_size));
 	if (mtd_erase_block(fd, block_offset)) {
 		fprintf(stderr, "Can't erease block at 0x%x (%s)\n", block_offset, strerror(errno));
 		exit(1);
@@ -209,7 +231,7 @@ mtd_fixtrx(const char *mtd, size_t offset)
 	if (quiet < 2)
 		fprintf(stderr, "New crc32: 0x%x, rewriting block\n", trx->crc32);
 
-	if (pwrite(fd, buf, erasesize, block_offset) != erasesize) {
+	if (pwrite(fd, first_block, erasesize, block_offset) != erasesize) {
 		fprintf(stderr, "Error writing block (%s)\n", strerror(errno));
 		exit(1);
 	}
