@@ -1,0 +1,11 @@
+KERNEL 2.6.22 doesn't have sockaddr_can, so we undefine AF_CAN
+--- a/libc/sysdeps/linux/common/bits/socket.h
++++ b/libc/sysdeps/linux/common/bits/socket.h
+@@ -114,7 +114,6 @@
+ #define	AF_PPPOX	PF_PPPOX
+ #define	AF_WANPIPE	PF_WANPIPE
+ #define AF_LLC		PF_LLC
+-#define AF_CAN		PF_CAN
+ #define AF_TIPC		PF_TIPC
+ #define	AF_BLUETOOTH	PF_BLUETOOTH
+ #define AF_IUCV		PF_IUCV
