@@ -6,7 +6,7 @@
  # charmaps.
 +complocaledir = /opt/usr/lib/locale
 +i18ndir = /opt/usr/share/i18n
-+rtld-LDFLAGS = -Wl,--dynamic-linker=/opt/lib/ld-uClibc.so.0
++rtld-LDFLAGS = -Wl,--dynamic-linker=/opt/lib/ld.so.1
 +LDFLAGS-locale = -Wl,-rpath,/opt/lib
 +LDFLAGS-localedef = -Wl,-rpath,/opt/lib
 +
