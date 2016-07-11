@@ -182,6 +182,9 @@ ifeq  ($(LIBC),glibc)
   ifeq ($(ARCH),x86_64)
     DYNLINKER=ld-linux-x86-64.so.2
   endif
+  ifeq ($(ARCH),mipsel)
+    DYNLINKER=ld.so.1
+  endif
 endif
 
 TARGET_LDFLAGS+= -Wl,--dynamic-linker=/opt/lib/$(DYNLINKER)
