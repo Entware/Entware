@@ -1,7 +1,7 @@
 config UCLIBC_VERSION
 	string
 	depends on USE_UCLIBC
-	default "1.0.13"
+	default "1.0.16"
 
 config UCLIBC_VERSION_NG
 	bool
