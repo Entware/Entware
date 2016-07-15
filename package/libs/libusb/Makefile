@@ -16,10 +16,10 @@ PKG_SOURCE_URL:=@SF/$(PKG_NAME)
 PKG_MD5SUM:=1d4eb194eaaa2bcfbba28102768c7dbf
 
 PKG_INSTALL:=1
-PKG_BUILD_PARALLEL:=1
+PKG_BUILD_PARALLEL:=0
 PKG_LICENSE:=LGPL-2.1
 
-PKG_MAINTAINER := Felix Fietkau <nbd@openwrt.org>
+PKG_MAINTAINER := Felix Fietkau <nbd@nbd.name>
 
 include $(INCLUDE_DIR)/package.mk
 

@@ -8,7 +8,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=curl
-PKG_VERSION:=7.48.0
+PKG_VERSION:=7.49.0
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -18,7 +18,7 @@ PKG_SOURCE_URL:=http://curl.haxx.se/download/ \
 	ftp://ftp.planetmirror.com/pub/curl/ \
 	http://www.mirrormonster.com/curl/download/ \
 	http://curl.mirrors.cyberservers.net/download/
-PKG_MD5SUM:=d42e0fc34a5cace5739631cc040974fe
+PKG_MD5SUM:=7416aaff4a9210b43edda7615ffa4169
 
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=COPYING
@@ -117,11 +117,11 @@ CONFIGURE_ARGS += \
 	$(call autoconf_bool,CONFIG_IPV6,ipv6) \
 	\
 	$(if $(CONFIG_LIBCURL_AXTLS),--with-axtls="$(STAGING_DIR)/opt" --without-ca-path,--without-axtls) \
-	$(if $(CONFIG_LIBCURL_CYASSL),--with-cyassl="$(STAGING_DIR)/opt" --without-ca-path,--without-cyassl) \
-	$(if $(CONFIG_LIBCURL_GNUTLS),--with-gnutls="$(STAGING_DIR)/opt" --with-ca-path,--without-gnutls) \
-	$(if $(CONFIG_LIBCURL_OPENSSL),--with-ssl="$(STAGING_DIR)/opt" --with-ca-path=/opt/etc/ssl/certs,--without-ssl) \
-	$(if $(CONFIG_LIBCURL_POLARSSL),--with-polarssl="$(STAGING_DIR)/opt" --with-ca-path=/opt/etc/ssl/certs,--without-polarssl) \
-	$(if $(CONFIG_LIBCURL_MBEDTLS),--with-mbedtls="$(STAGING_DIR)/opt" --without-ca-path,--without-mbedtls) \
+	$(if $(CONFIG_LIBCURL_CYASSL),--with-cyassl="$(STAGING_DIR)/opt" --without-ca-path --with-ca-bundle=/opt/etc/ssl/certs/ca-certificates.crt,--without-cyassl) \
+	$(if $(CONFIG_LIBCURL_GNUTLS),--with-gnutls="$(STAGING_DIR)/opt" --without-ca-bundle --with-ca-path=/opt/etc/ssl/certs,--without-gnutls) \
+	$(if $(CONFIG_LIBCURL_OPENSSL),--with-ssl="$(STAGING_DIR)/opt" --without-ca-bundle --with-ca-path=/opt/etc/ssl/certs,--without-ssl) \
+	$(if $(CONFIG_LIBCURL_POLARSSL),--with-polarssl="$(STAGING_DIR)/opt" --without-ca-bundle --with-ca-path=/opt/etc/ssl/certs,--without-polarssl) \
+	$(if $(CONFIG_LIBCURL_MBEDTLS),--with-mbedtls="$(STAGING_DIR)/opt" --without-ca-path --with-ca-bundle=/opt/etc/ssl/certs/ca-certificates.crt,--without-mbedtls) \
 	\
 	$(if $(CONFIG_LIBCURL_LIBIDN),--with-libidn="$(STAGING_DIR)/opt",--without-libidn) \
 	$(if $(CONFIG_LIBCURL_SSH2),--with-libssh2="$(STAGING_DIR)/opt",--without-libssh2) \

@@ -14,7 +14,7 @@ ifeq ($(CONFIG_USE_GLIBC),y)
         PKG_RELEASE=4
 endif
 
-PKG_MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
+PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=GPL-3.0-with-GCC-exception
 
 include $(INCLUDE_DIR)/package.mk

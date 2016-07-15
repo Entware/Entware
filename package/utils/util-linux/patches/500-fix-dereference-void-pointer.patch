@@ -1,0 +1,13 @@
+--- a/sys-utils/eject.c
++++ b/sys-utils/eject.c
+@@ -614,10 +614,6 @@
+ 	 * http://www.tldp.org/HOWTO/archived/SCSI-Programming-HOWTO/SCSI-Programming-HOWTO-22.html#sec-sensecodes
+ 	 * -- kzak Jun 2013
+ 	 */
+-	if (io_hdr.driver_status != 0 &&
+-	    !(io_hdr.driver_status == DRIVER_SENSE && io_hdr.sbp &&
+-		                                      io_hdr.sbp[12] == 0x3a))
+-		return 0;
+ 
+ 	io_hdr.cmdp = startStop2Blk;
+ 	status = ioctl(ctl->fd, SG_IO, (void *)&io_hdr);

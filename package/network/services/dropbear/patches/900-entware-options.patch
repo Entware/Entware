@@ -17,7 +17,7 @@
  #endif
  
  /* Set NON_INETD_MODE if you require daemon functionality (ie Dropbear listens
-@@ -198,7 +198,7 @@
+@@ -203,7 +203,7 @@
  
  /* The MOTD file path */
  #ifndef MOTD_FILENAME
@@ -26,7 +26,7 @@
  #endif
  
  /* Authentication Types - at least one required.
-@@ -287,25 +287,25 @@
+@@ -292,25 +292,25 @@
  /* The default file to store the daemon's process ID, for shutdown
     scripts etc. This can be overridden with the -P flag */
  #ifndef DROPBEAR_PIDFILE
