@@ -1,6 +1,8 @@
-commit a4953d94d3a5f86658dd8d210356ff35849a6e31
-Author: rmilecki <rmilecki@3c298f89-4303-0410-b956-a3cf2f4a3e73>
-Date:   Mon May 9 18:10:35 2016 +0000
+commit 547a96b601a43c27e882cdabccdcf5bc5c0aad91
+Merge: b48f498 53d8dd8
+Author: Zoltan Herpai <wigyori@uid0.hu>
+Date:   Wed Jul 13 13:16:36 2016 +0200
 
-    mtd: add -c option for specifying amount of data to be used for checksum
-    
+    Merge pull request #28 from wigyori/master
+
+    update system packages to latest HEAD, bump 4.1 to 4.1.27
