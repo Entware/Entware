@@ -1,0 +1,22 @@
+--- a/include/paths.h
++++ b/include/paths.h
+@@ -58,7 +58,7 @@
+ #define	_PATH_RWHODIR	"/var/spool/rwho"
+ #define	_PATH_SENDMAIL	"/usr/sbin/sendmail"
+ #define	_PATH_SHADOW	"/etc/shadow"
+-#define	_PATH_SHELLS	"/etc/shells"
++#define	_PATH_SHELLS	"/opt/etc/shells"
+ #define	_PATH_TTY	"/dev/tty"
+ #define	_PATH_UNIX	"/boot/vmlinux"
+ #define _PATH_UTMP	"/var/run/utmp"
+@@ -66,8 +66,8 @@
+ #define _PATH_WTMP	"/var/log/wtmp"
+ 
+ #ifdef _LIBC
+-#define _PATH_PASSWD	"/etc/passwd"
+-#define _PATH_GROUP	"/etc/group"
++#define _PATH_PASSWD	"/opt/etc/passwd"
++#define _PATH_GROUP	"/opt/etc/group"
+ #endif
+ 
+ /* Provide trailing slash, since mostly used for building pathnames. */
