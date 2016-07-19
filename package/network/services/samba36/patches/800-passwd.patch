@@ -1,0 +1,29 @@
+--- a/source3/utils/owrt_smbpasswd.c
++++ b/source3/utils/owrt_smbpasswd.c
+@@ -74,14 +74,14 @@
+ 	char *p1, *p2, *p3;
+ 	int ret = -1;
+ 
+-	fp = fopen("/etc/passwd", "r");
++	fp = fopen("/opt/etc/passwd", "r");
+ 	if (!fp) {
+-		printf("failed to open /etc/passwd");
++		printf("failed to open /opt/etc/passwd");
+ 		goto out;
+ 	}
+ 
+ 	if (!find_passwd_line(fp, user, &p1)) {
+-		printf("User %s not found or invalid in /etc/passwd\n", user);
++		printf("User %s not found or invalid in /opt/etc/passwd\n", user);
+ 		goto out;
+ 	}
+ 
+@@ -199,7 +199,7 @@
+ 	if (!delete) {
+ 		uid = find_uid_for_user(user);
+ 		if (uid < 0) {
+-			fprintf(stderr, "Could not find user '%s' in /etc/passwd\n", user);
++			fprintf(stderr, "Could not find user '%s' in /opt/etc/passwd\n", user);
+ 			return 2;
+ 		}
+ 	}
