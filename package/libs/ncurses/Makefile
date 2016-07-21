@@ -6,11 +6,17 @@
 #
 # Upgraded from 5.9. ncurses-bin package added.
 
+# !!! OWRT DIFFERENCE !!!
+# opkg binary segfaults when a real package is replaced by "provided" package.
+# we removed PROVIDES libncurses field in libncursesw and added a real libncurses package that
+# installes symlinks. We've added more symlinks to make binaries from older packages to be compatible with
+# the new libncurses(w) package
+
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ncurses
 PKG_VERSION:=6.0
-PKG_RELEASE:=1
+PKG_RELEASE:=1b
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
@@ -40,8 +46,15 @@ define Package/libncursesw
   CATEGORY:=Libraries
   TITLE:=Terminal handling library (Unicode)
   URL:=http://www.gnu.org/software/ncurses/
-  PROVIDES:=libncurses
   DEPENDS:= +terminfo
+endef
+
+define Package/libncurses
+  SECTION:=libs
+  CATEGORY:=Libraries
+  TITLE:=Terminal handling library
+  URL:=http://www.gnu.org/software/ncurses/
+  DEPENDS:= +libncursesw
 endef
 
 define Package/ncurses-bin
@@ -141,7 +154,16 @@ define Package/libncursesw/install
 	$(INSTALL_DIR) $(1)/opt/lib
 	for lib in ncurses panel menu form; do \
 		$(CP) $(PKG_INSTALL_DIR)/opt/lib/lib$$$${lib}w.so* $(1)/opt/lib/; \
+	done
+endef
+
+define Package/libncurses/install
+	$(INSTALL_DIR) $(1)/opt/lib
+	ln -s libncurses.so.6.0 $(1)/opt/lib/libcurses.so
+	for lib in ncurses panel menu form; do \
 		ln -s lib$$$${lib}w.so $(1)/opt/lib/lib$$$${lib}.so; \
+		ln -s lib$$$${lib}w.so.6 $(1)/opt/lib/lib$$$${lib}.so.6; \
+		ln -s lib$$$${lib}w.so.6.0 $(1)/opt/lib/lib$$$${lib}.so.6.0; \
 	done
 endef
 
@@ -170,4 +192,5 @@ endef
 $(eval $(call HostBuild))
 $(eval $(call BuildPackage,terminfo))
 $(eval $(call BuildPackage,libncursesw))
+$(eval $(call BuildPackage,libncurses))
 $(eval $(call BuildPackage,ncurses-bin))
