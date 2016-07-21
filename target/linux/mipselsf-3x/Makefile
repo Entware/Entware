@@ -9,8 +9,8 @@ include $(TOPDIR)/rules.mk
 
 ARCH:=mipsel
 CPU_TYPE:=mips32r2
-BOARD:=mipsel3
-BOARDNAME:=Keentic (mipsel, soft float, kernel-3.4.112)
+BOARD:=mipselsf-3x
+BOARDNAME:=Entware-3x (mipsel, soft float, kernel-3.4.112)
 FEATURES:=
 KERNEL_PATCHVER:=3.4.112
 DEFAULT_PACKAGES := toolchain
