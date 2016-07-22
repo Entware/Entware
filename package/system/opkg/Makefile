@@ -109,7 +109,7 @@ Package/opkg-smime/conffiles = $(Package/opkg/conffiles)
 TARGET_CFLAGS += $(if $(CONFIG_GCC_VERSION_4_3)$(CONFIG_GCC_VERSION_4_4),-Wno-array-bounds)
 TARGET_CFLAGS += -ffunction-sections -fdata-sections -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
 EXTRA_CFLAGS += $(TARGET_CPPFLAGS)
-TARGET_LDFLAGS+=$(if $(CONFIG_TARGET_mipselsf),--static)
+#!!!TARGET_LDFLAGS += --static
 
 CONFIGURE_ARGS += \
 	--disable-curl \
