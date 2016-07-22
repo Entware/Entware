@@ -199,16 +199,8 @@ foreach my $mirror (@ARGV) {
 		push @mirrors, "http://ftp.igh.cnrs.fr/pub/nongnu/$1";
 		push @mirrors, "http://download-mirror.savannah.gnu.org/releases/$1";
 	} elsif ($mirror =~ /^\@KERNEL\/(.+)$/) {
-		my @extra = ( $1 );
-		if ($filename =~ /linux-\d+\.\d+(?:\.\d+)?-rc/) {
-			push @extra, "$extra[0]/testing";
-		} elsif ($filename =~ /linux-(\d+\.\d+(?:\.\d+)?)/) {
-			push @extra, "$extra[0]/longterm/v$1";
-		}		
-		foreach my $dir (@extra) {
-			push @mirrors, "https://kernel.org/pub/$dir";
-			push @mirrors, "ftp://kernel.org/pub/$dir";
-		}
+		push @mirrors, "https://kernel.org/pub/linux/kernel/v3.x";
+		push @mirrors, "ftp://kernel.org/pub/linux/kernel/v3.x";
     } elsif ($mirror =~ /^\@GNOME\/(.+)$/) {
 		push @mirrors, "http://ftp.gnome.org/pub/GNOME/sources/$1";
 		push @mirrors, "http://www.mirrorservice.org/sites/ftp.gnome.org/pub/GNOME/sources/$1";
