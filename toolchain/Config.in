@@ -210,8 +210,7 @@ comment "C Library"
 
 choice
 	prompt "C Library implementation" if TOOLCHAINOPTS
-	default LIBC_USE_GLIBC if ! mipsel
-	default LIBC_USE_UCLIBC if mipsel
+	default LIBC_USE_GLIBC
 	help
 	  Select the C library implementation.
 
@@ -220,14 +219,9 @@ choice
 		select USE_GLIBC
 		depends on !arc
 
-	config LIBC_USE_UCLIBC
-		select USE_UCLIBC
-		bool "Use uClibc"
-
 endchoice
 
 source "toolchain/glibc/Config.in"
-source "toolchain/uClibc/Config.in"
 
 comment "Debuggers"
 	depends on TOOLCHAINOPTS
@@ -251,10 +245,6 @@ config INSIGHT
 config USE_GLIBC
 	bool
 
-config USE_UCLIBC
-	default y if !TOOLCHAINOPTS && !EXTERNAL_TOOLCHAIN && !NATIVE_TOOLCHAIN && (arc || mips64 || mips64el)
-	bool
-
 config USE_EXTERNAL_LIBC
 	bool
 	default y if EXTERNAL_TOOLCHAIN || NATIVE_TOOLCHAIN
@@ -262,24 +252,19 @@ config USE_EXTERNAL_LIBC
 source "toolchain/gcc/Config.version"
 
 source "toolchain/glibc/Config.version"
-source "toolchain/uClibc/Config.version"
 
 config LIBC
 	string
 	default "glibc"   if USE_GLIBC
-	default "uClibc"  if USE_UCLIBC
 
 config LIBC_VERSION
 	string
 	default GLIBC_VERSION   if USE_GLIBC
-	default UCLIBC_VERSION  if USE_UCLIBC
 
 config TARGET_SUFFIX
 	string
 	default "gnueabi"         if USE_GLIBC && (arm || armeb)
 	default "gnu"             if USE_GLIBC && !(arm || armeb)
-	default "uclibcgnueabi"   if USE_UCLIBC && (arm || armeb)
-	default "uclibc"          if USE_UCLIBC && !(arm || armeb)
 
 config MIPS64_ABI
 	depends on mips64 || mips64el
