@@ -5,10 +5,6 @@ choice
 	help
 	  Select the version of glibc you wish to use.
 
-	config GLIBC_USE_VERSION_2_22
-		bool "glibc 2.22"
-		select GLIBC_VERSION_2_22
-
 	config GLIBC_USE_VERSION_2_23
 		bool "glibc 2.23"
 		select GLIBC_VERSION_2_23

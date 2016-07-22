@@ -2,11 +2,7 @@ if USE_GLIBC
 
 config GLIBC_VERSION
 	string
-	default "2.22" if GLIBC_VERSION_2_22
 	default "2.23" if GLIBC_VERSION_2_23
-
-config GLIBC_VERSION_2_22
-	bool
 
 config GLIBC_VERSION_2_23
 	bool
