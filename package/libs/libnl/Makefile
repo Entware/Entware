@@ -1,33 +1,78 @@
 #
-# Copyright (C) 2006-2009 OpenWrt.org
+# Copyright (C) 2006-2013 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-# Downgraded from 3.2.21. The newer versions is incompatible with k2.6.22
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libnl
-PKG_VERSION:=2.0
+PKG_VERSION:=3.2.21
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.infradead.org/~tgr/libnl/files/
-PKG_MD5SUM:=6aaf1e9802a17a7d702bb0638044ffa7
+PKG_MD5SUM:=6fe7136558a9071e70673dcda38545b3
 PKG_LICENSE:=LGPL-2.1
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/libnl
+define Package/libnl/default
   SECTION:=libs
   CATEGORY:=Libraries
-  TITLE:=netlink socket library
-  URL:=http://people.suug.ch/~tgr/libnl/
+  URL:=http://www.infradead.org/~tgr/libnl/
+endef
+
+define Package/libnl-core
+$(call Package/libnl/default)
+  TITLE:=Core Netlink Library
+  DEPENDS:=+libpthread
+endef
+
+define Package/libnl-genl
+$(call Package/libnl/default)
+  TITLE:=Generic Netlink Library
+  DEPENDS:=+libnl-core
+endef
+
+define Package/libnl-route
+$(call Package/libnl/default)
+  TITLE:=Routing Netlink Library
+  DEPENDS:=+libnl-core
+endef
+
+define Package/libnl-nf
+$(call Package/libnl/default)
+  TITLE:=Netfilter Netlink Library
+  DEPENDS:=+libnl-route
+endef
+
+define Package/libnl
+$(call Package/libnl/default)
+  TITLE:=Full Netlink Library
+  DEPENDS:=+libnl-genl +libnl-route +libnl-nf
+endef
+
+define Package/libnl-core/description
+ Common code for all netlink libraries
+endef
+
+define Package/libnl-genl/description
+ Generic Netlink Library Functions
+endef
+
+define Package/libnl-route/description
+ Routing Netlink Library Functions
+endef
+
+define Package/libnl-nf/description
+ Netfilter Netlink Library Functions
 endef
 
 define Package/libnl/description
- This package contains a library for applications dealing with netlink sockets
+ Socket handling, connection management, sending and receiving of data,
+ message construction and parsing, object caching system, etc.
 endef
 
 TARGET_CFLAGS += -ffunction-sections $(FPIC)
@@ -40,19 +85,48 @@ define Build/Compile
 endef
 
 define Build/InstallDev
-	$(INSTALL_DIR) $(1)
-	$(CP) $(PKG_INSTALL_DIR)/* $(1)/
-	mkdir -p $(1)/opt/include/libnl
-	$(CP) $(PKG_BUILD_DIR)/include/linux $(1)/opt/include/libnl/
+	$(INSTALL_DIR) $(1)/opt/include/libnl3 $(1)/opt/lib/pkgconfig
+	$(CP) $(PKG_INSTALL_DIR)/opt/include/libnl3/* $(1)/opt/include/libnl3/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/* $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/*.pc $(1)/opt/lib/pkgconfig
+
+	# Copy symlinks
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-3.so $(1)/opt/lib/libnl.so
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-genl-3.so $(1)/opt/lib/libnl-genl.so
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-nf-3.so $(1)/opt/lib/libnl-nf.so
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-route-3.so $(1)/opt/lib/libnl-route.so
+endef
+
+define Package/libnl-core/install
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-3.so* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-3.so $(1)/opt/lib/libnl.so
+endef
+
+define Package/libnl-genl/install
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-genl-3.so* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-genl-3.so $(1)/opt/lib/libnl-genl.so
+endef
+
+define Package/libnl-route/install
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-route-3.so* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-route-3.so $(1)/opt/lib/libnl-route.so
+endef
+
+define Package/libnl-nf/install
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-nf-3.so* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-nf-3.so $(1)/opt/lib/libnl-nf.so
 endef
 
 define Package/libnl/install
-	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-route.so.* $(1)/opt/lib/
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-genl.so.* $(1)/opt/lib/
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-nf.so.* $(1)/opt/lib/
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-route.so.* $(1)/opt/lib/
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl.so.* $(1)/opt/lib/
+	:
 endef
 
+$(eval $(call BuildPackage,libnl-core))
+$(eval $(call BuildPackage,libnl-genl))
+$(eval $(call BuildPackage,libnl-route))
+$(eval $(call BuildPackage,libnl-nf))
 $(eval $(call BuildPackage,libnl))
