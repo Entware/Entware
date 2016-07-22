@@ -6,9 +6,6 @@ choice
 	help
 	  Select the version of binutils you wish to use.
 
-	config BINUTILS_VERSION_2_24
-		bool "Binutils 2.24"
-
 	config BINUTILS_VERSION_2_25_1
 		bool "Binutils 2.25.1"
 
@@ -24,6 +21,5 @@ config EXTRA_BINUTILS_CONFIG_OPTIONS
 config BINUTILS_VERSION
 	string
 	prompt "Binutils Version" if (TOOLCHAINOPTS && NULL)
-	default "2.24"            if BINUTILS_VERSION_2_24
 	default "2.25.1"          if BINUTILS_VERSION_2_25_1
 	default "2.25.1"
