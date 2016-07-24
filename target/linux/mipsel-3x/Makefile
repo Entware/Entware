@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011-2015 Entware
+# Copyright (C) 2011-2016 Entware
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -9,11 +9,10 @@ include $(TOPDIR)/rules.mk
 
 ARCH:=mipsel
 CPU_TYPE:=mips32r2
-BOARD:=mipselsf
-BOARDNAME:=Entware repository (mipsel, soft float)
-FEATURES:=
-KERNEL_PATCHVER:=2.6.22
-#LINUX_VERSION:=2.6.22.19
+BOARD:=mipsel-3x
+BOARDNAME:=Entware-3x (mipsel, soft float, kernel-3.4.112)
+FEATURES:=usb audio pci
+KERNEL_PATCHVER:=3.4.112
 DEFAULT_PACKAGES := toolchain
 
 include $(INCLUDE_DIR)/target.mk
