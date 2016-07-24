@@ -27,13 +27,13 @@ include $(INCLUDE_DIR)/package.mk
 define Package/ipset
   SECTION:=net
   CATEGORY:=Network
-  DEPENDS+= +kmod-ipt-ipset +libmnl
+  DEPENDS+= +libmnl
   TITLE:=IPset administration utility
   URL:=http://ipset.netfilter.org/
 endef
 
 CONFIGURE_ARGS += \
-	--with-kbuild="$(LINUX_DIR)"
+	--with-kbuild="$(LINUX_DIR)" --with-kmod=no
 
 MAKE_FLAGS += \
 	ARCH="$(LINUX_KARCH)" \
@@ -44,10 +44,10 @@ define Build/Compile
 endef
 
 define Package/ipset/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/ipset $(1)/usr/sbin/
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libipset*.so* $(1)/usr/lib/
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(CP) $(PKG_INSTALL_DIR)/opt/sbin/ipset $(1)/opt/sbin/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libipset*.so* $(1)/opt/lib/
 endef
 
 $(eval $(call BuildPackage,ipset))
