@@ -8,11 +8,10 @@
 include $(TOPDIR)/rules.mk
 
 ARCH:=arm
-BOARD:=armv7soft
-BOARDNAME:=Board with armv7 (cortex-a9) SoC
-FEATURES:=
-#LINUX_VERSION:=2.6.36.4
-KERNEL_PATCHVER:=2.6.36
+BOARD:=armv7-3x
+BOARDNAME:=Entware-3x (armv7, soft float, kernel-3.2.40)
+FEATURES:=usb audio pci
+KERNEL_PATCHVER:=3.2.40
 CPU_TYPE:=cortex-a9
 DEFAULT_PACKAGES := toolchain
 
