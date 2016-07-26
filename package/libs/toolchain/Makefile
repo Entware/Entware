@@ -11,7 +11,7 @@ PKG_NAME:=toolchain
 PKG_RELEASE:=3
 
 ifeq ($(CONFIG_USE_GLIBC),y)
-        PKG_RELEASE=4
+        PKG_RELEASE=5
 endif
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
@@ -72,15 +72,6 @@ define Package/locales/postinst
 #!/bin/sh
 
 echo "Entware uses separate locale-archive file independent from main system"
-if [ -f '/opt/usr/lib/locale/locale-archive' ]
-then
-	echo "locale-archive file found, checking format"
-	/opt/bin/locale.new -a 2>&1 >/dev/null | grep 'LC_COLLATE' > /dev/null
-	if [ $$? -eq 0 ] ; then
-		echo "Old format locale archive found. Deleting!"
-		rm -f /opt/usr/lib/locale/locale-archive
-	fi
-fi
 if ! [ -f '/opt/usr/lib/locale/locale-archive' ]
 then
 	mkdir -p /opt/usr/lib/locale
