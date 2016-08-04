@@ -1,6 +1,6 @@
 config GCC_VERSION
 	string
-	default "5.3.0" if GCC_VERSION_5_3_0
+	default "5.4.0" if GCC_VERSION_5_4_0
 
-config GCC_VERSION_5_3_0
+config GCC_VERSION_5_4_0
 	bool
