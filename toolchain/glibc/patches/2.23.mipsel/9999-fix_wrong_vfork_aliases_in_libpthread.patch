@@ -1,0 +1,54 @@
+diff --git a/ChangeLog b/ChangeLog
+index e72ffb8..643aee8 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,3 +1,10 @@ 
++2016-06-17  Aurelien Jarno  <aurelien@aurel32.net>
++
++	* sysdeps/unix/sysv/linux/mips/vfork.S (__vfork): Conditionalize
++	hidden_def, weak_alias and strong_alias on [IS_IN (libc)].
++	* sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S: Likewise.
++	* sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S: Likewise.
++
+ 2016-06-16  Rajalakshmi Srinivasaraghavan  <raji@linux.vnet.ibm.com>
+ 
+ 	* NEWS: Mention addition of nextup and nextdown.
+diff --git a/sysdeps/unix/sysv/linux/mips/vfork.S b/sysdeps/unix/sysv/linux/mips/vfork.S
+index 8c66151..c0c0ce6 100644
+--- a/sysdeps/unix/sysv/linux/mips/vfork.S
++++ b/sysdeps/unix/sysv/linux/mips/vfork.S
+@@ -106,6 +106,8 @@  L(error):
+ #endif
+ 	END(__vfork)
+ 
++#if IS_IN (libc)
+ libc_hidden_def(__vfork)
+ weak_alias (__vfork, vfork)
+ strong_alias (__vfork, __libc_vfork)
++#endif
+diff --git a/sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S b/sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S
+index dc32e0a..94f2c8d 100644
+--- a/sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S
++++ b/sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S
+@@ -44,6 +44,8 @@  ENTRY(__vfork)
+ 	 nop
+ END(__vfork)
+ 
++#if IS_IN (libc)
+ libc_hidden_def (__vfork)
+ weak_alias (__vfork, vfork)
+ strong_alias (__vfork, __libc_vfork)
++#endif
+diff --git a/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S b/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S
+index 05be3c2..a7479e9 100644
+--- a/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S
++++ b/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S
+@@ -44,6 +44,8 @@  ENTRY(__vfork)
+ 	 nop
+ END(__vfork)
+ 
++#if IS_IN (libc)
+ libc_hidden_def (__vfork)
+ weak_alias (__vfork, vfork)
+ strong_alias (__vfork, __libc_vfork)
++#endif
