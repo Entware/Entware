@@ -60,11 +60,6 @@ CONFIGURE_ARGS+= \
 CONFIGURE_VARS+= \
 	ac_cv_search_tgetent="$(TARGET_LDFLAGS) -lncurses -lreadline"
 
-
-
-# if binutils 2.4 are compiled before gdb - then ansidecl.h in opt/include (from binutils) will make compilation fail
-# no -I or iquote options helped. So we rename the file before compilation and rename back after
-
 define Build/Compile
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
 		DESTDIR="$(PKG_INSTALL_DIR)" \

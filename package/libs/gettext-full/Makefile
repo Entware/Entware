@@ -5,11 +5,13 @@
 # See /LICENSE for more information.
 #
 
+# Small Host configure changes are from LEDE
+
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gettext-full
 PKG_VERSION:=0.19.6
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_SOURCE:=gettext-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/gettext
@@ -62,6 +64,9 @@ CONFIGURE_ARGS += \
 
 HOST_CONFIGURE_ARGS += \
 	--with-included-libxml --without-libxml2-prefix --with-included-libcroco
+
+HOST_CONFIGURE_VARS += \
+	EMACS="no"
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/lib/libintl-full/include

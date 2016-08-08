@@ -1,0 +1,3 @@
+gcc 5.4 comes from LEDE.
+Patches are from crosstool-ng & debian (for gcc 5.3).
+When openwrt/lede patches are used libgo build fails for x64 feed!

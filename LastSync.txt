@@ -1,8 +1,22 @@
-commit 547a96b601a43c27e882cdabccdcf5bc5c0aad91
-Merge: b48f498 53d8dd8
+Some of the updates are from LEDE project (see at the bottom). These updates have Makefile comments
+======================================
+commit 558b38f4b8e615fb5262c94dad7db2071e394ac1
+Merge: 99ddb65 019be77
 Author: Zoltan Herpai <wigyori@uid0.hu>
-Date:   Wed Jul 13 13:16:36 2016 +0200
+Date:   Mon Jul 25 13:32:53 2016 +0200
 
-    Merge pull request #28 from wigyori/master
+    Merge pull request #38 from qinfengling/orangepi2
+    
+    sunxi: add support for Orange Pi 2 (H3)
+===================================== LEDE --->
+commit 22ef1c83b35cd5633b0c58c9c38a43494a906a6a
+Author: Felix Fietkau <nbd@nbd.name>
+Date:   Fri Aug 5 14:08:47 2016 +0200
 
-    update system packages to latest HEAD, bump 4.1 to 4.1.27
+    kernel: make the kernel build auto-clean the build dir like package builds
+    
+    Previous behavior can be restored by using QUILT=1 on target/prepare
+    
+    Signed-off-by: Felix Fietkau <nbd@nbd.name>
+
+
