@@ -5,6 +5,8 @@
 # See /LICENSE for more information.
 #
 
+# This update is from LEDE, not Openwrt!
+
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
