@@ -1,10 +1,58 @@
 #!/bin/sh
 
-ENABLED=yes
-PROCS=dropbear
-ARGS="-p 22 -a"
-PREARGS=""
-DESC=$PROCS
-PATH=/opt/sbin:/opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+PATH=/opt/bin:/opt/sbin:/sbin:/bin:/usr/sbin:/usr/bin
 
-. /opt/etc/init.d/rc.func
+PIDFILE="/opt/var/run/dropbear.pid"
+PORT=22
+DROPBEAR="/opt/sbin/dropbear"
+
+
+dropbear_status ()
+{
+	[ -f $PIDFILE ] && [ -d /proc/`cat $PIDFILE` ]
+}
+
+start()
+{
+	$DROPBEAR -p $PORT -P $PIDFILE
+}
+
+stop()
+{
+	kill `cat $PIDFILE`
+}
+case "$1" in
+	start)
+		if dropbear_status
+		then
+			echo dropbear already running
+		else
+			start
+		fi
+		;;
+	stop)
+		if dropbear_status
+		then
+			stop
+		else
+			echo dropbear is not running
+		fi
+		;;
+	status)
+		if dropbear_status
+		then
+			echo dropbear already running
+		else
+			echo dropbear is not running
+		fi
+		;;
+
+	restart)
+		stop
+		sleep 3
+		start
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart|status}"
+		;;
+esac
