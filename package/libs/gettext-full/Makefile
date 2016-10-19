@@ -10,16 +10,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gettext-full
-PKG_VERSION:=0.19.6
-PKG_RELEASE:=3
+PKG_VERSION:=0.19.8.1
+PKG_RELEASE:=1
 
 PKG_SOURCE:=gettext-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/gettext
-PKG_MD5SUM:=69d79254ee3b41df23f41c2f4fd720d9
+PKG_MD5SUM:=df3f5690eaa30fd228537b00cb7b7590
 PKG_BUILD_DIR:=$(BUILD_DIR)/gettext-$(PKG_VERSION)
 HOST_BUILD_DIR:=$(BUILD_DIR_HOST)/gettext-$(PKG_VERSION)
 
-PKG_MAINTAINER:=Jo-Philipp Wich <jow@openwrt.org>
+PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 PKG_LICENSE:=GPL-3.0+
 
 PKG_FIXUP:=autoreconf
@@ -51,6 +51,7 @@ TARGET_LDFLAGS += -lrt -lpthread
 CONFIGURE_ARGS += \
 	--enable-shared \
 	--enable-static \
+	--disable-libasprintf \
 	--disable-rpath \
 	--enable-nls \
 	--disable-java \
@@ -63,7 +64,14 @@ CONFIGURE_ARGS += \
 	--without-emacs
 
 HOST_CONFIGURE_ARGS += \
-	--with-included-libxml --without-libxml2-prefix --with-included-libcroco
+	--disable-libasprintf \
+	--disable-rpath \
+	--disable-java \
+	--disable-native-java \
+	--disable-openmp \
+	--without-emacs \
+	--without-libxml2-prefix
+
 
 HOST_CONFIGURE_VARS += \
 	EMACS="no"
@@ -77,6 +85,8 @@ define Build/InstallDev
 
 	$(INSTALL_DIR) $(1)/opt/share/aclocal
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/share/aclocal/* $(1)/opt/share/aclocal/
+
+	$(SED) '/read dummy/d' $(STAGING_DIR)/host/bin/gettextize
 endef
 
 define Package/libintl-full/install
