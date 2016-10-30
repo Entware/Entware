@@ -1,0 +1,22 @@
+We disable mpers for x64 on 2.6.32 - it fails. (Note no problems with 3.2.x kernel)
+mipsel and other feeds do not use mpers, so we need not increase PKG_RELEASE
+--- a/configure
++++ b/configure
+@@ -13682,7 +13682,7 @@
+ else
+   if CC="$CC" CPP="$CPP" CPPFLAGS="$CPPFLAGS" \
+ 			    $srcdir/mpers_test.sh m32; then
+-				st_cv_m32_mpers=yes
++				st_cv_m32_mpers=no
+ 			 else
+ 				st_cv_m32_mpers=no
+ 			 fi
+@@ -13818,7 +13818,7 @@
+ else
+   if CC="$CC" CPP="$CPP" CPPFLAGS="$CPPFLAGS" \
+ 			    $srcdir/mpers_test.sh mx32; then
+-				st_cv_mx32_mpers=yes
++				st_cv_mx32_mpers=no
+ 			 else
+ 				st_cv_mx32_mpers=no
+ 			 fi
