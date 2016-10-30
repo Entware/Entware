@@ -1,0 +1,22 @@
+https://bugs.gentoo.org/335347
+
+fix building with older linux headers that don't define SO_MARK
+
+--- a/ping_common.c
++++ b/ping_common.c
+@@ -475,6 +475,7 @@
+ 			fprintf(stderr, "Warning: no SO_TIMESTAMP support, falling back to SIOCGSTAMP\n");
+ 	}
+ #endif
++#ifdef SO_MARK
+ 	if (options & F_MARK) {
+ 		if (setsockopt(icmp_sock, SOL_SOCKET, SO_MARK,
+ 				&mark, sizeof(mark)) == -1) {
+@@ -484,6 +485,7 @@
+ 			fprintf(stderr, "Warning: Failed to set mark %d\n", mark);
+ 		}
+ 	}
++#endif
+ 
+ 	/* Set some SNDTIMEO to prevent blocking forever
+ 	 * on sends, when device is too slow or stalls. Just put limit
