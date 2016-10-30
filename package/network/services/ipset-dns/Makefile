@@ -4,6 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+# Old ipset interface is set
 
 include $(TOPDIR)/rules.mk
 
@@ -43,6 +44,8 @@ define Package/ipset-dns/description
  particular web services or webpages that do not have a priori predictable
  IP addresses and instead rely on dizzying arrays of DNS resolutions.
 endef
+
+MAKE_FLAGS += OLD_IPSET=1
 
 define Package/ipset-dns/install
 	$(INSTALL_DIR) $(1)/opt/sbin
