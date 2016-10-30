@@ -90,7 +90,6 @@ define Build/Configure
 	)
 endef
 
-
 define Package/openvpn-$(BUILD_VARIANT)/install
 	$(INSTALL_DIR) \
 		$(1)/opt/sbin \
