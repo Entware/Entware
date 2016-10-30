@@ -109,6 +109,7 @@ CONFIGURE_ARGS += \
 	--enable-shared \
 	--enable-static \
 	--disable-manual \
+	--without-ca-bundle \
 	--without-nss \
 	--without-libmetalink \
 	--without-librtmp \
