@@ -28,16 +28,19 @@ TARGET_CFLAGS += -D_GNU_SOURCE -std=gnu89
 CONFIGURE_ARGS += \
 	--without-upnp \
 	--without-pam \
-	--disable-libwrap
+	--disable-libwrap \
+	--with-socks-conf=/opt/etc/socks.conf \
+	--with-sockd-conf=/opt/etc/sockd.conf \
+	--with-pidfile=/opt/var/run/sockd.pid
 
 CONFIGURE_VARS += \
 	ac_cv_search_pam_start=""
 
 define Build/InstallDev
-	$(INSTALL_DIR) $(1)/usr/include
-	$(CP) $(PKG_INSTALL_DIR)/usr/include/* $(1)/usr/include/
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/*.{a,so*,la} $(1)/usr/lib/
+	$(INSTALL_DIR) $(1)/opt/include
+	$(CP) $(PKG_INSTALL_DIR)/opt/include/* $(1)/opt/include/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/*.{a,so*,la} $(1)/opt/lib/
 endef
 
 
@@ -67,8 +70,8 @@ This package provides the shared libsocks library.
 endef
 
 define Package/libsocks/install
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libsocks.so* $(1)/usr/lib/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libsocks.so* $(1)/opt/lib/
 endef
 
 
@@ -86,8 +89,8 @@ This package provides the Dante sockd daemon.
 endef
 
 define Package/sockd/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/sockd $(1)/usr/sbin/
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(CP) $(PKG_INSTALL_DIR)/opt/sbin/sockd $(1)/opt/sbin/
 endef
 
 
@@ -105,11 +108,15 @@ This package provides the Dante socksify client.
 endef
 
 define Package/socksify/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(CP) $(PKG_INSTALL_DIR)/usr/bin/socksify $(1)/usr/bin/
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(CP) $(PKG_INSTALL_DIR)/opt/bin/socksify $(1)/opt/bin/
 
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libdsocks.so* $(1)/usr/lib/
+ifeq ($(CONFIG_USE_GLIBC),y)
+	$(SED) 's|libdl.so|libdl.so.2|g' $(1)/opt/bin/socksify
+endif
+
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libdsocks.so* $(1)/opt/lib/
 endef
 
 

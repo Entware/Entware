@@ -1,0 +1,10 @@
+--- a/dlib/interposition.c
++++ b/dlib/interposition.c
+@@ -43,6 +43,7 @@
+  */
+ 
+ #define _NO_SUN_PRAGMA
++#define HAVE_EXTRA_OSF_SYMBOLS 1
+ 
+ #include "common.h"
+ 
