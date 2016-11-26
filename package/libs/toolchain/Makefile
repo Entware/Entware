@@ -89,7 +89,13 @@ fi
 if ! [ -f '/opt/usr/lib/locale/locale-archive' ]
 then
 	echo "locale-archive file was not created, not enough memory? Downloading..."
-	wget http://pkg.entware.net/binaries/other/locale-archive.2.23 -O /opt/usr/lib/locale/locale-archive
+	echo "checking endianess.... (opkg ELF header)"
+	hexdump -s 5 -n 1 /opt/bin/opkg | grep 0002 &> /dev/null
+	if [ $$? == 0 ]; then
+		echo "BE detected"
+		be='.be'
+	fi
+	wget http://pkg.entware.net/binaries/other/locale-archive.2.23$$be -O /opt/usr/lib/locale/locale-archive
 	echo "You can download locale sources from http://pkg.entware.net/sources/i18n_glib223.tar.gz"
 	echo "You can add new locales to Entware using /opt/bin/localedef.new"
 fi
