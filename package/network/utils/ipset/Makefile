@@ -1,4 +1,4 @@
- 
+
 # Copyright (C) 2009-2012 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
@@ -9,14 +9,14 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=ipset
-PKG_VERSION:=6.24
+PKG_VERSION:=6.30
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=http://ipset.netfilter.org
-PKG_MD5SUM:=8831b8f01458bf2abacc222884195a62
+PKG_MD5SUM:=41c32e3b884ec714f0aac95e7675f9d1
 
-PKG_MAINTAINER:=Jo-Philipp Wich <jow@openwrt.org>
+PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 PKG_LICENSE:=GPL-2.0
 
 PKG_FIXUP:=autoreconf
@@ -41,6 +41,13 @@ MAKE_FLAGS += \
 
 define Build/Compile
 	$(call Build/Compile/Default)
+endef
+
+define Build/InstallDev
+	$(INSTALL_DIR) $(1)/opt/include $(1)/opt/lib $(1)/opt/lib/pkgconfig
+	$(CP) $(PKG_INSTALL_DIR)/opt/include/libipset $(1)/opt/include/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libipset.{a,so*} $(1)/opt/lib/
+	$(CP) $(PKG_BUILD_DIR)/lib/libipset.pc $(1)/opt/lib/pkgconfig/
 endef
 
 define Package/ipset/install
