@@ -8,8 +8,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=e2fsprogs
-PKG_VERSION:=1.43.1
-PKG_MD5SUM:=1775f3f0eed9dee1c5f39e08d1964a97
+PKG_VERSION:=1.43.3
+PKG_MD5SUM:=ce8ef1bbb0d4730f170167284fda156ac9d6bf18db2750eb94af619a81b19927
 PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
@@ -129,14 +129,14 @@ endef
 
 define Build/Compile
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR)/util \
-		BUILDCC="$(HOSTCC)" \
+		BUILD_CC="$(HOSTCC)" \
 		CFLAGS="" \
 		CPPFLAGS="" \
 		LDFLAGS="" \
 		subst
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
 		LDFLAGS="$(TARGET_LDFLAGS)" \
-		BUILDCC="$(HOSTCC)" \
+		BUILD_CC="$(HOSTCC)" \
 		DESTDIR="$(PKG_INSTALL_DIR)" \
 		LIBBLKID="$(PKG_BUILD_DIR)/lib/libblkid.a -luuid" \
 		all
