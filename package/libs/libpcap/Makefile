@@ -16,7 +16,7 @@ PKG_SOURCE_URL:=http://www.tcpdump.org/release/
 PKG_MD5SUM:=b2e13142bbaba857ab1c6894aedaf547
 PKG_FIXUP:=patch-libtool
 
-PKG_MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
+PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
 PKG_INSTALL:=1
 PKG_BUILD_PARALLEL:=1
@@ -49,7 +49,8 @@ TARGET_CFLAGS += \
 CONFIGURE_VARS += \
 	ac_cv_linux_vers=$(LINUX_VERSION) \
 	ac_cv_header_libusb_1_0_libusb_h=no \
-	ac_cv_netfilter_can_compile=no
+	ac_cv_netfilter_can_compile=no \
+	ac_cv_header_linux_wireless_h=yes
 
 
 CONFIGURE_ARGS += \
@@ -71,7 +72,7 @@ CONFIGURE_ARGS += \
 endif
 
 MAKE_FLAGS += \
-	CCOPT="$(TARGET_CFLAGS) -I$(BUILD_DIR)/linux/include"
+	CCOPT="$(TARGET_CFLAGS)  -D_DEFAULT_SOURCE -I$(STAGING_DIR)/opt/include"
 
 define Build/Configure
 	$(call Build/Configure/Default)
