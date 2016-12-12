@@ -4,12 +4,12 @@
 
 FILES="
 	BSDmakefile
+	config
 	Config.in
 	LICENSE
 	Makefile
 	README
 	dl
-	docs
 	feeds.conf.default
 	include
 	package
@@ -18,6 +18,9 @@ FILES="
 	target
 	toolchain
 	tools"
+
+OPTIONAL_FILES="
+	.git"
 
 if [ -f feeds.conf ] ; then
 	FILES="$FILES feeds.conf"
@@ -41,5 +44,8 @@ for file in $FILES; do
 		exit 1
 	}
 	ln -s "$PWD/$file" "$1/"
+done
+for file in $OPTIONAL_FILES; do
+	[ -e "$PWD/$file" ] && ln -s "$PWD/$file" "$1/"
 done
 exit 0

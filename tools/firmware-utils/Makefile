@@ -25,7 +25,6 @@ define Host/Compile
 	$(call cc,mksenaofw md5)
 	$(call cc,trx2usr)
 	$(call cc,ptgen)
-	$(call cc,airlink)
 	$(call cc,srec2bin)
 	$(call cc,mkmylofw)
 	$(call cc,mkcsysimg)
@@ -58,6 +57,7 @@ define Host/Compile
 	$(call cc,buffalo-tag buffalo-lib, -Wall)
 	$(call cc,buffalo-tftp buffalo-lib, -Wall)
 	$(call cc,mkwrgimg md5, -Wall)
+	$(call cc,mkwrggimg md5, -Wall)
 	$(call cc,mkedimaximg)
 	$(call cc,mkbrncmdline)
 	$(call cc,mkbrnimg)
@@ -75,7 +75,10 @@ define Host/Compile
 	$(call cc,dgn3500sum)
 	$(call cc,edimax_fw_header, -Wall)
 	$(call cc,mkmerakifw sha1, -Wall)
+	$(call cc,mkmerakifw-old, -Wall)
 	$(call cc,jcgimage, -lz -Wall)
+	$(call cc,mkbuffaloimg, -Wall)
+	$(call cc,zyimage, -Wall)
 endef
 
 define Host/Install

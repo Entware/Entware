@@ -5,7 +5,9 @@
 # See /LICENSE for more information.
 #
 
-include $(INCLUDE_DIR)/feeds.mk
+ifndef DUMP
+  include $(INCLUDE_DIR)/feeds.mk
+endif
 
 # invoke ipkg-build with some default options
 IPKG_BUILD:= \
@@ -101,20 +103,20 @@ ifeq ($(DUMP),)
         ifneq ($(ABI_VERSION),)
         compile: $(PKG_INFO_DIR)/$(1).version
         endif
+      else
+        $(if $(CONFIG_PACKAGE_$(1)),$$(info WARNING: skipping $(1) -- package not selected))
+      endif
 
-        ifeq ($(CONFIG_PACKAGE_$(1)),y)
-          .PHONY: $(PKG_INSTALL_STAMP).$(1)
-          compile: $(PKG_INSTALL_STAMP).$(1)
-          $(PKG_INSTALL_STAMP).$(1):
+      .PHONY: $(PKG_INSTALL_STAMP).$(1)
+      compile: $(PKG_INSTALL_STAMP).$(1)
+      $(PKG_INSTALL_STAMP).$(1):
 			if [ -f $(PKG_INSTALL_STAMP).clean ]; then \
 				rm -f \
 					$(PKG_INSTALL_STAMP) \
 					$(PKG_INSTALL_STAMP).clean; \
-			fi; \
+			fi
+      ifeq ($(CONFIG_PACKAGE_$(1)),y)
 			echo "$(1)" >> $(PKG_INSTALL_STAMP)
-        endif
-      else
-        $(if $(CONFIG_PACKAGE_$(1)),$$(info WARNING: skipping $(1) -- package not selected))
       endif
     endif
     endif
@@ -155,7 +157,7 @@ Package: $(1)
 Version: $(VERSION)
 $$(call addfield,Depends,$$(Package/$(1)/DEPENDS)
 )$$(call addfield,Conflicts,$$(call mergelist,$(CONFLICTS))
-)$$(call addfield,Provides,$(PROVIDES)
+)$$(call addfield,Provides,$$(call mergelist,$(PROVIDES))
 )$$(call addfield,Source,$(SOURCE)
 )$$(call addfield,License,$$(PKG_LICENSE)
 )$$(call addfield,LicenseFiles,$$(PKG_LICENSE_FILES)
@@ -173,7 +175,7 @@ $(_endef)
     $$(IPKG_$(1)) : export DESCRIPTION=$$(Package/$(1)/description)
     $$(IPKG_$(1)) : export PATH=$$(TARGET_PATH_PKG)
     $$(IPKG_$(1)): $(STAMP_BUILT) $(INCLUDE_DIR)/package-ipkg.mk
-	@rm -rf $$(PDIR_$(1))/$(1)_* $$(IDIR_$(1))
+	@rm -rf $$(IDIR_$(1)) $$(call opkg_package_files,$(1))
 	mkdir -p $(PACKAGE_DIR) $$(IDIR_$(1))/CONTROL $(PKG_INFO_DIR)
 	$(call Package/$(1)/install,$$(IDIR_$(1)))
 	-find $$(IDIR_$(1)) -name 'CVS' -o -name '.svn' -o -name '.#*' -o -name '*~'| $(XARGS) rm -rf
@@ -216,7 +218,7 @@ $(_endef)
 	@[ -f $$(IPKG_$(1)) ]
 
     $(1)-clean:
-	rm -f $$(PDIR_$(1))/$(1)_*
+	$$(if $$(call opkg_package_files,$(1)),rm -f $$(call opkg_package_files,$(1)))
 
     clean: $(1)-clean
 

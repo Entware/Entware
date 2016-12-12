@@ -1,22 +1,7 @@
-Some of the updates are from LEDE project (see at the bottom). These updates have Makefile comments
-======================================
-commit 558b38f4b8e615fb5262c94dad7db2071e394ac1
-Merge: 99ddb65 019be77
-Author: Zoltan Herpai <wigyori@uid0.hu>
-Date:   Mon Jul 25 13:32:53 2016 +0200
+Sync with LEDE
 
-    Merge pull request #38 from qinfengling/orangepi2
-    
-    sunxi: add support for Orange Pi 2 (H3)
-===================================== LEDE --->
-commit 22ef1c83b35cd5633b0c58c9c38a43494a906a6a
-Author: Felix Fietkau <nbd@nbd.name>
-Date:   Fri Aug 5 14:08:47 2016 +0200
+commit 7c47f43fe650309e6a2383c99273dc1bde367bc1
+Author: Hauke Mehrtens <hauke@hauke-m.de>
+Date:   Sun Dec 4 19:03:48 2016 +0100
 
-    kernel: make the kernel build auto-clean the build dir like package builds
-    
-    Previous behavior can be restored by using QUILT=1 on target/prepare
-    
-    Signed-off-by: Felix Fietkau <nbd@nbd.name>
-
-
+    lantiq: falcon: remove bootargs-append

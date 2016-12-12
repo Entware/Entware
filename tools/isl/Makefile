@@ -4,16 +4,14 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-# Downgraded from 0.14.1
-
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=isl
-PKG_VERSION:=0.14
+PKG_VERSION:=0.17.1
 
-PKG_SOURCE_URL:=http://isl.gforge.inria.fr/
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_MD5SUM:=404d5f4a94491529754c8538bbb238c0
+PKG_SOURCE_URL:=http://isl.gforge.inria.fr
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
+PKG_MD5SUM:=20b83900e234f982a566a3a6b3503bf1
 
 HOST_BUILD_PARALLEL:=1
 
@@ -24,10 +22,6 @@ unexport CFLAGS
 HOST_CONFIGURE_ARGS += \
 	--enable-static \
 	--disable-shared \
-	--with-libgmpxx-prefix=$(STAGING_DIR_HOST) \
-	--with-gmp=system \
-	--with-gmp-prefix=$(STAGING_DIR_HOST) \
-	--with-piplib=no \
-	--with-clang=no
+	--with-gmp-prefix=$(STAGING_DIR_HOST)
 
 $(eval $(call HostBuild))

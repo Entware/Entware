@@ -32,13 +32,27 @@
 #define HDR_OFF_IMAGELEN	8
 #define HDR_OFF_CHECKSUM	12
 #define HDR_OFF_MAGIC2		32
-#define HDR_OFF_FILLER		36
+#define HDR_OFF_MAGIC3		36
 #define HDR_OFF_STATICHASH	40
+#define HDR_OFF_KERNEL_OFFSET	40
+#define HDR_OFF_RAMDISK_OFFSET	44
+#define HDR_OFF_FDT_OFFSET	48
+#define HDR_OFF_UNKNOWN_OFFSET	52
 
 struct board_info {
-	uint32_t magic;
+	uint32_t magic1;
+	uint32_t magic2;
+	uint32_t magic3;
 	uint32_t imagelen;
-	unsigned char statichash[20];
+	union {
+		unsigned char statichash[20];
+		struct {
+			uint32_t kernel_offset;
+			uint32_t ramdisk_offset;
+			uint32_t fdt_offset;
+			uint32_t unknown_offset;
+		} mx60;
+	} u;
 	char *id;
 	char *description;
 };
@@ -55,12 +69,43 @@ static const struct board_info boards[] = {
 	{
 		.id		= "mr18",
 		.description	= "Meraki MR18 Access Point",
-		.magic		= 0x8e73ed8a,
+		.magic1		= 0x8e73ed8a,
+		.magic2		= 0x8e73ed8a,
 		.imagelen	= 0x00800000,
-		.statichash	= {0xda, 0x39, 0xa3, 0xee, 0x5e,
+		.u.statichash	= {0xda, 0x39, 0xa3, 0xee, 0x5e,
 				   0x6b, 0x4b, 0x0d, 0x32, 0x55,
 				   0xbf, 0xef, 0x95, 0x60, 0x18,
 				   0x90, 0xaf, 0xd8, 0x07, 0x09},
+	}, {
+		.id		= "mr24",
+		.description	= "Meraki MR24 Access Point",
+		.magic1		= 0x8e73ed8a,
+		.magic2		= 0x8e73ed8a,
+		.imagelen	= 0x00800000,
+		.u.statichash	= {0xff, 0xff, 0xff, 0xff, 0xff,
+				   0xff, 0xff, 0xff, 0xff, 0xff,
+				   0xff, 0xff, 0xff, 0xff, 0xff,
+				   0xff, 0xff, 0xff, 0xff, 0xff},
+	}, {
+		.id		= "mx60",
+		.description	= "Meraki MX60/MX60W Security Appliance",
+		.magic1		= 0x8e73ed8a,
+		.magic2		= 0xa1f0beef, /* Enables use of load addr in statichash */
+		.magic3		= 0x00060001, /* This goes along with magic2 */
+		.imagelen	= 0x3fd00000,
+		/* The static hash below does the following:
+		 * 1st Row: Kernel Offset
+		 * 2nd Row: Ramdisk Offset
+		 * 3rd Row: FDT Offset
+		 * 4th Row: ? Unused/Unknown ?
+		 * 5th Row: ? Unused/Unknown ?
+		 */
+		.u.mx60		= {
+			.kernel_offset	= 0x10000,
+			.ramdisk_offset	= 0x3FFC00,
+			.fdt_offset	= 0x0400,
+			.unknown_offset	= 0x0400,
+		},
 	}, {
 		/* terminating entry */
 	}
@@ -227,10 +272,10 @@ int main(int argc, char *argv[])
 	kernel = buf + HDR_LENGTH;
 	fread(kernel, klen, 1, in);
 
-	/* Write magic values and filler */
-	writel(buf, HDR_OFF_MAGIC1, board->magic);
-	writel(buf, HDR_OFF_MAGIC2, board->magic);
-	writel(buf, HDR_OFF_FILLER, 0);
+	/* Write magic values */
+	writel(buf, HDR_OFF_MAGIC1, board->magic1);
+	writel(buf, HDR_OFF_MAGIC2, board->magic2);
+	writel(buf, HDR_OFF_MAGIC3, board->magic3);
 
 	/* Write header and image length */
 	writel(buf, HDR_OFF_HDRLEN, HDR_LENGTH);
@@ -238,7 +283,19 @@ int main(int argc, char *argv[])
 
 	/* Write checksum and static hash */
 	sha1_csum(kernel, klen, buf + HDR_OFF_CHECKSUM);
-	memcpy(buf + HDR_OFF_STATICHASH, board->statichash, 20);
+
+	switch (board->magic2) {
+	case 0xa1f0beef:
+		writel(buf, HDR_OFF_KERNEL_OFFSET, board->u.mx60.kernel_offset);
+		writel(buf, HDR_OFF_RAMDISK_OFFSET, board->u.mx60.ramdisk_offset);
+		writel(buf, HDR_OFF_FDT_OFFSET, board->u.mx60.fdt_offset),
+		writel(buf, HDR_OFF_UNKNOWN_OFFSET, board->u.mx60.unknown_offset);
+		break;
+
+	case 0x8e73ed8a:
+		memcpy(buf + HDR_OFF_STATICHASH, board->u.statichash, 20);
+		break;
+	}
 
 	/* Save finished image */
 	out = fopen(ofname, "w");

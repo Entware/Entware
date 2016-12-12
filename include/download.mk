@@ -1,11 +1,13 @@
 #
 # Copyright (C) 2006-2012 OpenWrt.org
+# Copyright (C) 2016 LEDE project
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
 
 OPENWRT_GIT = http://git.openwrt.org
+LEDE_GIT = https://git.lede-project.org
 
 DOWNLOAD_RDEP=$(STAMP_PREPARED) $(HOST_STAMP_PREPARED)
 
@@ -31,9 +33,9 @@ $(strip \
 endef
 
 # code for creating tarballs from cvs/svn/git/bzr/hg/darcs checkouts - useful for mirror support
-dl_pack/bz2=$(TAR) cjf $(1) $(2)
-dl_pack/gz=$(TAR) czf $(1) $(2)
-dl_pack/xz=$(TAR) c $(2) | xz -zc > $(1)
+dl_pack/bz2=$(TAR) --owner=0 --group=0 --sort=name $$$${TAR_TIMESTAMP:+--mtime="$$$$TAR_TIMESTAMP"} -cjf $(1) $(2)
+dl_pack/gz=$(TAR) --owner=0 --group=0 --sort=name $$$${TAR_TIMESTAMP:+--mtime="$$$$TAR_TIMESTAMP"} -c $(2) | gzip -nc > $(1)
+dl_pack/xz=$(TAR) --owner=0 --group=0 --sort=name $$$${TAR_TIMESTAMP:+--mtime="$$$$TAR_TIMESTAMP"} -c $(2) | xz -zc -7e > $(1)
 dl_pack/unknown=echo "ERROR: Unknown pack format for file $(1)"; false
 define dl_pack
 	$(if $(dl_pack/$(call ext,$(1))),$(dl_pack/$(call ext,$(1))),$(dl_pack/unknown))
@@ -77,6 +79,7 @@ define DownloadMethod/svn
 		svn export --non-interactive --trust-server-cert -r$(VERSION) $(URL) $(SUBDIR) || \
 		svn export --non-interactive -r$(VERSION) $(URL) $(SUBDIR) ) && \
 		echo "Packing checkout..." && \
+		export TAR_TIMESTAMP="" && \
 		$(call dl_pack,$(TMP_DIR)/dl/$(FILE),$(SUBDIR)) && \
 		mv $(TMP_DIR)/dl/$(FILE) $(DL_DIR)/ && \
 		rm -rf $(SUBDIR); \
@@ -90,10 +93,11 @@ define DownloadMethod/git
 		cd $(TMP_DIR)/dl && \
 		rm -rf $(SUBDIR) && \
 		[ \! -d $(SUBDIR) ] && \
-		git clone $(URL) $(SUBDIR) && \
+		git clone $(OPTS) $(URL) $(SUBDIR) && \
 		(cd $(SUBDIR) && git checkout $(VERSION) && \
 		git submodule update --init --recursive) && \
 		echo "Packing checkout..." && \
+		export TAR_TIMESTAMP=`cd $(SUBDIR) && git log -1 --format='@%ct'` && \
 		rm -rf $(SUBDIR)/.git && \
 		$(call dl_pack,$(TMP_DIR)/dl/$(FILE),$(SUBDIR)) && \
 		mv $(TMP_DIR)/dl/$(FILE) $(DL_DIR)/ && \
@@ -108,8 +112,9 @@ define DownloadMethod/bzr
 		cd $(TMP_DIR)/dl && \
 		rm -rf $(SUBDIR) && \
 		[ \! -d $(SUBDIR) ] && \
-		bzr export -r$(VERSION) $(SUBDIR) $(URL) && \
+		bzr export --per-file-timestamps -r$(VERSION) $(SUBDIR) $(URL) && \
 		echo "Packing checkout..." && \
+		export TAR_TIMESTAMP="" && \
 		$(call dl_pack,$(TMP_DIR)/dl/$(FILE),$(SUBDIR)) && \
 		mv $(TMP_DIR)/dl/$(FILE) $(DL_DIR)/ && \
 		rm -rf $(SUBDIR); \
@@ -124,6 +129,7 @@ define DownloadMethod/hg
 		rm -rf $(SUBDIR) && \
 		[ \! -d $(SUBDIR) ] && \
 		hg clone -r $(VERSION) $(URL) $(SUBDIR) && \
+		export TAR_TIMESTAMP=`cd $(SUBDIR) && hg log --template '@{date}' -l 1` && \
 		find $(SUBDIR) -name .hg | xargs rm -rf && \
 		echo "Packing checkout..." && \
 		$(call dl_pack,$(TMP_DIR)/dl/$(FILE),$(SUBDIR)) && \
@@ -140,6 +146,7 @@ define DownloadMethod/darcs
 		rm -rf $(SUBDIR) && \
 		[ \! -d $(SUBDIR) ] && \
 		darcs get -t $(VERSION) $(URL) $(SUBDIR) && \
+		export TAR_TIMESTAMP=`cd $(SUBDIR) && LC_ALL=C darcs log --last 1 | sed -ne 's!^Date: \+!!p'` && \
 		find $(SUBDIR) -name _darcs | xargs rm -rf && \
 		echo "Packing checkout..." && \
 		$(call dl_pack,$(TMP_DIR)/dl/$(FILE),$(SUBDIR)) && \
@@ -165,6 +172,7 @@ define Download/Defaults
   MIRROR:=1
   MIRROR_MD5SUM:=x
   VERSION:=
+  OPTS:=
 endef
 
 define Download

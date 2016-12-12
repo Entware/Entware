@@ -7,7 +7,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=go-bin
-PKG_VERSION:=1.4.2
+PKG_VERSION:=1.4.3
 
 bintype:=$(shell uname -m | sed \
         -e 's/i[3-9]86/386/' \

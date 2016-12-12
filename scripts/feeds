@@ -130,19 +130,19 @@ my %update_method = (
 		'init_commit'   => "git clone '%s' '%s' && cd '%s' && git checkout -b '%s' '%s' && cd -",
 		'update'	=> "git pull --ff",
 		'controldir'	=> ".git",
-		'revision'	=> "git show --abbrev-commit HEAD | head -n 1 | cut -d ' ' -f 2 | tr -d '\n'"},
+		'revision'	=> "git rev-parse --short HEAD | tr -d '\n'"},
 	'src-git-full' => {
 		'init'          => "git clone '%s' '%s'",
 		'init_branch'   => "git clone --branch '%s' '%s' '%s'",
 		'init_commit'   => "git clone '%s' '%s' && cd '%s' && git checkout -b '%s' '%s' && cd -",
 		'update'	=> "git pull --ff",
 		'controldir'	=> ".git",
-		'revision'	=> "git show --abbrev-commit HEAD | head -n 1 | cut -d ' ' -f 2 | tr -d '\n'"},
+		'revision'	=> "git rev-parse --short HEAD | tr -d '\n'"},
 	'src-gitsvn' => {
 		'init'	=> "git svn clone -r HEAD '%s' '%s'",
 		'update'	=> "git svn rebase",
 		'controldir'	=> ".git",
-		'revision'	=> "git show --abbrev-commit HEAD | head -n 1 | cut -d ' ' -f 2 | tr -d '\n'"},
+		'revision'	=> "git rev-parse --short HEAD | tr -d '\n'"},
 	'src-bzr' => {
 		'init'		=> "bzr checkout --lightweight '%s' '%s'",
 		'update'	=> "bzr update",
@@ -333,7 +333,7 @@ sub list {
 			my $localpath = "./feeds/$feed->[1]";
 			my $m = $update_method{$feed->[0]};
 			my $revision;
-			if( !$m->{'revision'} ) {
+			if (!-d "$localpath" || !$m->{'revision'}) {
 				$revision = "X";
 			}
 			elsif( $m->{'controldir'} && -d "$localpath/$m->{'controldir'}" ) {
@@ -354,7 +354,7 @@ sub list {
 				printf "%s %s %s\n", $feed->[0], $feed->[1], $uri;
 			}
 			else {
-				printf "\%-8s \%-8s \%-8s \%s\n", $feed->[1], $feed->[0], $revision, join(", ", @{$feed->[2]});
+				printf "\%-10s \%-8s \%-8s \%s\n", $feed->[1], $feed->[0], $revision, join(", ", @{$feed->[2]});
 			}
 		}
 		return 0;
@@ -533,6 +533,11 @@ sub install_package {
 
 sub refresh_config {
 	my $default = shift;
+
+	# Don't create .config if it doesn't already exist so that making a
+	# config only occurs when the user intends it do (however we do
+	# want to refresh an existing config).
+	return if not (-e '.config');
 
 	# workaround for timestamp check
 	system("rm -f tmp/.packageinfo");

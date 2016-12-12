@@ -173,7 +173,7 @@ if ($tree) {
 	}
 
 	if (!defined $root) {
-		print "Must be run from the top-level dir. of a OpenWrt tree\n";
+		print "Must be run from the top-level dir. of a LEDE tree\n";
 		exit(2);
 	}
 }
@@ -391,7 +391,7 @@ sub top_of_openwrt_tree {
 
 	my @tree_check = (
 		"BSDmakefile", "Config.in", "LICENSE", "Makefile", "README",
-		"docs", "feeds.conf.default", "include", "package", "rules.mk",
+		"feeds.conf.default", "include", "package", "rules.mk",
 		"scripts", "target", "toolchain", "tools"
 	);
 
