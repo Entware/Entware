@@ -10,12 +10,12 @@ include $(TOPDIR)/rules.mk
 # This update is from LEDE, not Openwrt
 
 PKG_NAME:=wolfssl
-PKG_VERSION:=3.9.6
+PKG_VERSION:=3.9.10
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).zip
 PKG_SOURCE_URL:=https://www.wolfssl.com/
-PKG_MD5SUM:=df435eacae4f2f1a92a241e80a2106d9
+PKG_MD5SUM:=793921c0db96248be4a369cbfdf0cb7b37ee2be715b8b775b6cd32efe66f494e
 
 PKG_FIXUP:=libtool
 PKG_INSTALL:=1
@@ -30,11 +30,16 @@ define Package/libcyassl
   CATEGORY:=Libraries
   TITLE:=CyaSSL library
   URL:=http://www.wolfssl.com/
+  MENU:=1
 endef
 
 define Package/libcyassl/description
 CyaSSL is an SSL library optimized for small footprint, both on disk and for
 memory use.
+endef
+
+define Package/libcyassl/config
+	source "$(SOURCE)/Config.in"
 endef
 
 TARGET_CFLAGS += $(FPIC)
@@ -44,8 +49,68 @@ CONFIGURE_ARGS += \
 	--enable-opensslextra \
 	--enable-sni \
 	--enable-stunnel \
-	--enable-ecc \
 	--disable-examples
+
+ifeq ($(CONFIG_IPV6),y)
+CONFIGURE_ARGS += \
+        --enable-ipv6
+endif
+
+ifeq ($(CONFIG_CYASSL_HAS_AES_CCM),y)
+CONFIGURE_ARGS += \
+	--enable-aesccm
+endif
+
+ifeq ($(CONFIG_CYASSL_HAS_AES_GCM),y)
+CONFIGURE_ARGS += \
+	--enable-aesgcm
+endif
+
+ifeq ($(CONFIG_CYASSL_HAS_CHACHA),y)
+CONFIGURE_ARGS += \
+	--enable-chacha
+endif
+
+ifeq ($(CONFIG_CYASSL_HAS_ECC),y)
+CONFIGURE_ARGS += \
+	--enable-ecc \
+	--enable-supportedcurves
+endif
+
+ifeq ($(CONFIG_CYASSL_HAS_DH),y)
+CONFIGURE_ARGS += \
+	--enable-dh
+endif
+
+ifeq ($(CONFIG_CYASSL_HAS_ARC4),n)
+CONFIGURE_ARGS += \
+	--disable-arc4
+endif
+
+ifeq ($(CONFIG_CYASSL_HAS_DES3),y)
+CONFIGURE_ARGS += \
+	--disable-des3
+endif
+
+ifeq ($(CONFIG_CYASSL_HAS_PSK),y)
+CONFIGURE_ARGS += \
+	--enable-psk
+endif
+
+ifeq ($(CONFIG_CYASSL_HAS_DTLS),y)
+CONFIGURE_ARGS += \
+	--enable-dtls
+endif
+
+ifeq ($(CONFIG_CYASSL_HAS_ECC25519),y)
+CONFIGURE_ARGS += \
+	--enable-ecc25519
+endif
+
+ifeq ($(CONFIG_CYASSL_HAS_POLY1305),y)
+CONFIGURE_ARGS += \
+	--enable-poly1305
+endif
 
 #ifneq ($(CONFIG_TARGET_x86),)
 #	CONFIGURE_ARGS += --enable-intelasm
@@ -55,13 +120,15 @@ CONFIGURE_ARGS += \
 #endif
 
 define Build/InstallDev
-	$(INSTALL_DIR) $(1)/opt/include
+	$(INSTALL_DIR) $(1)/opt/include $(1)/opt/lib/pkgconfig
 	$(CP) $(PKG_INSTALL_DIR)/opt/include/* $(1)/opt/include/
 
 	$(INSTALL_DIR) $(1)/opt/lib
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libwolfssl.{so*,la} $(1)/opt/lib/
 	ln -s libwolfssl.so $(1)/opt/lib/libcyassl.so
 	ln -s libwolfssl.la $(1)/opt/lib/libcyassl.la
+
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/*.pc $(1)/opt/lib/pkgconfig
 endef
 
 define Package/libcyassl/install
