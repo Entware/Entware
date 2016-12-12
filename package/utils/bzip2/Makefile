@@ -57,6 +57,8 @@ TARGET_CFLAGS += \
 	$(FPIC) \
 	$(TARGET_LDFLAGS)
 
+CONFIGURE_ARGS += --prefix=/opt
+
 MAKE_FLAGS += \
 	-f Makefile-libbz2_so \
 	CFLAGS="$(TARGET_CFLAGS)" \
