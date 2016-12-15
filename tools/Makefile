@@ -28,14 +28,14 @@ tools-$(BUILD_TOOLCHAIN) += gmp mpfr mpc libelf expat
 tools-y += m4 libtool autoconf automake flex bison pkg-config sed mklibs
 tools-y += sstrip make-ext4fs e2fsprogs mtd-utils mkimage
 tools-y += firmware-utils patch-image patch quilt yaffs2 padjffs2
-tools-y += mm-macros missing-macros xz cmake scons bc findutils gengetopt patchelf
+tools-y += mm-macros missing-macros xz cmake scons bc findutils gengetopt patchelf yasm
 tools-y += mtools dosfstools
 tools-$(CONFIG_TARGET_orion_generic) += wrt350nv2-builder upslug2
 tools-$(CONFIG_powerpc) += upx
 tools-$(CONFIG_TARGET_x86) += qemu
 tools-$(CONFIG_TARGET_mxs) += elftosb sdimage
 tools-$(CONFIG_TARGET_ar71xx) += lzma-old squashfs
-tools-$(CONFIG_USES_MINOR) += kernel2minor
+tools-$(CONFIG_TARGET_mipselsf) += wl500g-kernel
 tools-y += lzma squashfs4
 tools-$(BUILD_B43_TOOLS) += b43-tools
 tools-$(BUILD_ISL_CLOOG) += isl cloog
@@ -76,17 +76,25 @@ $(curdir)/bc/compile := $(curdir)/bison/install
 $(curdir)/findutils/compile := $(curdir)/bison/install
 $(curdir)/gengetopt/compile := $(curdir)/libtool/install
 $(curdir)/patchelf/compile := $(curdir)/libtool/install
+$(curdir)/dosfstools/compile := $(curdir)/autoconf/install $(curdir)/automake/install
 $(curdir)/go-src/compile := $(curdir)/go-bin/install
 $(curdir)/godep/compile := $(curdir)/go-bin/install
+ifneq ($(HOST_OS),Linux)
+  tools-y += coreutils
+endif
+
 
 ifneq ($(CONFIG_CCACHE)$(CONFIG_SDK),)
-$(foreach tool, $(filter-out patch,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/ccache/install))
+$(foreach tool, $(filter-out xz patch,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/ccache/install))
 tools-y += ccache
 endif
 
 # in case there is no patch tool on the host we need to make patch tool a
 # dependency for tools which have patches directory
 $(foreach tool, $(tools-y), $(if $(wildcard $(curdir)/$(tool)/patches),$(eval $(curdir)/$(tool)/compile += $(curdir)/patch/install)))
+
+# make any tool (except xz itself) depend on XZ to ensure that *.tar.xz source archives can be unpacked
+$(foreach tool, $(filter-out xz,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/xz/install))
 
 $(foreach tool, $(tools-y), $(eval $(curdir)/$(tool)/compile += $(curdir)/tar/install))
 tools-y += tar
