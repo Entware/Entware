@@ -11,6 +11,9 @@ PKG_NAME:=libnetfilter_conntrack
 PKG_VERSION:=1.0.6
 PKG_RELEASE:=1
 
+# dirty trick - build iptables first (so iptables does not depend om libnetfilter-conntrack
+PKG_BUILD_DEPENDS:=iptables
+
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:= \
 	http://www.netfilter.org/projects/libnetfilter_conntrack/files/ \
