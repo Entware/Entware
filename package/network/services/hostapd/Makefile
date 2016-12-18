@@ -7,16 +7,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=hostapd
-PKG_VERSION:=2016-06-15
+PKG_VERSION:=2016-09-05
 PKG_RELEASE:=1
-PKG_REV:=31d3692fe5d56c05753ed4a70c7943979e1d29e7
+PKG_REV:=fcd85d9a3f2d9d63d0fa57e93446ad467db75b23
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:=git://w1.fi/srv/git/hostap.git
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
+PKG_SOURCE_URL:=http://w1.fi/hostap.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE_VERSION:=$(PKG_REV)
 PKG_SOURCE_PROTO:=git
-# PKG_MIRROR_MD5SUM:=4e7c1f97edd7514535056fce54ae053a
+PKG_MIRROR_MD5SUM:=b1b690fedae8ff5c5801b4fb75508ea35c036aae86425ae324875fa57ef1a01b
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=BSD-3-Clause
@@ -29,7 +29,6 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_kmod-cfg80211 \
 	CONFIG_PACKAGE_hostapd \
 	CONFIG_PACKAGE_hostapd-mini \
-	CONFIG_PACKAGE_kmod-hostap \
 	CONFIG_WPA_RFKILL_SUPPORT \
 	CONFIG_DRIVER_WEXT_SUPPORT \
 	CONFIG_DRIVER_11N_SUPPORT
@@ -45,7 +44,7 @@ ifeq ($(LOCAL_VARIANT),mesh)
   CONFIG_VARIANT:=full
 endif
 
-ifeq ($(LOCAL_TYPE),supplicant)
+ifneq ($(LOCAL_TYPE),hostapd)
   ifeq ($(LOCAL_VARIANT),full)
     PKG_CONFIG_DEPENDS += \
 		CONFIG_WPA_SUPPLICANT_INTERNAL \
@@ -66,7 +65,6 @@ endif
 DRIVER_MAKEOPTS= \
 	CONFIG_ACS=$(CONFIG_PACKAGE_kmod-cfg80211) \
 	CONFIG_DRIVER_NL80211=$(CONFIG_PACKAGE_kmod-cfg80211) \
-	CONFIG_DRIVER_HOSTAP=$(CONFIG_PACKAGE_kmod-hostap) \
 	CONFIG_IEEE80211N=$(HOSTAPD_IEEE80211N) \
 	CONFIG_DRIVER_WEXT=$(CONFIG_DRIVER_WEXT_SUPPORT) \
 
@@ -177,7 +175,7 @@ endef
 define Package/wpad-mesh
 $(call Package/wpad/Default)
   TITLE+= (with 802.11s mesh and SAE support)
-  DEPENDS:=$(DRV_DEPENDS) +libubus +PACKAGE_wpad-mesh:libopenssl @(!TARGET_uml||BROKEN)
+  DEPENDS:=$(DRV_DEPENDS) +libubus +PACKAGE_wpad-mesh:libopenssl @PACKAGE_kmod-cfg80211 @(!TARGET_uml||BROKEN)
   VARIANT:=wpad-mesh
 endef
 
@@ -206,7 +204,7 @@ endef
 define Package/wpa-supplicant-p2p
   $(Package/wpa-supplicant)
   TITLE:=WPA Supplicant (with Wi-Fi P2P support)
-  DEPENDS:=$(DRV_DEPENDS)
+  DEPENDS:=$(DRV_DEPENDS) @PACKAGE_kmod-cfg80211
   CONFLICTS:=wpad wpad-mini wpad-mesh
   VARIANT:=supplicant-p2p
 endef
@@ -218,7 +216,7 @@ endef
 define Package/wpa-supplicant-mesh
   $(Package/wpa-supplicant)
   TITLE:=WPA Supplicant (with 802.11s and SAE)
-  DEPENDS:=$(DRV_DEPENDS) @(!TARGET_uml||BROKEN)
+  DEPENDS:=$(DRV_DEPENDS) +PACKAGE_wpa-supplicant-mesh:libopenssl @PACKAGE_kmod-cfg80211 @(!TARGET_uml||BROKEN)
   CONFLICTS:=wpad wpad-mesh wpad-mesh
   VARIANT:=supplicant-mesh
 endef
@@ -252,12 +250,6 @@ endef
 
 define Package/hostapd-common
   TITLE:=hostapd/wpa_supplicant common support files
-  SECTION:=net
-  CATEGORY:=Network
-endef
-
-define Package/hostapd-common-old
-  TITLE:=hostapd/wpa_supplicant common support files (legacy drivers)
   SECTION:=net
   CATEGORY:=Network
 endef
@@ -378,12 +370,6 @@ define Package/hostapd-common/install
 	$(INSTALL_DATA) ./files/netifd.sh $(1)/lib/netifd/hostapd.sh
 endef
 
-define Package/hostapd-common-old/install
-	$(INSTALL_DIR) $(1)/lib/wifi
-	$(INSTALL_DATA) ./files/hostapd.sh $(1)/lib/wifi/hostapd.sh
-	$(INSTALL_DATA) ./files/wpa_supplicant.sh $(1)/lib/wifi/wpa_supplicant.sh
-endef
-
 define Package/hostapd/install
 	$(call Install/hostapd,$(1))
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/hostapd/hostapd $(1)/usr/sbin/
@@ -414,6 +400,7 @@ define Package/wpa-supplicant/install
 endef
 Package/wpa-supplicant-mini/install = $(Package/wpa-supplicant/install)
 Package/wpa-supplicant-p2p/install = $(Package/wpa-supplicant/install)
+Package/wpa-supplicant-mesh/install = $(Package/wpa-supplicant/install)
 
 ifneq ($(LOCAL_TYPE),hostapd)
   define Package/wpa-cli/install
@@ -441,5 +428,4 @@ $(eval $(call BuildPackage,wpa-supplicant-p2p))
 $(eval $(call BuildPackage,wpa-cli))
 $(eval $(call BuildPackage,hostapd-utils))
 $(eval $(call BuildPackage,hostapd-common))
-$(eval $(call BuildPackage,hostapd-common-old))
 $(eval $(call BuildPackage,eapol-test))

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2015-2016 OpenWrt.org
+# Copyright (C) 2015 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -8,14 +8,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=omcproxy
-PKG_VERSION:=2015-09-15
+PKG_VERSION:=2015-08-24
 PKG_RELEASE:=3
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_URL:=https://github.com/openwrt/omcproxy.git
+PKG_SOURCE_URL:=https://github.com/sbyx/omcproxy.git
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_VERSION:=8de9fa84e018e152e45c342f10b5b5140b63e4b1
+PKG_MIRROR_MD5SUM:=e79dacf493155ebf7e0d9954dd007bb485d48819907bef6be4cda21bab769443
 PKG_MAINTAINER:=Steven Barth <cyrus@openwrt.org>
 PKG_LICENSE:=Apache-2.0
 

@@ -8,14 +8,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lldpd
-PKG_VERSION:=0.9.0
+PKG_VERSION:=0.9.5
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://media.luffy.cx/files/lldpd
-PKG_MD5SUM:=ed0226129b0c90b3a45c273fe1aba8de
+PKG_MD5SUM:=e9585c52f14808f03f6b6c3a9163c95b542a47b18abe002992b155d143a1a247
 
-PKG_MAINTAINER:=Jo-Philipp Wich <jow@openwrt.org>
+PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 PKG_LICENSE:=ISC
 
 PKG_FIXUP:=autoreconf
@@ -94,6 +94,7 @@ CONFIGURE_ARGS += \
 	--with-embedded-libevent=no \
 	--disable-hardening \
 	--without-xml \
+	--sysconfdir=/tmp \
 	$(if $(CONFIG_LLDPD_WITH_CDP),,--disable-cdp) \
 	$(if $(CONFIG_LLDPD_WITH_FDP),,--disable-fdp) \
 	$(if $(CONFIG_LLDPD_WITH_EDP),,--disable-edp) \

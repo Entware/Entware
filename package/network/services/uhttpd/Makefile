@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010-2015 Jo-Philipp Wich <jow@openwrt.org>
+# Copyright (C) 2010-2015 Jo-Philipp Wich <jo@mein.io>
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -8,14 +8,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=uhttpd
-PKG_VERSION:=2015-11-08
+PKG_VERSION:=2016-10-25
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(OPENWRT_GIT)/project/uhttpd.git
+PKG_SOURCE_URL=$(LEDE_GIT)/project/uhttpd.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=fe01ef3f52adae9da38ef47926cd50974af5d6b7
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
+PKG_SOURCE_VERSION:=1628fa4b34aa143187353f81e8001b9a15286bda
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
+PKG_MIRROR_MD5SUM:=9d7ceef6ce40cb12f4065b41d99cf584fcd971dce4a5a13b6a92b04d663e4301
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=ISC
 
@@ -23,6 +24,7 @@ PKG_BUILD_DEPENDS = ustream-ssl
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
+include $(INCLUDE_DIR)/version.mk
 
 define Package/uhttpd/default
   SECTION:=net
@@ -124,6 +126,7 @@ define Package/uhttpd/install
 	$(INSTALL_BIN) ./files/uhttpd.init $(1)/etc/init.d/uhttpd
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) ./files/uhttpd.config $(1)/etc/config/uhttpd
+	$(VERSION_SED_SCRIPT) $(1)/etc/config/uhttpd
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uhttpd $(1)/usr/sbin/uhttpd
 endef

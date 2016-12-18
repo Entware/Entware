@@ -186,7 +186,8 @@ hostapd_set_bss_options() {
 		wps_pushbutton wps_label ext_registrar wps_pbc_in_m1 \
 		wps_device_type wps_device_name wps_manufacturer wps_pin \
 		macfilter ssid wmm uapsd hidden short_preamble rsn_preauth \
-		iapp_interface eapol_version
+		iapp_interface eapol_version acct_server acct_secret acct_port \
+		dynamic_vlan
 
 	set_default isolate 0
 	set_default maxassoc 0
@@ -197,6 +198,7 @@ hostapd_set_bss_options() {
 	set_default wmm 1
 	set_default uapsd 1
 	set_default eapol_version 0
+	set_default acct_port 1813
 
 	append bss_conf "ctrl_interface=/var/run/hostapd"
 	if [ "$isolate" -gt 0 ]; then
@@ -220,6 +222,15 @@ hostapd_set_bss_options() {
 		[ -n "$wpa_pair_rekey"   ] && append bss_conf "wpa_ptk_rekey=$wpa_pair_rekey"    "$N"
 		[ -n "$wpa_master_rekey" ] && append bss_conf "wpa_gmk_rekey=$wpa_master_rekey"  "$N"
 	}
+
+	[ -n "$acct_server" ] && {
+		append bss_conf "acct_server_addr=$acct_server" "$N"
+		append bss_conf "acct_server_port=$acct_port" "$N"
+		[ -n "$acct_secret" ] && \
+			append bss_conf "acct_server_shared_secret=$acct_secret" "$N"
+	}
+
+	local vlan_possible=""
 
 	case "$auth_type" in
 		none)
@@ -250,12 +261,12 @@ hostapd_set_bss_options() {
 		eap)
 			json_get_vars \
 				auth_server auth_secret auth_port \
-				acct_server acct_secret acct_port \
 				dae_client dae_secret dae_port \
 				ownip \
-				eap_reauth_period dynamic_vlan \
-				vlan_naming vlan_tagged_interface \
-				vlan_bridge vlan_file
+				eap_reauth_period
+
+			# radius can provide VLAN ID for clients
+			vlan_possible=1
 
 			# legacy compatibility
 			[ -n "$auth_server" ] || json_get_var auth_server server
@@ -263,21 +274,12 @@ hostapd_set_bss_options() {
 			[ -n "$auth_secret" ] || json_get_var auth_secret key
 
 			set_default auth_port 1812
-			set_default acct_port 1813
 			set_default dae_port 3799
 
-			set_default vlan_naming 1
 
 			append bss_conf "auth_server_addr=$auth_server" "$N"
 			append bss_conf "auth_server_port=$auth_port" "$N"
 			append bss_conf "auth_server_shared_secret=$auth_secret" "$N"
-
-			[ -n "$acct_server" ] && {
-				append bss_conf "acct_server_addr=$acct_server" "$N"
-				append bss_conf "acct_server_port=$acct_port" "$N"
-				[ -n "$acct_secret" ] && \
-					append bss_conf "acct_server_shared_secret=$acct_secret" "$N"
-			}
 
 			[ -n "$eap_reauth_period" ] && append bss_conf "eap_reauth_period=$eap_reauth_period" "$N"
 
@@ -290,19 +292,6 @@ hostapd_set_bss_options() {
 			append bss_conf "eapol_key_index_workaround=1" "$N"
 			append bss_conf "ieee8021x=1" "$N"
 			append wpa_key_mgmt "WPA-EAP"
-
-			[ -n "$dynamic_vlan" ] && {
-				append bss_conf "dynamic_vlan=$dynamic_vlan" "$N"
-				append bss_conf "vlan_naming=$vlan_naming" "$N"
-				[ -n "$vlan_bridge" ] && \
-					append bss_conf "vlan_bridge=$vlan_bridge" "$N"
-				[ -n "$vlan_tagged_interface" ] && \
-					append bss_conf "vlan_tagged_interface=$vlan_tagged_interface" "$N"
-				[ -n "$vlan_file" ] && {
-					[ -e "$vlan_file" ] || touch "$vlan_file"
-					append bss_conf "vlan_file=$vlan_file" "$N"
-				}
-			}
 
 			[ "$eapol_version" -ge "1" -a "$eapol_version" -le "2" ] && append bss_conf "eapol_version=$eapol_version" "$N"
 		;;
@@ -331,8 +320,8 @@ hostapd_set_bss_options() {
 	[ -n "$wps_possible" -a -n "$config_methods" ] && {
 		set_default ext_registrar 0
 		set_default wps_device_type "6-0050F204-1"
-		set_default wps_device_name "OpenWrt AP"
-		set_default wps_manufacturer "openwrt.org"
+		set_default wps_device_name "Lede AP"
+		set_default wps_manufacturer "www.lede-project.org"
 
 		wps_state=2
 		[ -n "$wps_configured" ] && wps_state=1
@@ -428,6 +417,8 @@ hostapd_set_bss_options() {
 		allow)
 			append bss_conf "macaddr_acl=1" "$N"
 			append bss_conf "accept_mac_file=$_macfile" "$N"
+			# accept_mac_file can be used to set MAC to VLAN ID mapping
+			vlan_possible=1
 		;;
 		deny)
 			append bss_conf "macaddr_acl=0" "$N"
@@ -449,6 +440,21 @@ hostapd_set_bss_options() {
 			done
 			[ -n "$macfile" -a -f "$macfile" ] && cat "$macfile"
 		) > "$_macfile"
+	}
+
+	[ -n "$vlan_possible" -a -n "$dynamic_vlan" ] && {
+		json_get_vars vlan_naming vlan_tagged_interface vlan_bridge vlan_file
+		set_default vlan_naming 1
+		append bss_conf "dynamic_vlan=$dynamic_vlan" "$N"
+		append bss_conf "vlan_naming=$vlan_naming" "$N"
+		[ -n "$vlan_bridge" ] && \
+			append bss_conf "vlan_bridge=$vlan_bridge" "$N"
+		[ -n "$vlan_tagged_interface" ] && \
+			append bss_conf "vlan_tagged_interface=$vlan_tagged_interface" "$N"
+		[ -n "$vlan_file" ] && {
+			[ -e "$vlan_file" ] || touch "$vlan_file"
+			append bss_conf "vlan_file=$vlan_file" "$N"
+		}
 	}
 
 	append "$var" "$bss_conf" "$N"
