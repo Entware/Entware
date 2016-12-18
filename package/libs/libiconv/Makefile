@@ -16,7 +16,7 @@ PKG_RELEASE:=8
 PKG_LICENSE:=LGPL-2.1
 PKG_LICENSE_FILES:=LICENSE
 
-PKG_MAINTAINER:=Jo-Philipp Wich <jow@openwrt.org>
+PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/host-build.mk
@@ -26,11 +26,6 @@ define Package/libiconv
   CATEGORY:=Libraries
   TITLE:=Tiny drop-in replacement for the GNU Character set conversion library
 endef
-
-define Build/Prepare
-	$(INSTALL_DIR) $(PKG_BUILD_DIR)
-	$(CP) ./src/* $(PKG_BUILD_DIR)/
-endef      
 
 define Build/Configure
 endef
