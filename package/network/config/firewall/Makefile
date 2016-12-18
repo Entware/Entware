@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2013-2016 OpenWrt.org
+# Copyright (C) 2016 LEDE project
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -8,15 +9,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=firewall
-PKG_VERSION:=2016-01-29
+PKG_VERSION:=2016-11-29
 PKG_RELEASE:=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(OPENWRT_GIT)/project/firewall3.git
+PKG_SOURCE_URL=$(LEDE_GIT)/project/firewall3.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=8957be6c026858fe414aef69281d8aa06f7ea122
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
-PKG_MAINTAINER:=Jo-Philipp Wich <jow@openwrt.org>
+PKG_SOURCE_VERSION:=13698aafb52c45817ee7815da3405e620657c8d0
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
+PKG_MIRROR_MD5SUM:=fd5468488e67b2a67a95228cb2e2efe66a44426748d294ecd9c7806c6bbe0978
+PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 PKG_LICENSE:=ISC
 
 PKG_CONFIG_DEPENDS := CONFIG_IPV6
