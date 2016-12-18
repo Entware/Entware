@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010-2016 Jo-Philipp Wich <jow@openwrt.org>
+# Copyright (C) 2010-2016 Jo-Philipp Wich <jo@mein.io>
 #
 # This is free software, licensed under the GPL 2 license.
 #
@@ -7,16 +7,19 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libiwinfo
-PKG_VERSION:=2016-01-25
+PKG_VERSION:=2016-09-21
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(OPENWRT_GIT)/project/iwinfo.git
+PKG_SOURCE_URL=$(LEDE_GIT)/project/iwinfo.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=e4aca3910dff532ed878d0ceaf1ab6e8ad7719bf
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
-PKG_MAINTAINER:=Jo-Philipp Wich <jow@openwrt.org>
+PKG_SOURCE_VERSION:=fd9e17be0c43bd6b8df5371f0b353747bc563874
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
+PKG_MIRROR_MD5SUM:=fa2d47caf0927ca79a7c25fc9a480bdbc2f4330210f6aa0cb2e934a3355ce1b5
+PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 PKG_LICENSE:=GPL-2.0
+
+PKG_FLAGS := nonshared
 
 PKG_CONFIG_DEPENDS := \
 	CONFIG_PACKAGE_kmod-brcm-wl \
