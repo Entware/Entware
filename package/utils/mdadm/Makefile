@@ -24,6 +24,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/mdadm
   SECTION:=utils
   CATEGORY:=Utilities
+  SUBMENU:=Disc
   TITLE:=A tool for managing Soft RAID under Linux
   URL:=http://www.kernel.org/pub/linux/utils/raid/mdadm/
   DEPENDS:=+@KERNEL_DIRECT_IO
@@ -31,6 +32,11 @@ endef
 
 define Package/mdadm/description
  A tool for managing Linux Software RAID arrays.
+endef
+
+define Package/mdadm/conffiles
+/etc/mdadm.conf
+/etc/config/mdadm
 endef
 
 TARGET_CFLAGS += -ffunction-sections -fdata-sections
@@ -47,6 +53,10 @@ endef
 define Package/mdadm/install
 	$(INSTALL_DIR) $(1)/sbin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/mdadm $(1)/sbin
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/mdadm.init $(1)/etc/init.d/mdadm
+	$(INSTALL_DIR) $(1)/etc/config
+	$(INSTALL_DATA) ./files/mdadm.config $(1)/etc/config/mdadm
 endef
 
 $(eval $(call BuildPackage,mdadm))

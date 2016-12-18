@@ -5,10 +5,11 @@ PKG_VERSION:=2014-08-26
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(OPENWRT_GIT)/project/usbmode.git
+PKG_SOURCE_URL=$(LEDE_GIT)/project/usbmode.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE_VERSION:=993a9a542791953c4804f7ddbb3a07756738e37a
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
+PKG_MIRROR_MD5SUM:=4ba4ed629ef4530fd5a60b84cf5bf7a7194f60b69068882d47c1d3c55e06fc8c
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=GPL-2.0
@@ -44,6 +45,17 @@ define Build/Prepare
 	rm -f \
 		$(PKG_BUILD_DIR)/$(PKG_DATA_PATH)/usb_modeswitch.d/05c6:1000:sVe=GT
 	cp ./data/* $(PKG_BUILD_DIR)/$(PKG_DATA_PATH)/usb_modeswitch.d/
+	#in order to keep the Lede GIT repo free of filenames with colons,
+	#we name the files xxxx-yyyy
+	# and rename here after copying to the build directory
+	for filevar in $(PKG_BUILD_DIR)/$(PKG_DATA_PATH)/usb_modeswitch.d/*-* ; \
+	do \
+		[ -f "$$$$filevar" ] || continue ; \
+		FILENAME=$$$$(basename $$$$filevar) ; \
+		NEWNAME=$$$${FILENAME//-/:} ; \
+		rm "$(PKG_BUILD_DIR)/$(PKG_DATA_PATH)/usb_modeswitch.d/$$$$NEWNAME" ; \
+		mv "$(PKG_BUILD_DIR)/$(PKG_DATA_PATH)/usb_modeswitch.d/$$$$FILENAME" "$(PKG_BUILD_DIR)/$(PKG_DATA_PATH)/usb_modeswitch.d/$$$$NEWNAME" ; \
+	done
 endef
 
 define Package/usb-modeswitch/install

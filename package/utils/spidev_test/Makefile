@@ -27,12 +27,9 @@ define Package/spidev-test/description
   SPI testing utility.
 endef
 
-define Build/Prepare
-endef
-
 define Build/Compile
 	$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/spidev_test \
-		$(LINUX_DIR)/Documentation/spi/spidev_test.c
+		$(PKG_BUILD_DIR)/spidev_test.c
 endef
 
 define Package/spidev-test/install
