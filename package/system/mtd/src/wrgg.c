@@ -1,11 +1,10 @@
 /*
- * seama.c
+ * wrgg.c
  *
+ * Copyright (C) 2005 Mike Baker
+ * Copyright (C) 2008 Felix Fietkau <nbd@nbd.name>
  * Copyright (C) 2011-2012 Gabor Juhos <juhosg@openwrt.org>
- *
- * Based on the trx fixup code:
- *   Copyright (C) 2005 Mike Baker
- *   Copyright (C) 2008 Felix Fietkau <nbd@nbd.name>
+ * Copyright (C) 2016 Stijn Tintel <stijn@linux-ipv6.be>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,7 +36,7 @@
 #include <sys/ioctl.h>
 #include <mtd/mtd-user.h>
 #include "mtd.h"
-#include "seama.h"
+#include "wrgg.h"
 #include "md5.h"
 
 #if __BYTE_ORDER == __BIG_ENDIAN
@@ -52,7 +51,7 @@ ssize_t pread(int fd, void *buf, size_t count, off_t offset);
 ssize_t pwrite(int fd, const void *buf, size_t count, off_t offset);
 
 int
-seama_fix_md5(struct seama_entity_header *shdr, int fd, size_t data_offset, size_t data_size)
+wrgg_fix_md5(struct wrgg03_header *shdr, int fd, size_t data_offset, size_t data_size)
 {
 	char *buf;
 	ssize_t res;
@@ -75,10 +74,12 @@ seama_fix_md5(struct seama_entity_header *shdr, int fd, size_t data_offset, size
 	}
 
 	MD5_Init(&ctx);
+	MD5_Update(&ctx, (char *)&shdr->offset, sizeof(shdr->offset));
+	MD5_Update(&ctx, (char *)&shdr->dev_name, sizeof(shdr->dev_name));
 	MD5_Update(&ctx, buf, data_size);
 	MD5_Final(digest, &ctx);
 
-	if (!memcmp(digest, shdr->md5, sizeof(digest))) {
+	if (!memcmp(digest, shdr->digest, sizeof(digest))) {
 		if (quiet < 2)
 			fprintf(stderr, "the header is fixed already\n");
 		return -1;
@@ -96,7 +97,7 @@ seama_fix_md5(struct seama_entity_header *shdr, int fd, size_t data_offset, size
 	shdr->size = htonl(data_size);
 
 	/* update the checksum in the image */
-	memcpy(shdr->md5, digest, sizeof(digest));
+	memcpy(shdr->digest, digest, sizeof(digest));
 
 err_free:
 	free(buf);
@@ -105,17 +106,17 @@ err_out:
 }
 
 int
-mtd_fixseama(const char *mtd, size_t offset, size_t data_size)
+mtd_fixwrgg(const char *mtd, size_t offset, size_t data_size)
 {
 	int fd;
 	char *first_block;
 	ssize_t res;
 	size_t block_offset;
 	size_t data_offset;
-	struct seama_entity_header *shdr;
+	struct wrgg03_header *shdr;
 
 	if (quiet < 2)
-		fprintf(stderr, "Trying to fix SEAMA header in %s at 0x%x...\n",
+		fprintf(stderr, "Trying to fix WRGG header in %s at 0x%x...\n",
 			mtd, offset);
 
 	block_offset = offset & ~(erasesize - 1);
@@ -145,21 +146,23 @@ mtd_fixseama(const char *mtd, size_t offset, size_t data_size)
 		exit(1);
 	}
 
-	shdr = (struct seama_entity_header *)(first_block + offset);
-	if (shdr->magic != htonl(SEAMA_MAGIC)) {
-		fprintf(stderr, "No SEAMA header found\n");
+	shdr = (struct wrgg03_header *)(first_block + offset);
+	if (shdr->magic1 != htonl(STORE32_LE(WRGG03_MAGIC))) {
+		fprintf(stderr, "magic1 %x\n", shdr->magic1);
+		fprintf(stderr, "htonl(WRGG03_MAGIC) %x\n", WRGG03_MAGIC);
+		fprintf(stderr, "No WRGG header found\n");
 		exit(1);
 	} else if (!ntohl(shdr->size)) {
-		fprintf(stderr, "Seama entity with empty image\n");
+		fprintf(stderr, "WRGG entity with empty image\n");
 		exit(1);
 	}
 
-	data_offset = offset + sizeof(struct seama_entity_header) + ntohs(shdr->metasize);
+	data_offset = offset + sizeof(struct wrgg03_header);
 	if (!data_size)
 		data_size = mtdsize - data_offset;
 	if (data_size > ntohl(shdr->size))
 		data_size = ntohl(shdr->size);
-	if (seama_fix_md5(shdr, fd, data_offset, data_size))
+	if (wrgg_fix_md5(shdr, fd, data_offset, data_size))
 		goto out;
 
 	if (mtd_erase_block(fd, block_offset)) {
@@ -185,4 +188,3 @@ out:
 
 	return 0;
 }
-

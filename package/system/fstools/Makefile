@@ -8,23 +8,28 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=fstools
-PKG_VERSION:=2016-07-24
+PKG_VERSION:=2016-09-31
 
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(OPENWRT_GIT)/project/fstools.git
+PKG_SOURCE_URL=$(LEDE_GIT)/project/fstools.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=addd7dc21fe99f2701c1d4708071578052af401d
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
+PKG_SOURCE_VERSION:=94a5b0ad8d53f024f036c3526b48c34ebbd66a2f
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
+PKG_MIRROR_MD5SUM:=f9fca74463187f2ef07c45154ae5dea296bd7e6fcb734bdc5f8d452e8d6b9fa2
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=
 
 PKG_USE_MIPS16:=0
+PKG_FLAGS:=nonshared
 
-PKG_MAINTAINER:=John Crispin <blogic@openwrt.org>
+PKG_BUILD_DEPENDS := util-linux
+PKG_CONFIG_DEPENDS := CONFIG_NAND_SUPPORT CONFIG_FSTOOLS_UBIFS_EXTROOT
+
+PKG_MAINTAINER:=John Crispin <john@phrozen.org>
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
@@ -50,6 +55,13 @@ define Package/fstools/config
 			This option makes it possible to use extroot functionality if the root filesystem resides on an UBIFS partition
 endef
 
+define Package/snapshot-tool
+  SECTION:=base
+  CATEGORY:=Base system
+  TITLE:=rootfs snapshoting tool
+  DEPENDS:=+libubox +fstools
+endef
+
 define Package/block-mount
   SECTION:=base
   CATEGORY:=Base system
@@ -60,10 +72,16 @@ endef
 define Package/fstools/install
 	$(INSTALL_DIR) $(1)/sbin $(1)/lib
 
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/{mount_root,jffs2reset,snapshot_tool} $(1)/sbin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/{mount_root,jffs2reset} $(1)/sbin/
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libfstools.so $(1)/lib/
-	$(INSTALL_BIN) ./files/snapshot $(1)/sbin/
 	$(LN) jffs2reset $(1)/sbin/jffs2mark
+endef
+
+define Package/snapshot-tool/install
+	$(INSTALL_DIR) $(1)/sbin
+
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/snapshot_tool $(1)/sbin/
+	$(INSTALL_BIN) ./files/snapshot $(1)/sbin/
 endef
 
 define Package/block-mount/install
@@ -88,4 +106,5 @@ define Build/InstallDev
 endef
 
 $(eval $(call BuildPackage,fstools))
+$(eval $(call BuildPackage,snapshot-tool))
 $(eval $(call BuildPackage,block-mount))
