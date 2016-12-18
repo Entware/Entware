@@ -68,6 +68,7 @@ CONFIGURE_ARGS += \
 	--enable-syslog \
 	$(if $(CONFIG_SHADOW_PASSWORDS),,--disable-shadow) \
 	--disable-lastlog \
+	--disable-utmpx \
 	$(if $(CONFIG_DROPBEAR_UTMP),,--disable-utmp) \
 	--disable-wtmp \
 	--disable-wtmpx \
@@ -77,7 +78,8 @@ CONFIGURE_ARGS += \
 	--disable-zlib \
 	--enable-bundled-libtom
 
-TARGET_CFLAGS += -DDEFAULT_PATH=\\\"$(TARGET_INIT_PATH)\\\"
+TARGET_CFLAGS += -DARGTYPE=3 -ffunction-sections -fdata-sections
+TARGET_LDFLAGS += -Wl,--gc-sections
 
 define Build/Configure
 	$(Build/Configure/Default)
@@ -102,6 +104,10 @@ define Build/Configure
 	       >$(PKG_BUILD_DIR)/options.h.new && \
 	  mv $(PKG_BUILD_DIR)/options.h.new $(PKG_BUILD_DIR)/options.h || exit 1; \
 	done
+
+	# remove protocol idented software version number
+	$(SED) 's,^#define LOCAL_IDENT .*$$$$,#define LOCAL_IDENT "SSH-2.0-dropbear",g' \
+		$(PKG_BUILD_DIR)/sysoptions.h
 
 	# Enforce rebuild of svr-chansession.c
 	rm -f $(PKG_BUILD_DIR)/svr-chansession.o
