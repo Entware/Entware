@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libnl
-PKG_VERSION:=3.2.27
+PKG_VERSION:=3.2.28
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://github.com/thom311/libnl/releases/download/libnl3_2_27
-PKG_MD5SUM:=cec19f941b79a38d9eb92dbc171d6dbd
+PKG_SOURCE_URL:=https://github.com/thom311/libnl/releases/download/libnl3_2_28
+PKG_MD5SUM:=cd608992c656e8f6e3ab6c1391b162a5a51c49336b9219f7f390e61fc5437c41
 PKG_LICENSE:=LGPL-2.1
 
 include $(INCLUDE_DIR)/package.mk
