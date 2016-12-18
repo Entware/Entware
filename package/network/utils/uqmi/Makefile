@@ -1,17 +1,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=uqmi
-PKG_VERSION:=2015-09-17
+PKG_VERSION:=2016-11-22
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(OPENWRT_GIT)/project/uqmi.git
+PKG_SOURCE_URL=$(LEDE_GIT)/project/uqmi.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=8a97586e9445a60e355dea13aa87885ab3dcb277
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
+PKG_SOURCE_VERSION:=d682e966615fc652da6e4e26b57aa3adfebeb2fe
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
+PKG_MIRROR_MD5SUM:=a82c4682d07870d1bdf63e475afe1c1fffabf0954a49e0e67058dae0d4f6f71c
 PKG_MAINTAINER:=Matti Laakso <malaakso@elisanet.fi>
-# PKG_MIRROR_MD5SUM:=
-# CMAKE_INSTALL:=1
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=
@@ -24,6 +23,7 @@ include $(INCLUDE_DIR)/cmake.mk
 define Package/uqmi
   SECTION:=net
   CATEGORY:=Network
+  SUBMENU:=WWAN
   DEPENDS:=+libubox +libblobmsg-json
   TITLE:=Control utility for mobile broadband modems
 endef
