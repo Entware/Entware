@@ -10,7 +10,7 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=ppp
 PKG_VERSION:=2.4.7
-PKG_RELEASE:=9
+PKG_RELEASE:=10
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://download.samba.org/pub/ppp/
@@ -156,7 +156,7 @@ define Package/pppstats/description
 This package contains an utility to report PPP statistics.
 endef
 
-# for 2.6 kernels ????
+# for 2.6 kernels ???? no, 3.4 also
 LINUX_UAPI_DIR=""
 
 
@@ -172,6 +172,9 @@ $(call Build/Configure/Default,, \
 		$(LINUX_DIR)/include/$(LINUX_UAPI_DIR)linux/atm*.h \
 		$(PKG_BUILD_DIR)/pppd/plugins/pppoatm/linux/
 endef
+
+TARGET_CFLAGS += -ffunction-sections -fdata-sections
+TARGET_LDFLAGS += -Wl,--gc-sections
 
 MAKE_FLAGS += COPTS="$(TARGET_CFLAGS) -I$(STAGING_DIR)/opt/include" \
 		PRECOMPILED_FILTER=1 \
