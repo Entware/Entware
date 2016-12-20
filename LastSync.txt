@@ -5,3 +5,13 @@ Author: Hauke Mehrtens <hauke@hauke-m.de>
 Date:   Sun Dec 4 19:03:48 2016 +0100
 
     lantiq: falcon: remove bootargs-append
+
+trunk/packages
+
+commit fb237477fd1e7801e4877f9fe1ea7bc1ec16dd99
+Author: Felix Fietkau <nbd@nbd.name>
+Date:   Thu Dec 15 13:02:31 2016 +0100
+
+    mt76: update to the latest version, fixes a build error on some platforms
+    
+    Signed-off-by: Felix Fietkau <nbd@nbd.name>
