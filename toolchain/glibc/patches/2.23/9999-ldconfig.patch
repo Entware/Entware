@@ -1,0 +1,91 @@
+--- a/elf/dl-cache.c	2016-10-31 16:43:27.000000000 +0300
++++ b/elf/dl-cache.c	2016-12-23 14:49:02.000000000 +0300
+@@ -133,7 +133,7 @@
+ 
+ 
+ const char LD_SO_CACHE[4096] __attribute__ ((section (".ldsocache"))) =
+-		SYSCONFDIR "/ld.so.cache";
++		"/opt" SYSCONFDIR "/ld.so.cache";
+ 
+ 
+ int
+--- a/elf/ldconfig.c	2016-10-31 16:43:27.000000000 +0300
++++ b/elf/ldconfig.c	2016-12-23 14:48:51.000000000 +0300
+@@ -51,7 +51,7 @@
+ #endif
+ 
+ #ifndef LD_SO_CONF
+-# define LD_SO_CONF SYSCONFDIR "/ld.so.conf"
++# define LD_SO_CONF "/opt" SYSCONFDIR "/ld.so.conf"
+ #endif
+ 
+ /* Get libc version number.  */
+@@ -1393,9 +1393,7 @@
+       parse_conf (config_file, true);
+ 
+       /* Always add the standard search paths.  */
+-      add_system_dir (SLIBDIR);
+-      if (strcmp (SLIBDIR, LIBDIR))
+-	add_system_dir (LIBDIR);
++      add_dir ("/opt/lib");
+     }
+ 
+   const char *aux_cache_file = _PATH_LDCONFIG_AUX_CACHE;
+--- a/elf/Makefile	2016-02-18 20:54:00.000000000 +0300
++++ b/elf/Makefile	2016-12-23 14:50:09.000000000 +0300
+@@ -407,7 +407,7 @@
+ $(objpfx)trusted-dirs.h: $(objpfx)trusted-dirs.st; @:
+ $(objpfx)trusted-dirs.st: Makefile $(..)Makeconfig
+ 	$(make-target-directory)
+-	echo "$(subst :, ,$(default-rpath) $(user-defined-trusted-dirs))"    \
++	echo "$(subst :, ,$(user-defined-trusted-dirs))"    \
+ 	| $(AWK) -f gen-trusted-dirs.awk > ${@:st=T};
+ 	echo '#define DL_DST_LIB "$(notdir $(slibdir))"' >> ${@:st=T}
+ 	$(move-if-change) ${@:st=T} ${@:st=h}
+--- a/elf/rtld.c	2016-10-31 16:43:27.000000000 +0300
++++ b/elf/rtld.c	2016-12-23 14:49:35.000000000 +0300
+@@ -1510,7 +1510,7 @@
+      open().  So we do this first.  If it succeeds we do almost twice
+      the work but this does not matter, since it is not for production
+      use.  */
+-  static const char preload_file[] = "/etc/ld.so.preload";
++  static const char preload_file[] = "/opt/etc/ld.so.preload";
+   if (__glibc_unlikely (__access (preload_file, R_OK) == 0))
+     {
+       /* Read the contents of the file.  */
+--- a/sysdeps/unix/sysv/linux/arm/ldconfig.h	2016-02-18 20:54:00.000000000 +0300
++++ b/sysdeps/unix/sysv/linux/arm/ldconfig.h	2016-12-23 15:16:04.000000000 +0300
+@@ -18,8 +18,7 @@
+ #include <sysdeps/generic/ldconfig.h>
+ 
+ #define SYSDEP_KNOWN_INTERPRETER_NAMES \
+-  { "/lib/ld-linux.so.3", FLAG_ELF_LIBC6 }, \
+-  { "/lib/ld-linux-armhf.so.3", FLAG_ELF_LIBC6 },
++  { "/opt/lib/ld-linux.so.3", FLAG_ELF_LIBC6 },
+ #define SYSDEP_KNOWN_LIBRARY_NAMES \
+   { "libc.so.6", FLAG_ELF_LIBC6 },	\
+   { "libm.so.6", FLAG_ELF_LIBC6 },
+--- a/sysdeps/unix/sysv/linux/i386/ldconfig.h	2016-02-18 20:54:00.000000000 +0300
++++ b/sysdeps/unix/sysv/linux/i386/ldconfig.h	2016-12-23 15:15:37.000000000 +0300
+@@ -18,7 +18,7 @@
+ #include <sysdeps/generic/ldconfig.h>
+ 
+ #define SYSDEP_KNOWN_INTERPRETER_NAMES \
+-  { "/lib/ld-linux.so.1", FLAG_ELF_LIBC5 },
++  { "/opt/lib/ld-linux.so.1", FLAG_ELF_LIBC5 },
+ #define SYSDEP_KNOWN_LIBRARY_NAMES \
+   { "libc.so.5", FLAG_ELF_LIBC5 },	\
+   { "libm.so.5", FLAG_ELF_LIBC5 },
+--- a/sysdeps/unix/sysv/linux/x86_64/ldconfig.h	2016-02-18 20:54:00.000000000 +0300
++++ b/sysdeps/unix/sysv/linux/x86_64/ldconfig.h	2016-12-23 14:39:05.000000000 +0300
+@@ -18,9 +18,7 @@
+ #include <sysdeps/generic/ldconfig.h>
+ 
+ #define SYSDEP_KNOWN_INTERPRETER_NAMES \
+-  { "/lib/ld-linux.so.2", FLAG_ELF_LIBC6 }, \
+-  { "/libx32/ld-linux-x32.so.2", FLAG_ELF_LIBC6 }, \
+-  { "/lib64/ld-linux-x86-64.so.2", FLAG_ELF_LIBC6 },
++  { "/opt/lib/ld-linux.so.2", FLAG_ELF_LIBC6 },
+ #define SYSDEP_KNOWN_LIBRARY_NAMES \
+   { "libc.so.6", FLAG_ELF_LIBC6 },	\
+   { "libm.so.6", FLAG_ELF_LIBC6 },

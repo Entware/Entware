@@ -11,7 +11,7 @@ PKG_NAME:=toolchain
 PKG_RELEASE:=3
 
 ifeq ($(CONFIG_USE_GLIBC),y)
-        PKG_RELEASE=6
+        PKG_RELEASE=7
 endif
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
@@ -640,6 +640,7 @@ endif
 	$(CP) $(TOOLCHAIN_DIR)/bin/ldd $(1)/opt/bin/
   ifeq ($(CONFIG_USE_GLIBC),y)
 	$(SED) 's|^\#!.*bash|\#!/opt/bin/sh|g; \
+	s|/lib/ld.so.1|/opt/lib/ld.so.1|g; \
 	s|/lib/ld-linux.so.3|/opt/lib/ld-linux.so.3|g; \
 	s|/lib/ld-linux.so.2|/opt/lib/ld-linux.so.2|g; \
 	s|/lib64/ld-linux-x86-64.so.2|/opt/lib/ld-linux-x86-64.so.2|g' $(1)/opt/bin/ldd
