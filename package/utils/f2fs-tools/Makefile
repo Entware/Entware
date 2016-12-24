@@ -71,10 +71,10 @@ define Package/f2fsck/install
 	$(INSTALL_DIR) $(1)/opt/sbin
 
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/fsck.f2fs $(1)/opt/sbin
-	ln -s /usr/sbin/fsck.f2fs $(1)/opt/sbin/defrag.f2fs
-	ln -s /usr/sbin/fsck.f2fs $(1)/opt/sbin/dump.f2fs
-	ln -s /usr/sbin/fsck.f2fs $(1)/opt/sbin/sload.f2fs
-	ln -s /usr/sbin/fsck.f2fs $(1)/opt/sbin/resize.f2fs
+	ln -s fsck.f2fs $(1)/opt/sbin/defrag.f2fs
+	ln -s fsck.f2fs $(1)/opt/sbin/dump.f2fs
+	ln -s fsck.f2fs $(1)/opt/sbin/sload.f2fs
+	ln -s fsck.f2fs $(1)/opt/sbin/resize.f2fs
 endef
 
 define Package/f2fs-tools/install
