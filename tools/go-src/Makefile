@@ -7,27 +7,26 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=go-src
-PKG_VERSION:=1.4.3
+PKG_VERSION:=1.8rc3
 
 PKG_SOURCE:=go$(PKG_VERSION).src.tar.gz
 PKG_SOURCE_URL:=https://storage.googleapis.com/golang
-PKG_MD5SUM:=dfb604511115dd402a77a553a5923a04
-HOST_BUILD_DIR=$(BUILD_DIR_HOST)/go.$(PKG_VERSION)
-HOST_UNPACK:=gzip -dc $(DL_DIR)/$(PKG_SOURCE) | tar -C $(HOST_BUILD_DIR) --strip-components=1 -xf -
+HOST_BUILD_DIR:=$(STAGING_DIR_HOST)/go
+PKG_HASH:=38b1c1738f111f7bccdd372efca2aa98a7bad1ca2cb21767ba69f34ae007499c
 
 include $(INCLUDE_DIR)/host-build.mk
 
 define Host/Compile
-	(cd $(HOST_BUILD_DIR)/src/cmd/go; \
-		GOROOT=$(STAGING_DIR_HOST)/go \
-		$(STAGING_DIR_HOST)/go/bin/go build -x -o ego  . \
+	(cd $(STAGING_DIR_HOST)/go/src ; \
+		GOROOT_BOOTSTRAP=$(STAGING_DIR_HOST)/go1.4 ./make.bash --no-clean ; \
 	)
 endef
 
 define Host/Install
-	$(INSTALL_DIR) $(STAGING_DIR_HOST)/bin
-	$(INSTALL_BIN) $(HOST_BUILD_DIR)/src/cmd/go/ego $(STAGING_DIR_HOST)/bin
 endef
 
+define Host/Clean
+	rm -rf $(STAGING_DIR_HOST)/go
+endef
 
 $(eval $(call HostBuild))

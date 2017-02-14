@@ -6,6 +6,8 @@
 #
 # Main makefile for the host tools
 #
+# Entware note: some tools (image and kernel related) that we do not need are removed
+#               other tools go 
 curdir:=tools
 
 # subdirectories to descend into
@@ -13,96 +15,76 @@ tools-y :=
 
 ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
   BUILD_TOOLCHAIN := y
-endif
-# For graphite: gcc 4.4..4.7 need ppl, while 4.8.. need isl
-ifdef CONFIG_GCC_USE_GRAPHITE
-  ifeq ($(CONFIG_GCC_USE_SYSTEM_ISL_CLOOG),)
-    BUILD_ISL_CLOOG = y
+  ifdef CONFIG_GCC_USE_GRAPHITE
+    BUILD_ISL = y
   endif
-endif
-ifneq ($(CONFIG_PACKAGE_kmod-b43)$(CONFIG_PACKAGE_b43legacy-firmware)$(CONFIG_BRCMSMAC_USE_FW_FROM_WL),)
-  BUILD_B43_TOOLS = y
 endif
 
 tools-$(BUILD_TOOLCHAIN) += gmp mpfr mpc libelf expat
-tools-y += m4 libtool autoconf automake flex bison pkg-config sed mklibs
-tools-y += sstrip make-ext4fs e2fsprogs mtd-utils mkimage
-tools-y += firmware-utils patch-image patch quilt yaffs2 padjffs2
-tools-y += mm-macros missing-macros xz cmake scons bc findutils gengetopt patchelf
-tools-y += mtools dosfstools
-tools-$(CONFIG_TARGET_orion_generic) += wrt350nv2-builder upslug2
-tools-$(CONFIG_powerpc) += upx
-tools-$(CONFIG_TARGET_x86) += qemu
-tools-$(CONFIG_TARGET_mxs) += elftosb sdimage
-tools-$(CONFIG_TARGET_ar71xx) += lzma-old squashfs
-tools-y += lzma squashfs4
-tools-$(BUILD_B43_TOOLS) += b43-tools
-tools-$(BUILD_ISL_CLOOG) += isl cloog
-tools-$(CONFIG_USE_SPARSE) += sparse
-tools-$(CONFIG_INSTALL_GCCGO) += go-bin
+tools-y += m4 libtool autoconf automake flex bison pkg-config mklibs
+tools-y += sstrip
+tools-y += quilt
+tools-y += mm-macros missing-macros cmake scons bc findutils gengetopt patchelf
+tools-y += mtools
+tools-y += lzma
+tools-$(BUILD_ISL) += isl
 tools-$(CONFIG_INSTALL_GCCGO) += go-src
-tools-$(CONFIG_INSTALL_GCCGO) += godep
+tools-$(CONFIG_INSTALL_GCCGO) += go-bootstrap
 
 # builddir dependencies
-$(curdir)/bison/compile := $(curdir)/flex/install
-$(curdir)/flex/compile := $(curdir)/libtool/install
-$(curdir)/pkg-config/compile := $(curdir)/sed/install
-$(curdir)/libtool/compile := $(curdir)/sed/install $(curdir)/m4/install $(curdir)/autoconf/install $(curdir)/automake/install $(curdir)/missing-macros/install
-$(curdir)/squashfs/compile := $(curdir)/lzma-old/install
-$(curdir)/squashfs4/compile := $(curdir)/xz/install
-$(curdir)/quilt/compile := $(curdir)/sed/install $(curdir)/autoconf/install $(curdir)/findutils/install
-$(curdir)/autoconf/compile := $(curdir)/m4/install
-$(curdir)/automake/compile := $(curdir)/m4/install $(curdir)/autoconf/install $(curdir)/pkg-config/install $(curdir)/xz/install
-$(curdir)/gmp/compile := $(curdir)/libtool/install
-$(curdir)/mpc/compile := $(curdir)/mpfr/install $(curdir)/gmp/install
-$(curdir)/mpfr/compile := $(curdir)/gmp/install
-$(curdir)/ppl/compile := $(curdir)/gmp/install
-$(curdir)/cloog/compile := $(curdir)/isl/install
-$(curdir)/mtd-utils/compile := $(curdir)/e2fsprogs/install $(curdir)/xz/install
-$(curdir)/mkimage/compile := $(curdir)/sed/install
-$(curdir)/mklibs/compile := $(curdir)/libtool/install
-$(curdir)/qemu/compile := $(curdir)/e2fsprogs/install
-$(curdir)/upslug2/compile := $(curdir)/libtool/install
-$(curdir)/mm-macros/compile := $(curdir)/libtool/install
-$(curdir)/missing-macros/compile := $(curdir)/autoconf/install
-$(curdir)/e2fsprogs/compile := $(curdir)/libtool/install
-$(curdir)/libelf/compile := $(curdir)/libtool/install
-$(curdir)/sdcc/compile := $(curdir)/bison/install
-$(curdir)/b43-tools/compile := $(curdir)/bison/install
-$(curdir)/padjffs2/compile := $(curdir)/findutils/install
-$(curdir)/isl/compile := $(curdir)/gmp/install
-$(curdir)/bc/compile := $(curdir)/bison/install
-$(curdir)/findutils/compile := $(curdir)/bison/install
-$(curdir)/gengetopt/compile := $(curdir)/libtool/install
-$(curdir)/patchelf/compile := $(curdir)/libtool/install
-$(curdir)/dosfstools/compile := $(curdir)/autoconf/install $(curdir)/automake/install
-$(curdir)/go-src/compile := $(curdir)/go-bin/install
-$(curdir)/godep/compile := $(curdir)/go-bin/install
-ifneq ($(HOST_OS),Linux)
-  tools-y += coreutils
-endif
+$(curdir)/bison/compile := $(curdir)/flex/compile
+$(curdir)/flex/compile := $(curdir)/libtool/compile
+$(curdir)/libtool/compile := $(curdir)/m4/compile $(curdir)/autoconf/compile $(curdir)/automake/compile $(curdir)/missing-macros/compile
+$(curdir)/quilt/compile := $(curdir)/autoconf/compile $(curdir)/findutils/compile
+$(curdir)/autoconf/compile := $(curdir)/m4/compile
+$(curdir)/automake/compile := $(curdir)/m4/compile $(curdir)/autoconf/compile $(curdir)/pkg-config/compile $(curdir)/xz/compile
+$(curdir)/gmp/compile := $(curdir)/libtool/compile
+$(curdir)/mpc/compile := $(curdir)/mpfr/compile $(curdir)/gmp/compile
+$(curdir)/mpfr/compile := $(curdir)/gmp/compile
+$(curdir)/mklibs/compile := $(curdir)/libtool/compile
+$(curdir)/mm-macros/compile := $(curdir)/libtool/compile
+$(curdir)/missing-macros/compile := $(curdir)/autoconf/compile
+$(curdir)/libelf/compile := $(curdir)/libtool/compile
+$(curdir)/isl/compile := $(curdir)/gmp/compile
+$(curdir)/bc/compile := $(curdir)/bison/compile
+$(curdir)/findutils/compile := $(curdir)/bison/compile
+$(curdir)/gengetopt/compile := $(curdir)/libtool/compile
+$(curdir)/patchelf/compile := $(curdir)/libtool/compile
+$(curdir)/go-src/compile := $(curdir)/go-bootstrap/compile
 
+tools-y += coreutils
 
 ifneq ($(CONFIG_CCACHE)$(CONFIG_SDK),)
-$(foreach tool, $(filter-out xz patch,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/ccache/install))
+$(foreach tool, $(filter-out xz patch,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/ccache/compile))
 tools-y += ccache
 endif
 
 # in case there is no patch tool on the host we need to make patch tool a
 # dependency for tools which have patches directory
-$(foreach tool, $(tools-y), $(if $(wildcard $(curdir)/$(tool)/patches),$(eval $(curdir)/$(tool)/compile += $(curdir)/patch/install)))
+$(foreach tool, $(tools-y), $(if $(wildcard $(curdir)/$(tool)/patches),$(eval $(curdir)/$(tool)/compile += $(curdir)/patch/compile)))
 
-# make any tool (except xz itself) depend on XZ to ensure that *.tar.xz source archives can be unpacked
-$(foreach tool, $(filter-out xz,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/xz/install))
+$(foreach tool, $(filter-out xz,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/xz/compile))
 
-$(foreach tool, $(tools-y), $(eval $(curdir)/$(tool)/compile += $(curdir)/tar/install))
-tools-y += tar
+# make any tool depend on tar, xz and patch to ensure that archives can be unpacked and patched properly
+tools-core := tar xz patch
 
-$(curdir)/tar/compile := $(curdir)/flock/install
-tools-y += flock
+$(foreach tool, $(tools-y), $(eval $(curdir)/$(tool)/compile += $(patsubst %,$(curdir)/%/compile,$(tools-core))))
+tools-y += $(tools-core)
 
+# make core tools depend on sed and flock
+$(foreach tool, $(tools-core), $(eval $(curdir)/$(tool)/compile += $(curdir)/sed/compile))
+
+$(curdir)/sed/compile := $(curdir)/flock/compile
+tools-y += flock sed
+
+$(curdir)/autoremove := 1
 $(curdir)/builddirs := $(tools-y) $(tools-dep) $(tools-)
 $(curdir)/builddirs-default := $(tools-y)
+
+ifdef CHECK_ALL
+$(curdir)/builddirs-check:=$($(curdir)/builddirs)
+$(curdir)/builddirs-download:=$($(curdir)/builddirs)
+endif
 
 ifndef DUMP_TARGET_DB
 define PrepareStaging
@@ -135,8 +117,10 @@ $(curdir)//compile = $(STAGING_DIR)/.prepared $(STAGING_DIR_HOST)/.prepared
 
 # prerequisites for the individual targets
 $(curdir)/ := .config prereq
-$(curdir)//install = $(1)/compile
+
+$(curdir)/install: $(curdir)/compile
 
 tools_enabled = $(foreach tool,$(sort $(tools-y) $(tools-)),$(if $(filter $(tool),$(tools-y)),y,n))
-$(eval $(call stampfile,$(curdir),tools,install,,_$(subst $(space),,$(tools_enabled))))
+$(eval $(call stampfile,$(curdir),tools,compile,,_$(subst $(space),,$(tools_enabled))))
+$(eval $(call stampfile,$(curdir),tools,check,$(TMP_DIR)/.build))
 $(eval $(call subdir,$(curdir)))

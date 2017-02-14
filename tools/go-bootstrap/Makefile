@@ -6,7 +6,7 @@
 #
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=go-bin
+PKG_NAME:=go-bootstrap
 PKG_VERSION:=1.4.3
 
 bintype:=$(shell uname -m | sed \
@@ -16,25 +16,21 @@ bintype:=$(shell uname -m | sed \
 
 PKG_SOURCE:=go$(PKG_VERSION).linux-$(bintype).tar.gz
 PKG_SOURCE_URL:=https://storage.googleapis.com/golang
-HOST_BUILD_DIR:=$(STAGING_DIR_HOST)/go
+HOST_BUILD_DIR:=$(STAGING_DIR_HOST)/go1.4
+HOST_UNPACK:=gzip -dc $(DL_DIR)/$(PKG_SOURCE) | tar -C $(HOST_BUILD_DIR) --strip-components=1 -xf -
 
 include $(INCLUDE_DIR)/host-build.mk
 
 #build go for all architetures - in case gccgo does not work
 
 define Host/Compile
-	(cd $(STAGING_DIR_HOST)/go/src ; \
-		GOOS=linux GOARCH=386 GOROOT=$(STAGING_DIR_HOST)/go CGO_ENABLED=0 ./make.bash --no-clean ; \
-		GOOS=linux GOARCH=amd64 GOROOT=$(STAGING_DIR_HOST)/go CGO_ENABLED=0 ./make.bash --no-clean ; \
-		GOOS=linux GOARCH=arm GOARM=5 GOROOT=$(STAGING_DIR_HOST)/go CGO_ENABLED=0 ./make.bash --no-clean ; \
-	)
 endef
 
 define Host/Install
 endef
 
 define Host/Clean
-	rm -rf $(STAGING_DIR_HOST)/go
+	rm -rf $(STAGING_DIR_HOST)/go1.4
 endef
 
 $(eval $(call HostBuild))

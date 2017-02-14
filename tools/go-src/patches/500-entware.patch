@@ -1,0 +1,46 @@
+diff -Naur src.orig/crypto/x509/root_linux.go src/crypto/x509/root_linux.go
+--- a/src.orig/crypto/x509/root_linux.go	2017-01-19 23:59:47.000000000 +0300
++++ b/src/crypto/x509/root_linux.go	2017-01-25 15:07:09.549582471 +0300
+@@ -6,6 +6,7 @@
+ 
+ // Possible certificate files; stop after finding one.
+ var certFiles = []string{
++	"/opt/etc/ssl/certs/ca-certificates.crt",            // Entware
+ 	"/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
+ 	"/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem", // CentOS/RHEL 7
+ 	"/etc/pki/tls/certs/ca-bundle.crt",                  // Fedora/RHEL 6
+diff -Naur src.orig/crypto/x509/root_unix.go src/crypto/x509/root_unix.go
+--- a/src.orig/crypto/x509/root_unix.go	2017-01-19 23:59:47.000000000 +0300
++++ b/src/crypto/x509/root_unix.go	2017-01-25 15:07:44.125582471 +0300
+@@ -14,6 +14,7 @@
+ // Possible directories with certificate files; stop after successfully
+ // reading at least one file from a directory.
+ var certDirectories = []string{
++	"/opt/etc/ssl/certs",           // Entware
+ 	"/etc/ssl/certs",               // SLES10/SLES11, https://golang.org/issue/12139
+ 	"/system/etc/security/cacerts", // Android
+ }
+diff -Naur src.orig/net/conf.go src/net/conf.go
+--- a/src.orig/net/conf.go	2017-01-19 23:59:47.000000000 +0300
++++ b/src/net/conf.go	2017-01-25 15:21:02.257582471 +0300
+@@ -93,7 +93,7 @@
+ 	}
+ 
+ 	if runtime.GOOS != "openbsd" {
+-		confVal.nss = parseNSSConfFile("/etc/nsswitch.conf")
++		confVal.nss = parseNSSConfFile("/opt/etc/nsswitch.conf")
+ 	}
+ 
+ 	confVal.resolv = dnsReadConfig("/etc/resolv.conf")
+diff -Naur src.orig/time/zoneinfo_unix.go src/time/zoneinfo_unix.go
+--- a/src.orig/time/zoneinfo_unix.go	2017-01-19 23:59:49.000000000 +0300
++++ b/src/time/zoneinfo_unix.go	2017-01-25 15:08:30.605582471 +0300
+@@ -56,7 +56,7 @@
+ 	tz, ok := syscall.Getenv("TZ")
+ 	switch {
+ 	case !ok:
+-		z, err := loadZoneFile("", "/etc/localtime")
++		z, err := loadZoneFile("", "/opt/etc/localtime")
+ 		if err == nil {
+ 			localLoc = *z
+ 			localLoc.name = "Local"
