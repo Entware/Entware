@@ -59,7 +59,7 @@ define Build/fit
 		-D $(DEVICE_NAME) -o $@.its -k $@ \
 		$(if $(word 2,$(1)),-d $(word 2,$(1))) -C $(word 1,$(1)) \
 		-a $(KERNEL_LOADADDR) -e $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
-		-A $(ARCH) -v $(LINUX_VERSION)
+		-A $(LINUX_KARCH) -v $(LINUX_VERSION)
 	PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage -f $@.its $@.new
 	@mv $@.new $@
 endef
@@ -108,6 +108,10 @@ endef
 
 define Build/append-rootfs
 	dd if=$(IMAGE_ROOTFS) >> $@
+endef
+
+define Build/append-file
+	cat "$(1)" >> "$@"
 endef
 
 define Build/append-ubi
@@ -189,4 +193,9 @@ metadata_json = \
 
 define Build/append-metadata
 	$(if $(SUPPORTED_DEVICES),echo $(call metadata_json,$(SUPPORTED_DEVICES)) | fwtool -I - $@)
+endef
+
+define Build/kernel2minor
+	kernel2minor -k $@ -r $@.new $(1)
+	mv $@.new $@
 endef

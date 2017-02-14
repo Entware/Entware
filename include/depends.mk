@@ -11,15 +11,16 @@
 #	3: tempfile for file listings
 #	4: find options
 
-DEP_FINDPARAMS := -x "*/.svn*" -x ".*" -x "*:*" -x "*\!*" -x "* *" -x "*\\\#*" -x "*/.*_check" -x "*/.*.swp"
+DEP_FINDPARAMS := -x "*/.svn*" -x ".*" -x "*:*" -x "*\!*" -x "* *" -x "*\\\#*" -x "*/.*_check" -x "*/.*.swp" -x "*/.pkgdir*"
 
-find_md5=$(SH_FUNC) find $(wildcard $(1)) -type f $(patsubst -x,-and -not -path,$(DEP_FINDPARAMS) $(2)) | md5s
+find_md5=find $(wildcard $(1)) -type f $(patsubst -x,-and -not -path,$(DEP_FINDPARAMS) $(2)) | mkhash md5
 
 define rdep
   .PRECIOUS: $(2)
   .SILENT: $(2)_check
 
   $(2): $(2)_check
+  check-depends: $(2)_check
 
 ifneq ($(wildcard $(2)),)
   $(2)_check::
@@ -46,3 +47,8 @@ endif
 
 endef
 
+ifeq ($(filter .%,$(MAKECMDGOALS)),$(if $(MAKECMDGOALS),$(MAKECMDGOALS),x))
+  define rdep
+    $(2): $(2)_check
+  endef
+endif

@@ -67,7 +67,12 @@ ifneq ($(strip $(PKG_UNPACK)),)
   endef
 endif
 
-DISABLE_NLS:=--disable-nls
+EXTRA_CXXFLAGS = $(EXTRA_CFLAGS)
+#ifeq ($(CONFIG_BUILD_NLS),y)
+#    DISABLE_NLS:=
+#else
+    DISABLE_NLS:=--disable-nls
+#endif
 
 CONFIGURE_PREFIX:=/opt
 CONFIGURE_ARGS = \

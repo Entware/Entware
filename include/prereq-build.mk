@@ -20,7 +20,7 @@ $(eval $(call TestHostCommand,working-make, \
 	$(MAKE) -v | grep -E 'Make (3\.8[1-9]|3\.9[0-9]|[4-9]\.)'))
 
 $(eval $(call TestHostCommand,case-sensitive-fs, \
-	ENTWARE can only be built on a case-sensitive filesystem, \
+	LEDE can only be built on a case-sensitive filesystem, \
 	rm -f $(TMP_DIR)/test.*; touch $(TMP_DIR)/test.fs; \
 		test ! -f $(TMP_DIR)/test.FS))
 
@@ -75,14 +75,6 @@ $(eval $(call TestHostCommand,zlib, \
 	echo 'int main(int argc, char **argv) { gzdopen(0, "rb"); return 0; }' | \
 		gcc -include zlib.h -x c -o $(TMP_DIR)/a.out - $(zlib_link_flags)))
 
-# Xcode deprecated openssl, MacPorts doesn't work nicely for other packages
-ifneq ($(HOST_OS),Darwin)
-$(eval $(call TestHostCommand,libssl, \
-	Please install the openssl library (with development headers), \
-	echo 'int main(int argc, char **argv) { SSL_library_init(); return 0; }' | \
-		gcc $(HOST_CFLAGS) -include openssl/ssl.h -x c -o $(TMP_DIR)/a.out - -lcrypto -lssl $(HOST_LDFLAGS)))
-endif
-
 $(eval $(call TestHostCommand,perl-thread-queue, \
 	Please install the Perl Thread::Queue module, \
 	perl -MThread::Queue -e 1))
@@ -135,11 +127,6 @@ $(eval $(call SetupHostCommand,stat,Cannot find a file stat utility, \
 	gstat -c%s $(TMP_DIR)/.host.mk, \
 	stat -c%s $(TMP_DIR)/.host.mk))
 
-$(eval $(call SetupHostCommand,md5sum,, \
-	gmd5sum /dev/null | grep d41d8cd98f00b204e9800998ecf8427e, \
-	md5sum /dev/null | grep d41d8cd98f00b204e9800998ecf8427e, \
-	$(SCRIPT_DIR)/md5sum /dev/null | grep d41d8cd98f00b204e9800998ecf8427e))
-
 $(eval $(call SetupHostCommand,unzip,Please install 'unzip', \
 	unzip 2>&1 | grep zipfile, \
 	unzip))
@@ -164,11 +151,11 @@ $(eval $(call SetupHostCommand,git,Please install Git (git-core) >= 1.7.12.2, \
 $(eval $(call SetupHostCommand,file,Please install the 'file' package, \
 	file --version 2>&1 | grep file))
 
-ifneq ($(HOST_OS),Darwin)
-$(eval $(call SetupHostCommand,openssl,Please install the 'openssl' utility, \
-	openssl version | grep '\(OpenSSL\|LibreSSL\)'))
-endif
+$(STAGING_DIR_HOST)/bin/mkhash: $(SCRIPT_DIR)/mkhash.c
+	mkdir -p $(dir $@)
+	$(CC) -O2 -I$(TOPDIR)/tools/include -o $@ $<
 
+prereq: $(STAGING_DIR_HOST)/bin/mkhash
 
 # Install ldconfig stub
 $(eval $(call TestHostCommand,ldconfig-stub,Failed to install stub, \

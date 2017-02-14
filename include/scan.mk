@@ -51,7 +51,7 @@ $(OVERRIDELIST):
 ifeq ($(SCAN_NAME),target)
   GREP_STRING=BuildTarget
 else
-  GREP_STRING=(Build/DefaultTargets|BuildPackage|.+Package)
+  GREP_STRING=(Build/DefaultTargets|BuildPackage|KernelPackage)
 endif
 
 $(FILELIST): $(OVERRIDELIST)
@@ -85,7 +85,7 @@ $(TMP_DIR)/info/.files-$(SCAN_TARGET).mk: $(FILELIST)
 $(TARGET_STAMP)::
 	+( \
 		$(NO_TRACE_MAKE) $(FILELIST); \
-		MD5SUM=$$(cat $(FILELIST) $(OVERRIDELIST) | (md5sum || md5) 2>/dev/null | awk '{print $$1}'); \
+		MD5SUM=$$(cat $(FILELIST) $(OVERRIDELIST) | mkhash md5 | awk '{print $$1}'); \
 		[ -f "$@.$$MD5SUM" ] || { \
 			rm -f $@.*; \
 			touch $@.$$MD5SUM; \

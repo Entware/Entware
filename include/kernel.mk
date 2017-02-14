@@ -5,8 +5,15 @@
 # See /LICENSE for more information.
 #
 
+ifneq ($(filter check,$(MAKECMDGOALS)),)
+CHECK:=1
+DUMP:=1
+endif
+
 ifeq ($(__target_inc),)
-  include $(INCLUDE_DIR)/target.mk
+  ifndef CHECK
+    include $(INCLUDE_DIR)/target.mk
+  endif
 endif
 
 ifeq ($(DUMP),1)
@@ -52,7 +59,13 @@ else
   LINUX_SOURCE:=linux-$(LINUX_VERSION).tar.xz
   TESTING:=$(if $(findstring -rc,$(LINUX_VERSION)),/testing,)
   ifeq ($(call qstrip,$(CONFIG_EXTERNAL_KERNEL_TREE))$(call qstrip,$(CONFIG_KERNEL_GIT_CLONE_URI)),)
+    ifdef CONFIG_LINUX_2_6_36
+      LINUX_SITE:=@KERNEL/linux/kernel/v2.6
+    else ifdef CONFIG_LINUX_2_6_32
+      LINUX_SITE:=@KERNEL/linux/kernel/v2.6/longterm/v2.6.32
+    else
       LINUX_SITE:=@KERNEL/linux/kernel/v$(word 1,$(subst ., ,$(KERNEL_BASE))).x$(TESTING)
+    endif
   endif
 
   ifneq ($(TARGET_BUILD),1)
@@ -148,6 +161,7 @@ define KernelPackage
   $(eval $(call KernelPackage/Defaults))
   $(eval $(call KernelPackage/$(1)))
   $(eval $(call KernelPackage/$(1)/$(BOARD)))
+  $(eval $(call KernelPackage/$(1)/$(BOARD)/$(if $(SUBTARGET),$(SUBTARGET),generic)))
 
   define Package/kmod-$(1)
     TITLE:=$(TITLE)
@@ -159,6 +173,7 @@ define KernelPackage
     PKGFLAGS:=$(PKGFLAGS)
     $(call KernelPackage/$(1))
     $(call KernelPackage/$(1)/$(BOARD))
+    $(call KernelPackage/$(1)/$(BOARD)/$(if $(SUBTARGET),$(SUBTARGET),generic))
   endef
 
   ifdef KernelPackage/$(1)/conffiles

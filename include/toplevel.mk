@@ -67,7 +67,7 @@ SUBMAKE:=umask 022; $(SUBMAKE)
 
 ULIMIT_FIX=_limit=`ulimit -n`; [ "$$_limit" = "unlimited" -o "$$_limit" -ge 1024 ] || ulimit -n 1024;
 
-prepare-mk: FORCE ;
+prepare-mk: staging_dir/host/.prereq-build FORCE ;
 
 ifdef SDK
   IGNORE_PACKAGES = linux
@@ -178,6 +178,9 @@ clean dirclean: .config
 
 prereq:: prepare-tmpinfo .config
 	@+$(NO_TRACE_MAKE) -r -s $@
+
+check: .config FORCE
+	@+$(NO_TRACE_MAKE) -r -s $@ QUIET= V=s
 
 WARN_PARALLEL_ERROR = $(if $(BUILD_LOG),,$(and $(filter -j,$(MAKEFLAGS)),$(findstring s,$(OPENWRT_VERBOSE))))
 

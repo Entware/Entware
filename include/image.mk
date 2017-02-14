@@ -33,7 +33,7 @@ param_get_default = $(firstword $(call param_get,$(1),$(2)) $(3))
 param_mangle = $(subst $(space),_,$(strip $(1)))
 param_unmangle = $(subst _,$(space),$(1))
 
-mkfs_packages_id = $(shell echo $(sort $(1)) | md5sum | head -c 8)
+mkfs_packages_id = $(shell echo $(sort $(1)) | mkhash md5 | head -c 8)
 mkfs_target_dir = $(if $(call param_get,pkg,$(1)),$(KDIR)/target-dir-$(call param_get,pkg,$(1)),$(TARGET_DIR))
 
 KDIR=$(KERNEL_BUILD_DIR)
@@ -143,9 +143,16 @@ endef
 define Image/BuildKernel/MkFIT
 	$(TOPDIR)/scripts/mkits.sh \
 		-D $(1) -o $(KDIR)/fit-$(1).its -k $(2) $(if $(3),-d $(3)) -C $(4) -a $(5) -e $(6) \
-		-A $(ARCH) -v $(LINUX_VERSION)
+		-A $(LINUX_KARCH) -v $(LINUX_VERSION)
 	PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage -f $(KDIR)/fit-$(1).its $(KDIR)/fit-$(1)$(7).itb
 endef
+
+ifdef CONFIG_TARGET_IMAGES_GZIP
+  define Image/Gzip
+	rm -f $(1).gz
+	gzip -9n $(1)
+  endef
+endif
 
 # $(1) source dts file
 # $(2) target dtb file
@@ -197,7 +204,7 @@ define Image/mkfs/squashfs
 	$(STAGING_DIR_HOST)/bin/mksquashfs4 $(call mkfs_target_dir,$(1)) $@ \
 		-nopad -noappend -root-owned \
 		-comp $(SQUASHFSCOMP) $(SQUASHFSOPT) \
-		-processors $(if $(CONFIG_PKG_BUILD_JOBS),$(CONFIG_PKG_BUILD_JOBS),1) \
+		-processors 1 \
 		$(if $(SOURCE_DATE_EPOCH),-fixed-time $(SOURCE_DATE_EPOCH))
 endef
 
@@ -233,9 +240,9 @@ define Image/mkfs/ubifs
 	$(STAGING_DIR_HOST)/bin/mkfs.ubifs \
 		$(UBIFS_OPTS) $(call param_unmangle,$(call param_get,fs,$(1))) \
 		$(if $(CONFIG_TARGET_UBIFS_FREE_SPACE_FIXUP),--space-fixup) \
-		$(if $(CONFIG_TARGET_UBIFS_COMPRESSION_NONE),--force-compr=none) \
-		$(if $(CONFIG_TARGET_UBIFS_COMPRESSION_LZO),--force-compr=lzo) \
-		$(if $(CONFIG_TARGET_UBIFS_COMPRESSION_ZLIB),--force-compr=zlib) \
+		$(if $(CONFIG_TARGET_UBIFS_COMPRESSION_NONE),--compr=none) \
+		$(if $(CONFIG_TARGET_UBIFS_COMPRESSION_LZO),--compr=lzo) \
+		$(if $(CONFIG_TARGET_UBIFS_COMPRESSION_ZLIB),--compr=zlib) \
 		$(if $(shell echo $(CONFIG_TARGET_UBIFS_JOURNAL_SIZE)),--jrn-size=$(CONFIG_TARGET_UBIFS_JOURNAL_SIZE)) \
 		--squash-uids \
 		-o $@ -d $(call mkfs_target_dir,$(1))
@@ -445,7 +452,8 @@ define Device/Build/kernel
 endef
 
 define Device/Build/image
-  $$(_TARGET): $(BIN_DIR)/$(call IMAGE_NAME,$(1),$(2))
+  GZ_SUFFIX := $(if $(filter %dtb %gz,$(2)),,$(if $(and $(findstring ext4,$(1)),$(CONFIG_TARGET_IMAGES_GZIP)),.gz))
+  $$(_TARGET): $(BIN_DIR)/$(call IMAGE_NAME,$(1),$(2))$$(GZ_SUFFIX)
   $(eval $(call Device/Export,$(KDIR)/tmp/$(call IMAGE_NAME,$(1),$(2)),$(1)))
   ROOTFS/$(1)/$(3) := \
 	$(KDIR)/root.$(1)$$(strip \
@@ -462,6 +470,10 @@ define Device/Build/image
 	$$(call concat_cmd,$(if $(IMAGE/$(2)/$(1)),$(IMAGE/$(2)/$(1)),$(IMAGE/$(2))))
 
   .IGNORE: $(BIN_DIR)/$(call IMAGE_NAME,$(1),$(2))
+
+  $(BIN_DIR)/$(call IMAGE_NAME,$(1),$(2)).gz: $(KDIR)/tmp/$(call IMAGE_NAME,$(1),$(2))
+	gzip -c -9n $$^ > $$@
+
   $(BIN_DIR)/$(call IMAGE_NAME,$(1),$(2)): $(KDIR)/tmp/$(call IMAGE_NAME,$(1),$(2))
 	cp $$^ $$@
 

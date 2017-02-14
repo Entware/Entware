@@ -164,17 +164,15 @@ ifeq ($(DUMP),1)
     endif
     CPU_CFLAGS += -mno-branch-likely
     CPU_CFLAGS_mips32 = -mips32 -mtune=mips32
-    CPU_CFLAGS_mips32r2 = -mips32r2 -mtune=mips32r2
     CPU_CFLAGS_mips64 = -mips64 -mtune=mips64 -mabi=64
     CPU_CFLAGS_24kc = -mips32r2 -mtune=24kc
     CPU_CFLAGS_74kc = -mips32r2 -mtune=74kc
     CPU_CFLAGS_octeon = -march=octeon -mabi=64
   endif
   ifeq ($(ARCH),i386)
-    CPU_TYPE ?= i486
-    CPU_CFLAGS_i486 = -march=i486
+    CPU_TYPE ?= pentium
+    CPU_CFLAGS_pentium = -march=pentium-mmx
     CPU_CFLAGS_pentium4 = -march=pentium4
-    CPU_CFLAGS_geode = -march=geode -mmmx -m3dnow
   endif
   ifneq ($(findstring arm,$(ARCH)),)
     CPU_TYPE ?= xscale
@@ -258,6 +256,9 @@ ifeq ($(DUMP),1)
     endif
     ifneq ($(CONFIG_VIRTIO),)
       FEATURES += virtio
+    endif
+    ifneq ($(CONFIG_CPU_MIPS32_R2),)
+      FEATURES += mips16
     endif
     FEATURES += $(foreach v,6 7,$(if $(CONFIG_CPU_V$(v)),arm_v$(v)))
 

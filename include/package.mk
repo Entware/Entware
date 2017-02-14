@@ -7,26 +7,22 @@
 
 __package_mk:=1
 
-all: $(if $(DUMP),dumpinfo,compile)
+all: $(if $(DUMP),dumpinfo,$(if $(CHECK),check,compile))
+
+include $(INCLUDE_DIR)/download.mk
 
 PKG_BUILD_DIR ?= $(BUILD_DIR)/$(PKG_NAME)$(if $(PKG_VERSION),-$(PKG_VERSION))
 PKG_INSTALL_DIR ?= $(PKG_BUILD_DIR)/ipkg-install
-PKG_MD5SUM ?= unknown
 PKG_BUILD_PARALLEL ?=
 PKG_USE_MIPS16 ?= 1
 PKG_IREMAP ?= 1
 
-ifneq ($(CONFIG_PKG_BUILD_USE_JOBSERVER),)
-  MAKE_J:=$(if $(MAKE_JOBSERVER),$(MAKE_JOBSERVER) $(if $(filter 3.% 4.0 4.1,$(MAKE_VERSION)),-j))
-else
-  MAKE_J:=-j$(CONFIG_PKG_BUILD_JOBS)
-endif
+MAKE_J:=$(if $(MAKE_JOBSERVER),$(MAKE_JOBSERVER) $(if $(filter 3.% 4.0 4.1,$(MAKE_VERSION)),-j))
 
 ifeq ($(strip $(PKG_BUILD_PARALLEL)),0)
 PKG_JOBS?=-j1
 else
-PKG_JOBS?=$(if $(PKG_BUILD_PARALLEL)$(CONFIG_PKG_DEFAULT_PARALLEL),\
-	$(if $(CONFIG_PKG_BUILD_PARALLEL),$(MAKE_J),-j1),-j1)
+PKG_JOBS?=$(if $(PKG_BUILD_PARALLEL),$(MAKE_J),-j1)
 endif
 ifdef CONFIG_USE_MIPS16
   ifeq ($(strip $(PKG_USE_MIPS16)),1)
@@ -61,7 +57,7 @@ ifneq ($(PREV_STAMP_PREPARED),)
   STAMP_PREPARED:=$(PREV_STAMP_PREPARED)
   CONFIG_AUTOREBUILD:=
 else
-  STAMP_PREPARED=$(PKG_BUILD_DIR)/.prepared$(if $(QUILT)$(DUMP),,_$(shell $(call find_md5,${CURDIR} $(PKG_FILE_DEPENDS),))$(call confvar,$(PKG_PREPARED_DEPENDS)))
+  STAMP_PREPARED=$(PKG_BUILD_DIR)/.prepared$(if $(QUILT)$(DUMP),,_$(shell $(call find_md5,${CURDIR} $(PKG_FILE_DEPENDS),))_$(call confvar,CONFIG_AUTOREMOVE $(PKG_PREPARED_DEPENDS)))
 endif
 STAMP_CONFIGURED=$(PKG_BUILD_DIR)/.configured$(if $(DUMP),,_$(call confvar,$(PKG_CONFIG_DEPENDS)))
 STAMP_CONFIGURED_WILDCARD=$(PKG_BUILD_DIR)/.configured_*
@@ -93,13 +89,14 @@ endif
 
 PKG_INSTALL_STAMP:=$(PKG_INFO_DIR)/$(PKG_DIR_NAME).$(if $(BUILD_VARIANT),$(BUILD_VARIANT),default).install
 
-include $(INCLUDE_DIR)/download.mk
 include $(INCLUDE_DIR)/quilt.mk
 include $(INCLUDE_DIR)/package-defaults.mk
 include $(INCLUDE_DIR)/package-dumpinfo.mk
 include $(INCLUDE_DIR)/package-ipkg.mk
 include $(INCLUDE_DIR)/package-bin.mk
 include $(INCLUDE_DIR)/autotools.mk
+
+_pkg_target:=$(if $(QUILT),,.)
 
 override MAKEFLAGS=
 CONFIG_SITE:=$(INCLUDE_DIR)/site/$(ARCH)
@@ -118,17 +115,6 @@ ifeq ($(DUMP)$(filter prereq clean refresh update,$(MAKECMDGOALS)),)
   endif
 endif
 
-define Download/default
-  FILE:=$(PKG_SOURCE)
-  URL:=$(PKG_SOURCE_URL)
-  SUBDIR:=$(PKG_SOURCE_SUBDIR)
-  PROTO:=$(PKG_SOURCE_PROTO)
-  $(if $(PKG_SOURCE_MIRROR),MIRROR:=$(filter 1,$(PKG_MIRROR)))
-  $(if $(PKG_MIRROR_MD5SUM),MIRROR_MD5SUM:=$(PKG_MIRROR_MD5SUM))
-  VERSION:=$(PKG_SOURCE_VERSION)
-  MD5SUM:=$(PKG_MD5SUM)
-endef
-
 ifdef USE_GIT_TREE
   define Build/Prepare/Default
 	mkdir -p $(PKG_BUILD_DIR)
@@ -146,7 +132,7 @@ ifdef USE_SOURCE_DIR
 endif
 
 define Build/Exports/Default
-  $(1) : export ACLOCAL_INCLUDE=$$(foreach p,$$(wildcard $$(STAGING_DIR)/opt/share/aclocal $$(STAGING_DIR)/opt/share/aclocal-* $$(STAGING_DIR)/host/share/aclocal $$(STAGING_DIR)/host/share/aclocal-*),-I $$(p))
+  $(1) : export ACLOCAL_INCLUDE=$$(foreach p,$$(wildcard $$(STAGING_DIR)/opt/share/aclocal $$(STAGING_DIR)/opt/share/aclocal-* $$(STAGING_DIR_HOSTPKG)/share/aclocal $$(STAGING_DIR_HOSTPKG)/share/aclocal-* $$(STAGING_DIR)/host/share/aclocal $$(STAGING_DIR)/host/share/aclocal-*),-I $$(p))
   $(1) : export STAGING_PREFIX=$$(STAGING_DIR)/opt
   $(1) : export PATH=$$(TARGET_PATH_PKG)
   $(1) : export CONFIG_SITE:=$$(CONFIG_SITE)
@@ -156,10 +142,10 @@ define Build/Exports/Default
 endef
 Build/Exports=$(Build/Exports/Default)
 
-define Build/DefaultTargets
+define Build/CoreTargets
   $(if $(QUILT),$(Build/Quilt))
-  $(if $(USE_SOURCE_DIR)$(USE_GIT_TREE),,$(if $(strip $(PKG_SOURCE_URL)),$(call Download,default)))
   $(call Build/Autoclean)
+  $(call DefaultTargets)
 
   download:
 	$(foreach hook,$(Hooks/Download),
@@ -170,6 +156,7 @@ define Build/DefaultTargets
   $(STAMP_PREPARED): $(STAMP_PREPARED_DEPENDS)
 	@-rm -rf $(PKG_BUILD_DIR)
 	@mkdir -p $(PKG_BUILD_DIR)
+	touch $$@_check
 	$(foreach hook,$(Hooks/Prepare/Pre),$(call $(hook))$(sep))
 	$(Build/Prepare)
 	$(foreach hook,$(Hooks/Prepare/Post),$(call $(hook))$(sep))
@@ -186,6 +173,8 @@ define Build/DefaultTargets
 
   $(call Build/Exports,$(STAMP_BUILT))
   $(STAMP_BUILT): $(STAMP_CONFIGURED) $(STAMP_BUILT_DEPENDS)
+	rm -f $$@
+	touch $$@_check
 	$(foreach hook,$(Hooks/Compile/Pre),$(call $(hook))$(sep))
 	$(Build/Compile)
 	$(foreach hook,$(Hooks/Compile/Post),$(call $(hook))$(sep))
@@ -220,16 +209,28 @@ define Build/DefaultTargets
 	touch $$@
 
   ifdef Build/InstallDev
-    compile: $(STAMP_INSTALLED)
+    $(_pkg_target)compile: $(STAMP_INSTALLED)
   endif
+
+  $(_pkg_target)prepare: $(STAMP_PREPARED)
+  $(_pkg_target)configure: $(STAMP_CONFIGURED)
+  $(_pkg_target)dist: $(STAMP_CONFIGURED)
+  $(_pkg_target)distcheck: $(STAMP_CONFIGURED)
+
+  ifneq ($(CONFIG_AUTOREMOVE),)
+    compile:
+		-touch $(PKG_BUILD_DIR)/.autoremove 2>/dev/null >/dev/null
+		$(FIND) $(PKG_BUILD_DIR) -mindepth 1 -maxdepth 1 -not '(' -type f -and -name '.*' -and -size 0 ')' -and -not -name '.pkgdir' | \
+			$(XARGS) rm -rf
+  endif
+endef
+
+define Build/DefaultTargets
+  $(if $(USE_SOURCE_DIR)$(USE_GIT_TREE),,$(if $(strip $(PKG_SOURCE_URL)),$(call Download,default)))
+  $(if $(DUMP),,$(Build/CoreTargets))
 
   define Build/DefaultTargets
   endef
-
-  prepare: $(STAMP_PREPARED)
-  configure: $(STAMP_CONFIGURED)
-  dist: $(STAMP_CONFIGURED)
-  distcheck: $(STAMP_CONFIGURED)
 endef
 
 define Build/IncludeOverlay
@@ -263,14 +264,14 @@ endif
   )
 
   $(if $(DUMP), \
-    $(Dumpinfo/Package), \
+    $(if $(CHECK),,$(Dumpinfo/Package)), \
     $(foreach target, \
       $(if $(Package/$(1)/targets),$(Package/$(1)/targets), \
         $(if $(PKG_TARGETS),$(PKG_TARGETS), ipkg) \
       ), $(BuildTarget/$(target)) \
     ) \
   )
-  $(if $(PKG_HOST_ONLY)$(DUMP),,$(call Build/DefaultTargets,$(1)))
+  $(if $(PKG_HOST_ONLY),,$(call Build/DefaultTargets,$(1)))
 endef
 
 define pkg_install_files
@@ -298,20 +299,21 @@ prepare-package-install:
 
 $(PACKAGE_DIR):
 	mkdir -p $@
-	
-dumpinfo:
-download:
-prepare:
-configure:
+
 compile: prepare-package-install
+.install: .compile
 install: compile
 
-clean: FORCE
+force-clean-build: FORCE
+	rm -rf $(PKG_BUILD_DIR)
+
+clean-build: $(if $(wildcard $(PKG_BUILD_DIR)/.autoremove),force-clean-build)
+
+clean: force-clean-build
 	$(CleanStaging)
 	$(call Build/UninstallDev,$(STAGING_DIR),$(STAGING_DIR_HOST))
 	$(Build/Clean)
 	rm -f $(STAGING_DIR)/packages/$(STAGING_FILES_LIST) $(STAGING_DIR_HOST)/packages/$(STAGING_FILES_LIST)
-	rm -rf $(PKG_BUILD_DIR)
 
 dist:
 	$(Build/Dist)
