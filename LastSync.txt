@@ -1,17 +1,8 @@
-Sync with LEDE
+commit 2711b94932a01ecd00ee9cfba7dcbb1cf4fe2517
+Author: Alexander Couzens <lynxis@fe80.eu>
+Date:   Sat Jan 28 17:23:16 2017 +0100
 
-commit 7c47f43fe650309e6a2383c99273dc1bde367bc1
-Author: Hauke Mehrtens <hauke@hauke-m.de>
-Date:   Sun Dec 4 19:03:48 2016 +0100
+    lantiq: fix unaligned access in xrx200_poll_rx()
 
-    lantiq: falcon: remove bootargs-append
+    Signed-off-by: Alexander Couzens <lynxis@fe80.eu>
 
-trunk/packages
-
-commit fb237477fd1e7801e4877f9fe1ea7bc1ec16dd99
-Author: Felix Fietkau <nbd@nbd.name>
-Date:   Thu Dec 15 13:02:31 2016 +0100
-
-    mt76: update to the latest version, fixes a build error on some platforms
-    
-    Signed-off-by: Felix Fietkau <nbd@nbd.name>
