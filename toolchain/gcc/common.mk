@@ -29,7 +29,11 @@ PKG_SOURCE_URL:=@GNU/gcc/gcc-$(PKG_VERSION)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 
 ifeq ($(PKG_VERSION),5.4.0)
-  PKG_MD5SUM:=4c626ac2a83ef30dfb9260e6f59c2b30
+  PKG_HASH:=608df76dec2d34de6558249d8af4cbee21eceddbcb580d666f7a5a583ca3303a
+endif
+
+ifeq ($(PKG_VERSION),6.3.0)
+  PKG_HASH:=f06ae7f3f790fbf0f018f6d40e844451e6bc3b7bc96e128e63b09825c1f8b29f
 endif
 
 PATCH_DIR=../patches/$(GCC_VERSION)
@@ -57,6 +61,12 @@ HOST_STAMP_INSTALLED:=$(STAGING_DIR_HOST)/stamp/.gcc_$(GCC_VARIANT)_installed
 SEP:=,
 TARGET_LANGUAGES:="c,c++$(if $(CONFIG_INSTALL_LIBGCJ),$(SEP)java)$(if $(CONFIG_INSTALL_GFORTRAN),$(SEP)fortran)$(if $(CONFIG_INSTALL_GCCGO),$(SEP)go)"
 
+TAR_OPTIONS += --exclude='gcc/testsuite/*' --exclude=gcc/ada/*.ad*
+
+ifndef CONFIG_INSTALL_LIBGCJ
+  TAR_OPTIONS += --exclude=libjava
+endif
+
 export libgcc_cv_fixed_point=no
 ifdef CONFIG_USE_UCLIBC
   export glibcxx_cv_c99_math_tr1=no
@@ -80,6 +90,7 @@ GCC_CONFIGURE:= \
 		--disable-libgomp \
 		--disable-libmudflap \
 		--disable-multilib \
+		--disable-libmpx \
 		--disable-nls \
 		$(GRAPHITE_CONFIGURE) \
 		--with-host-libstdcxx=-lstdc++ \
@@ -101,12 +112,6 @@ ifneq ($(CONFIG_SSP_SUPPORT),)
 else
   GCC_CONFIGURE+= \
 		--disable-libssp
-endif
-
-ifneq ($(CONFIG_GCC_USE_GRAPHITE),)
-  GCC_CONFIGURE+= \
-		--with-cloog=$(TOPDIR)/staging_dir/host \
-		--with-isl=$(TOPDIR)/staging_dir/host
 endif
 
 ifneq ($(CONFIG_EXTRA_TARGET_ARCH),)

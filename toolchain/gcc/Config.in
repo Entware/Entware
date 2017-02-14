@@ -10,17 +10,16 @@ choice
 		select GCC_VERSION_5_4_0
 		bool "gcc 5.4.0"
 
+	config GCC_USE_VERSION_6_3_0
+		select GCC_VERSION_6_3_0
+		bool "gcc 6.3.0"
+
 endchoice
 
 config GCC_USE_GRAPHITE
+	depends on !GCC_VERSION_4_8_ARC
 	bool
 	prompt "Compile in support for the new Graphite framework in GCC 4.4+" if TOOLCHAINOPTS
-
-config GCC_USE_SYSTEM_ISL_CLOOG
-	bool
-	prompt "Use the system versions of ISL and CLooG"
-	depends on GCC_USE_GRAPHITE
-	default n
 
 config EXTRA_GCC_CONFIG_OPTIONS
 	string

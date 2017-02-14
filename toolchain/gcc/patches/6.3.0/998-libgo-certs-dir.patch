@@ -1,0 +1,10 @@
+--- a/libgo/go/crypto/x509/root_unix.go
++++ b/libgo/go/crypto/x509/root_unix.go
+@@ -13,6 +13,7 @@
+ var certDirectories = []string{
+ 	"/etc/ssl/certs",               // SLES10/SLES11, https://golang.org/issue/12139
+ 	"/system/etc/security/cacerts", // Android
++	"/opt/etc/ssl/certs/",          // Entware
+ }
+ 
+ func (c *Certificate) systemVerify(opts *VerifyOptions) (chains [][]*Certificate, err error) {

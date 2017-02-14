@@ -1,0 +1,507 @@
+From c45be7f1aef92f2ea7363cbc4627f943b83ca902 Mon Sep 17 00:00:00 2001
+From: redi <redi@138bc75d-0d04-0410-961f-82ee72b054a4>
+Date: Wed, 4 Jan 2017 10:54:59 +0000
+Subject: [PATCH] Support exception propagation without lock-free atomic int
+
+2017-01-04  Pauli Nieminen  <suokkos@gmail.com>
+	    Jonathan Wakely  <jwakely@redhat.com>
+
+	PR libstdc++/64735
+	* acinclude.m4 (GLIBCXX_CHECK_EXCEPTION_PTR_SYMVER): Define.
+	* config.h.in: Regenerate.
+	* config/abi/pre/gnu.ver [HAVE_EXCEPTION_PTR_SINCE_GCC46]
+	(GLIBCXX_3.4.15, GLIBCXX_3.4.21, CXXABI_1.3.3, CXXABI_1.3.5): Make
+	exports for exception_ptr, nested_exception, and future conditional.
+	[HAVE_EXCEPTION_PTR_SINCE_GCC46] (GLIBCXX_3.4.23, CXXABI_1.3.11): Add
+	exports for exception_ptr, nested_exception, and future conditional.
+	* configure: Regenerate.
+	* configure.ac: Use GLIBCXX_CHECK_EXCEPTION_PTR_SYMVER.
+	* include/std/future: Remove check for ATOMIC_INT_LOCK_FREE
+	* libsupc++/eh_atomics.h: New file for internal use only.
+	(__eh_atomic_inc, __eh_atomic_dec): New.
+	* libsupc++/eh_ptr.cc (exception_ptr::_M_addref)
+	(exception_ptr::_M_release) (__gxx_dependent_exception_cleanup)
+	(rethrow_exception): Use eh_atomics.h reference counting helpers.
+	* libsupc++/eh_throw.cc (__gxx_exception_cleanup): Likewise.
+	* libsupc++/eh_tm.cc (free_any_cxa_exception): Likewise.
+	* libsupc++/exception: Remove check for ATOMIC_INT_LOCK_FREE.
+	* libsupc++/exception_ptr.h: Likewise.
+	* libsupc++/guard.cc: Include header for ATOMIC_INT_LOCK_FREE macro.
+	* libsupc++/nested_exception.cc: Remove check for
+	ATOMIC_INT_LOCK_FREE.
+	* libsupc++/nested_exception.h: Likewise.
+	* src/c++11/future.cc: Likewise.
+	* testsuite/18_support/exception_ptr/*: Remove atomic builtins checks.
+	* testsuite/18_support/nested_exception/*: Likewise.
+	* testsuite/30_threads/async/*: Likewise.
+	* testsuite/30_threads/future/*: Likewise.
+	* testsuite/30_threads/headers/future/types_std_c++0x.cc: Likewise.
+	* testsuite/30_threads/packaged_task/*: Likewise.
+	* testsuite/30_threads/promise/*: Likewise.
+	* testsuite/30_threads/shared_future/*: Likewise.
+
+git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@244051 138bc75d-0d04-0410-961f-82ee72b054a4
+---
+ libstdc++-v3/ChangeLog                             | 37 ++++++++++
+ libstdc++-v3/acinclude.m4                          | 37 ++++++++++
+ libstdc++-v3/config.h.in                           |  3 +
+ libstdc++-v3/config/abi/pre/gnu.ver                | 47 ++++++++++++
+ libstdc++-v3/configure                             | 49 +++++++++++++
+ libstdc++-v3/configure.ac                          |  3 +
+ libstdc++-v3/include/std/future                    |  4 +-
+ libstdc++-v3/libsupc++/eh_atomics.h                | 84 ++++++++++++++++++++++
+ libstdc++-v3/libsupc++/eh_ptr.cc                   | 14 ++--
+ libstdc++-v3/libsupc++/eh_throw.cc                 |  7 +-
+ libstdc++-v3/libsupc++/eh_tm.cc                    |  5 +-
+ libstdc++-v3/libsupc++/exception                   |  3 +-
+ libstdc++-v3/libsupc++/exception_ptr.h             |  4 --
+ libstdc++-v3/libsupc++/guard.cc                    |  1 +
+ libstdc++-v3/libsupc++/nested_exception.cc         |  2 -
+ libstdc++-v3/libsupc++/nested_exception.h          |  4 --
+ libstdc++-v3/src/c++11/future.cc                   |  3 +-
+diff --git a/libstdc++-v3/acinclude.m4 b/libstdc++-v3/acinclude.m4
+index c88e473..9585305 100644
+--- a/libstdc++-v3/acinclude.m4
++++ b/libstdc++-v3/acinclude.m4
+@@ -4480,6 +4480,43 @@ AC_DEFUN([GLIBCXX_CHECK_SIZE_T_MANGLING], [
+     [Define to the letter to which size_t is mangled.])
+ ])
+ 
++dnl
++dnl Determine whether std::exception_ptr symbols should be exported with
++dnl the symbol versions from GCC 4.6.0 or GCC 7.1.0, depending on which
++dnl release first added support for std::exception_ptr. Originally it was
++dnl only supported for targets with always-lock-free atomics for int, but
++dnl since GCC 7.1 it is supported for all targets.
++dnl
++AC_DEFUN([GLIBCXX_CHECK_EXCEPTION_PTR_SYMVER], [
++  if test $enable_symvers != no; then
++    AC_MSG_CHECKING([for first version to support std::exception_ptr])
++    case ${target} in
++      aarch64-*-* | alpha-*-* | hppa*-*-* | i?86-*-* | x86_64-*-* | \
++      m68k-*-* | powerpc*-*-* | s390*-*-* | *-*-solaris* )
++        ac_exception_ptr_since_gcc46=yes
++        ;;
++      *)
++        # If the value of this macro changes then we will need to hardcode
++        # yes/no here for additional targets based on the original value.
++        AC_TRY_COMPILE([], [
++          #if __GCC_ATOMIC_INT_LOCK_FREE <= 1
++          # error atomic int not always lock free
++          #endif
++          ],
++          [ac_exception_ptr_since_gcc46=yes],
++          [ac_exception_ptr_since_gcc46=no])
++        ;;
++    esac
++    if test x"$ac_exception_ptr_since_gcc46" = x"yes" ; then
++      AC_DEFINE(HAVE_EXCEPTION_PTR_SINCE_GCC46, 1,
++        [Define to 1 if GCC 4.6 supported std::exception_ptr for the target])
++      AC_MSG_RESULT([4.6.0])
++    else
++      AC_MSG_RESULT([7.1.0])
++    fi
++  fi
++])
++
+ # Macros from the top-level gcc directory.
+ m4_include([../config/gc++filt.m4])
+ m4_include([../config/tls.m4])
+diff --git a/libstdc++-v3/config.h.in b/libstdc++-v3/config.h.in
+index 09ddfeb..41ad510 100644
+--- a/libstdc++-v3/config.h.in
++++ b/libstdc++-v3/config.h.in
+@@ -120,6 +120,9 @@
+ /* Define if EWOULDBLOCK exists. */
+ #undef HAVE_EWOULDBLOCK
+ 
++/* Define to 1 if GCC 4.6 supported std::exception_ptr for the target */
++#undef HAVE_EXCEPTION_PTR_SINCE_GCC46
++
+ /* Define to 1 if you have the <execinfo.h> header file. */
+ #undef HAVE_EXECINFO_H
+ 
+--- a/libstdc++-v3/configure
++++ b/libstdc++-v3/configure
+@@ -80580,6 +80580,55 @@ _ACEOF
+ 
+ 
+ 
++# Check which release added std::exception_ptr for the target
++
++  if test $enable_symvers != no; then
++    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for first version to support std::exception_ptr" >&5
++$as_echo_n "checking for first version to support std::exception_ptr... " >&6; }
++    case ${target} in
++      aarch64-*-* | alpha-*-* | hppa*-*-* | i?86-*-* | x86_64-*-* | \
++      m68k-*-* | powerpc*-*-* | s390*-*-* | *-*-solaris* )
++        ac_exception_ptr_since_gcc46=yes
++        ;;
++      *)
++        # If the value of this macro changes then we will need to hardcode
++        # yes/no here for additional targets based on the original value.
++        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++
++int
++main ()
++{
++
++          #if __GCC_ATOMIC_INT_LOCK_FREE <= 1
++          # error atomic int not always lock free
++          #endif
++
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_c_try_compile "$LINENO"; then :
++  ac_exception_ptr_since_gcc46=yes
++else
++  ac_exception_ptr_since_gcc46=no
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
++        ;;
++    esac
++    if test x"$ac_exception_ptr_since_gcc46" = x"yes" ; then
++
++$as_echo "#define HAVE_EXCEPTION_PTR_SINCE_GCC46 1" >>confdefs.h
++
++      { $as_echo "$as_me:${as_lineno-$LINENO}: result: 4.6.0" >&5
++$as_echo "4.6.0" >&6; }
++    else
++      { $as_echo "$as_me:${as_lineno-$LINENO}: result: 7.1.0" >&5
++$as_echo "7.1.0" >&6; }
++    fi
++  fi
++
++
+ # Define documentation rules conditionally.
+ 
+ # See if makeinfo has been installed and is modern enough
+diff --git a/libstdc++-v3/configure.ac b/libstdc++-v3/configure.ac
+index 7d0fafa..3d61771 100644
+--- a/libstdc++-v3/configure.ac
++++ b/libstdc++-v3/configure.ac
+@@ -411,6 +411,9 @@ GLIBCXX_CHECK_FILESYSTEM_DEPS
+ # For Transactional Memory TS
+ GLIBCXX_CHECK_SIZE_T_MANGLING
+ 
++# Check which release added std::exception_ptr for the target
++GLIBCXX_CHECK_EXCEPTION_PTR_SYMVER
++
+ # Define documentation rules conditionally.
+ 
+ # See if makeinfo has been installed and is modern enough
+diff --git a/libstdc++-v3/include/std/future b/libstdc++-v3/include/std/future
+index 7897b6e..6351d7e 100644
+--- a/libstdc++-v3/include/std/future
++++ b/libstdc++-v3/include/std/future
+@@ -182,8 +182,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+     future<__async_result_of<_Fn, _Args...>>
+     async(_Fn&& __fn, _Args&&... __args);
+ 
+-#if defined(_GLIBCXX_HAS_GTHREADS) && defined(_GLIBCXX_USE_C99_STDINT_TR1) \
+-  && (ATOMIC_INT_LOCK_FREE > 1)
++#if defined(_GLIBCXX_HAS_GTHREADS) && defined(_GLIBCXX_USE_C99_STDINT_TR1)
+ 
+   /// Base class and enclosing scope.
+   struct __future_base
+@@ -1744,7 +1745,6 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+ 
+ #endif // _GLIBCXX_ASYNC_ABI_COMPAT
+ #endif // _GLIBCXX_HAS_GTHREADS && _GLIBCXX_USE_C99_STDINT_TR1
+-       // && ATOMIC_INT_LOCK_FREE
+ 
+   // @} group futures
+ _GLIBCXX_END_NAMESPACE_VERSION
+diff --git a/libstdc++-v3/libsupc++/eh_atomics.h b/libstdc++-v3/libsupc++/eh_atomics.h
+new file mode 100644
+index 0000000..71b42a4
+--- /dev/null
++++ b/libstdc++-v3/libsupc++/eh_atomics.h
+@@ -0,0 +1,84 @@
++// Exception Handling support header for -*- C++ -*-
++
++// Copyright (C) 2016 Free Software Foundation, Inc.
++//
++// This file is part of GCC.
++//
++// GCC is free software; you can redistribute it and/or modify
++// it under the terms of the GNU General Public License as published by
++// the Free Software Foundation; either version 3, or (at your option)
++// any later version.
++//
++// GCC is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
++//
++// Under Section 7 of GPL version 3, you are granted additional
++// permissions described in the GCC Runtime Library Exception, version
++// 3.1, as published by the Free Software Foundation.
++
++// You should have received a copy of the GNU General Public License and
++// a copy of the GCC Runtime Library Exception along with this program;
++// see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
++// <http://www.gnu.org/licenses/>.
++
++/** @file eh_atomics.h
++ *  This is an internal header file, included by library source files.
++ *  Do not attempt to use it directly.
++ */
++
++#ifndef _EH_ATOMICS_H
++#define _EH_ATOMICS_H 1
++
++#include <bits/c++config.h>
++#include <bits/atomic_word.h>
++#include <bits/atomic_lockfree_defines.h>
++#if ATOMIC_INT_LOCK_FREE <= 1
++# include <ext/atomicity.h>
++#endif
++
++#pragma GCC visibility push(default)
++extern "C++" {
++namespace __gnu_cxx
++{
++  void
++  __eh_atomic_inc (_Atomic_word* __count) __attribute__((always_inline));
++
++  bool
++  __eh_atomic_dec (_Atomic_word* __count) __attribute__((always_inline));
++
++  // Increments the count.
++  inline void
++  __eh_atomic_inc (_Atomic_word* __count)
++  {
++#if ATOMIC_INT_LOCK_FREE > 1
++    __atomic_add_fetch (__count, 1, __ATOMIC_ACQ_REL);
++#else
++    _GLIBCXX_SYNCHRONIZATION_HAPPENS_BEFORE (__count);
++    __gnu_cxx::__atomic_add_dispatch (__count, 1);
++    _GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER (__count);
++#endif
++  }
++
++  // Decrements the count and returns true if it reached zero.
++  inline bool
++  __eh_atomic_dec (_Atomic_word* __count)
++  {
++#if ATOMIC_INT_LOCK_FREE > 1
++    return __atomic_sub_fetch (__count, 1, __ATOMIC_ACQ_REL) == 0;
++#else
++    _GLIBCXX_SYNCHRONIZATION_HAPPENS_BEFORE (__count);
++    if (__gnu_cxx::__exchange_and_add_dispatch (__count, -1) == 1)
++      {
++	_GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER (__count);
++	return true;
++      }
++    return false;
++#endif
++  }
++} // namespace __gnu_cxx
++}
++#pragma GCC visibility pop
++
++#endif // _EH_ATOMICS_H
+diff --git a/libstdc++-v3/libsupc++/eh_ptr.cc b/libstdc++-v3/libsupc++/eh_ptr.cc
+index 1308ff9..12d8d70 100644
+--- a/libstdc++-v3/libsupc++/eh_ptr.cc
++++ b/libstdc++-v3/libsupc++/eh_ptr.cc
+@@ -23,9 +23,7 @@
+ // <http://www.gnu.org/licenses/>.
+ 
+ #include <bits/c++config.h>
+-#include <bits/atomic_lockfree_defines.h>
+-
+-#if ATOMIC_INT_LOCK_FREE > 1
++#include "eh_atomics.h"
+ 
+ #define _GLIBCXX_EH_PTR_COMPAT
+ 
+@@ -103,7 +101,7 @@ std::__exception_ptr::exception_ptr::_M_addref() noexcept
+     {
+       __cxa_refcounted_exception *eh =
+ 	__get_refcounted_exception_header_from_obj (_M_exception_object);
+-      __atomic_add_fetch (&eh->referenceCount, 1, __ATOMIC_ACQ_REL);
++      __gnu_cxx::__eh_atomic_inc (&eh->referenceCount);
+     }
+ }
+ 
+@@ -115,7 +113,7 @@ std::__exception_ptr::exception_ptr::_M_release() noexcept
+     {
+       __cxa_refcounted_exception *eh =
+ 	__get_refcounted_exception_header_from_obj (_M_exception_object);
+-      if (__atomic_sub_fetch (&eh->referenceCount, 1, __ATOMIC_ACQ_REL) == 0)
++      if (__gnu_cxx::__eh_atomic_dec (&eh->referenceCount))
+         {
+ 	  if (eh->exc.exceptionDestructor)
+ 	    eh->exc.exceptionDestructor (_M_exception_object);
+@@ -219,7 +217,7 @@ __gxx_dependent_exception_cleanup(_Unwind_Reason_Code code,
+ 
+   __cxa_free_dependent_exception (dep);
+ 
+-  if (__atomic_sub_fetch (&header->referenceCount, 1, __ATOMIC_ACQ_REL) == 0)
++  if (__gnu_cxx::__eh_atomic_dec (&header->referenceCount))
+     {
+       if (header->exc.exceptionDestructor)
+ 	header->exc.exceptionDestructor (header + 1);
+@@ -238,7 +236,7 @@ std::rethrow_exception(std::exception_ptr ep)
+ 
+   __cxa_dependent_exception *dep = __cxa_allocate_dependent_exception ();
+   dep->primaryException = obj;
+-  __atomic_add_fetch (&eh->referenceCount, 1,  __ATOMIC_ACQ_REL);
++  __gnu_cxx::__eh_atomic_inc (&eh->referenceCount);
+ 
+   dep->unexpectedHandler = get_unexpected ();
+   dep->terminateHandler = get_terminate ();
+@@ -260,5 +258,3 @@ std::rethrow_exception(std::exception_ptr ep)
+ }
+ 
+ #undef _GLIBCXX_EH_PTR_COMPAT
+-
+-#endif
+diff --git a/libstdc++-v3/libsupc++/eh_throw.cc b/libstdc++-v3/libsupc++/eh_throw.cc
+index 397decd..13428d92 100644
+--- a/libstdc++-v3/libsupc++/eh_throw.cc
++++ b/libstdc++-v3/libsupc++/eh_throw.cc
+@@ -24,6 +24,7 @@
+ 
+ #include <bits/c++config.h>
+ #include "unwind-cxx.h"
++#include "eh_atomics.h"
+ 
+ using namespace __cxxabiv1;
+ 
+@@ -42,17 +43,13 @@ __gxx_exception_cleanup (_Unwind_Reason_Code code, _Unwind_Exception *exc)
+   if (code != _URC_FOREIGN_EXCEPTION_CAUGHT && code != _URC_NO_REASON)
+     __terminate (header->exc.terminateHandler);
+ 
+-#if ATOMIC_INT_LOCK_FREE > 1
+-  if (__atomic_sub_fetch (&header->referenceCount, 1, __ATOMIC_ACQ_REL) == 0)
++  if (__gnu_cxx::__eh_atomic_dec (&header->referenceCount))
+     {
+-#endif
+       if (header->exc.exceptionDestructor)
+ 	header->exc.exceptionDestructor (header + 1);
+ 
+       __cxa_free_exception (header + 1);
+-#if ATOMIC_INT_LOCK_FREE > 1
+     }
+-#endif
+ }
+ 
+ extern "C" __cxa_refcounted_exception*
+diff --git a/libstdc++-v3/libsupc++/eh_tm.cc b/libstdc++-v3/libsupc++/eh_tm.cc
+index d0ccd9e..ffb5ef6 100644
+--- a/libstdc++-v3/libsupc++/eh_tm.cc
++++ b/libstdc++-v3/libsupc++/eh_tm.cc
+@@ -24,6 +24,7 @@
+ 
+ #include <cstdlib>
+ #include "unwind-cxx.h"
++#include "eh_atomics.h"
+ 
+ using namespace __cxxabiv1;
+ 
+@@ -45,9 +46,7 @@ free_any_cxa_exception (_Unwind_Exception *eo)
+       __cxa_free_dependent_exception (dep);
+     }
+ 
+-#if __GCC_ATOMIC_INT_LOCK_FREE > 1
+-  if (__atomic_sub_fetch (&h->referenceCount, 1, __ATOMIC_ACQ_REL) == 0)
+-#endif
++  if (__gnu_cxx::__eh_atomic_dec (&h->referenceCount))
+     __cxa_free_exception (h + 1);
+ }
+ 
+diff --git a/libstdc++-v3/libsupc++/exception b/libstdc++-v3/libsupc++/exception
+index 1ccf329..e51d31c 100644
+--- a/libstdc++-v3/libsupc++/exception
++++ b/libstdc++-v3/libsupc++/exception
+@@ -35,7 +35,6 @@
+ #pragma GCC visibility push(default)
+
+ #include <bits/c++config.h>
+-#include <bits/atomic_lockfree_defines.h>
+
+ extern "C++" {
+
+@@ -166,7 +165,7 @@
+
+ #pragma GCC visibility pop
+
+-#if (__cplusplus >= 201103L) && (ATOMIC_INT_LOCK_FREE > 1)
++#if (__cplusplus >= 201103L)
+ #include <bits/exception_ptr.h>
+ #include <bits/nested_exception.h>
+ #endif
+diff --git a/libstdc++-v3/libsupc++/exception_ptr.h b/libstdc++-v3/libsupc++/exception_ptr.h
+index a2a9017..2447a5a 100644
+--- a/libstdc++-v3/libsupc++/exception_ptr.h
++++ b/libstdc++-v3/libsupc++/exception_ptr.h
+@@ -36,10 +36,6 @@
+ #include <typeinfo>
+ #include <new>
+ 
+-#if ATOMIC_INT_LOCK_FREE < 2
+-#  error This platform does not support exception propagation.
+-#endif
+-
+ extern "C++" {
+ 
+ namespace std 
+diff --git a/libstdc++-v3/libsupc++/guard.cc b/libstdc++-v3/libsupc++/guard.cc
+index ef0b8a8..19953bc 100644
+--- a/libstdc++-v3/libsupc++/guard.cc
++++ b/libstdc++-v3/libsupc++/guard.cc
+@@ -30,6 +30,7 @@
+ #include <new>
+ #include <ext/atomicity.h>
+ #include <ext/concurrence.h>
++#include <bits/atomic_lockfree_defines.h>
+ #if defined(__GTHREADS) && defined(__GTHREAD_HAS_COND) \
+   && (ATOMIC_INT_LOCK_FREE > 1) && defined(_GLIBCXX_HAVE_LINUX_FUTEX)
+ # include <climits>
+diff --git a/libstdc++-v3/libsupc++/nested_exception.cc b/libstdc++-v3/libsupc++/nested_exception.cc
+index 36951e2..7e1b545 100644
+--- a/libstdc++-v3/libsupc++/nested_exception.cc
++++ b/libstdc++-v3/libsupc++/nested_exception.cc
+@@ -25,7 +25,5 @@
+ 
+ namespace std 
+ {
+-#if ATOMIC_INT_LOCK_FREE > 1
+   nested_exception::~nested_exception() noexcept = default;
+-#endif
+ } // namespace std
+diff --git a/libstdc++-v3/libsupc++/nested_exception.h b/libstdc++-v3/libsupc++/nested_exception.h
+index 66e2ebf..35b025a 100644
+--- a/libstdc++-v3/libsupc++/nested_exception.h
++++ b/libstdc++-v3/libsupc++/nested_exception.h
+@@ -39,10 +39,6 @@
+ #include <bits/c++config.h>
+ #include <bits/move.h>
+ 
+-#if ATOMIC_INT_LOCK_FREE < 2
+-#  error This platform does not support exception propagation.
+-#endif
+-
+ extern "C++" {
+ 
+ namespace std
+diff --git a/libstdc++-v3/src/c++11/future.cc b/libstdc++-v3/src/c++11/future.cc
+index 3ed5bc9..e138567 100644
+--- a/libstdc++-v3/src/c++11/future.cc
++++ b/libstdc++-v3/src/c++11/future.cc
+@@ -78,8 +78,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+   const char*
+   future_error::what() const noexcept { return logic_error::what(); }
+ 
+-#if defined(_GLIBCXX_HAS_GTHREADS) && defined(_GLIBCXX_USE_C99_STDINT_TR1) \
+-  && (ATOMIC_INT_LOCK_FREE > 1)
++#if defined(_GLIBCXX_HAS_GTHREADS) && defined(_GLIBCXX_USE_C99_STDINT_TR1)
+   __future_base::_Result_base::_Result_base() = default;
+ 
+   __future_base::_Result_base::~_Result_base() = default;

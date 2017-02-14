@@ -9,4 +9,8 @@ choice
 		bool "glibc 2.23"
 		select GLIBC_VERSION_2_23
 
+	config GLIBC_USE_VERSION_2_25
+		bool "glibc 2.25"
+		select GLIBC_VERSION_2_25
+
 endchoice

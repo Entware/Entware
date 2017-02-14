@@ -1,0 +1,194 @@
+diff -aur glibc.orig/nis/nss_compat/compat-grp.c glibc/nis/nss_compat/compat-grp.c
+--- glibc.orig/nis/nss_compat/compat-grp.c	2016-02-18 20:54:00.000000000 +0300
++++ glibc/nis/nss_compat/compat-grp.c	2016-04-16 11:06:26.692785638 +0300
+@@ -120,7 +120,7 @@
+ 
+   if (ent->stream == NULL)
+     {
+-      ent->stream = fopen ("/etc/group", "rme");
++      ent->stream = fopen ("/opt/etc/group", "rme");
+ 
+       if (ent->stream == NULL)
+ 	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
+diff -aur glibc.orig/nis/nss_compat/compat-initgroups.c glibc/nis/nss_compat/compat-initgroups.c
+--- glibc.orig/nis/nss_compat/compat-initgroups.c	2016-02-18 20:54:00.000000000 +0300
++++ glibc/nis/nss_compat/compat-initgroups.c	2016-04-16 11:06:08.120785638 +0300
+@@ -136,7 +136,7 @@
+   else
+     ent->blacklist.current = 0;
+ 
+-  ent->stream = fopen ("/etc/group", "rme");
++  ent->stream = fopen ("/opt/etc/group", "rme");
+ 
+   if (ent->stream == NULL)
+     status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
+diff -aur glibc.orig/nis/nss_compat/compat-pwd.c glibc/nis/nss_compat/compat-pwd.c
+--- glibc.orig/nis/nss_compat/compat-pwd.c	2016-02-18 20:54:00.000000000 +0300
++++ glibc/nis/nss_compat/compat-pwd.c	2016-04-16 11:05:58.040785638 +0300
+@@ -235,7 +235,7 @@
+ 
+   if (ent->stream == NULL)
+     {
+-      ent->stream = fopen ("/etc/passwd", "rme");
++      ent->stream = fopen ("/opt/etc/passwd", "rme");
+ 
+       if (ent->stream == NULL)
+ 	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
+diff -aur glibc.orig/nis/nss_compat/compat-spwd.c glibc/nis/nss_compat/compat-spwd.c
+--- glibc.orig/nis/nss_compat/compat-spwd.c	2016-02-18 20:54:00.000000000 +0300
++++ glibc/nis/nss_compat/compat-spwd.c	2016-04-16 11:06:16.808785638 +0300
+@@ -191,7 +191,7 @@
+ 
+   if (ent->stream == NULL)
+     {
+-      ent->stream = fopen ("/etc/shadow", "rme");
++      ent->stream = fopen ("/opt/etc/shadow", "rme");
+ 
+       if (ent->stream == NULL)
+ 	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
+diff -aur glibc.orig/nss/nss_files/files-grp.c glibc/nss/nss_files/files-grp.c
+--- glibc.orig/nss/nss_files/files-grp.c	2016-02-18 20:54:00.000000000 +0300
++++ glibc/nss/nss_files/files-grp.c	2016-04-16 11:14:48.304785638 +0300
+@@ -21,6 +21,7 @@
+ #define STRUCTURE	group
+ #define ENTNAME		grent
+ #define DATABASE	"group"
++#define DATABASE_PREFIX
+ struct grent_data {};
+ 
+ /* Our parser function is already defined in fgetgrent.c, so use that.
+diff -aur glibc.orig/nss/nss_files/files-init.c glibc/nss/nss_files/files-init.c
+--- glibc.orig/nss/nss_files/files-init.c	2016-02-18 20:54:00.000000000 +0300
++++ glibc/nss/nss_files/files-init.c	2016-04-16 11:08:02.136785638 +0300
+@@ -21,10 +21,10 @@
+ #include <string.h>
+ #include <nscd/nscd.h>
+ 
+-#define PWD_FILENAME "/etc/passwd"
++#define PWD_FILENAME "/opt/etc/passwd"
+ define_traced_file (pwd, PWD_FILENAME);
+ 
+-#define GRP_FILENAME "/etc/group"
++#define GRP_FILENAME "/opt/etc/group"
+ define_traced_file (grp, GRP_FILENAME);
+ 
+ #define HST_FILENAME "/etc/hosts"
+diff -aur glibc.orig/nss/nss_files/files-initgroups.c glibc/nss/nss_files/files-initgroups.c
+--- glibc.orig/nss/nss_files/files-initgroups.c	2016-02-18 20:54:00.000000000 +0300
++++ glibc/nss/nss_files/files-initgroups.c	2016-04-16 11:08:22.136785638 +0300
+@@ -31,7 +31,7 @@
+ 			   long int *size, gid_t **groupsp, long int limit,
+ 			   int *errnop)
+ {
+-  FILE *stream = fopen ("/etc/group", "rce");
++  FILE *stream = fopen ("/opt/etc/group", "rce");
+   if (stream == NULL)
+     {
+       *errnop = errno;
+diff -aur glibc.orig/nss/nss_files/files-pwd.c glibc/nss/nss_files/files-pwd.c
+--- glibc.orig/nss/nss_files/files-pwd.c	2016-02-18 20:54:00.000000000 +0300
++++ glibc/nss/nss_files/files-pwd.c	2016-04-16 11:15:01.760785638 +0300
+@@ -21,6 +21,7 @@
+ #define STRUCTURE	passwd
+ #define ENTNAME		pwent
+ #define DATABASE	"passwd"
++#define DATABASE_PREFIX
+ struct pwent_data {};
+ 
+ /* Our parser function is already defined in fgetpwent_r.c, so use that
+diff -aur glibc.orig/nss/nss_files/files-sgrp.c glibc/nss/nss_files/files-sgrp.c
+--- glibc.orig/nss/nss_files/files-sgrp.c	2016-02-18 20:54:00.000000000 +0300
++++ glibc/nss/nss_files/files-sgrp.c	2016-04-16 11:36:38.688785638 +0300
+@@ -21,6 +21,7 @@
+ #define STRUCTURE	sgrp
+ #define ENTNAME		sgent
+ #define DATABASE	"gshadow"
++#define DATABASE_PREFIX
+ struct sgent_data {};
+ 
+ /* Our parser function is already defined in sgetspent_r.c, so use that
+diff -aur glibc.orig/nss/nss_files/files-spwd.c glibc/nss/nss_files/files-spwd.c
+--- glibc.orig/nss/nss_files/files-spwd.c	2016-02-18 20:54:00.000000000 +0300
++++ glibc/nss/nss_files/files-spwd.c	2016-04-16 11:38:17.468785638 +0300
+@@ -21,6 +21,7 @@
+ #define STRUCTURE	spwd
+ #define ENTNAME		spent
+ #define DATABASE	"shadow"
++#define DATABASE_PREFIX
+ struct spent_data {};
+ 
+ /* Our parser function is already defined in sgetspent_r.c, so use that
+diff -aur glibc.orig/nss/nss_files/files-XXX.c glibc/nss/nss_files/files-XXX.c
+--- glibc.orig/nss/nss_files/files-XXX.c	2016-02-18 20:54:00.000000000 +0300
++++ glibc/nss/nss_files/files-XXX.c	2016-04-16 11:16:26.204785638 +0300
+@@ -38,7 +38,12 @@
+ 
+ #define ENTNAME_r	CONCAT(ENTNAME,_r)
+ 
++#ifdef DATABASE_PREFIX
++#define DATAFILE	"/opt/etc/" DATABASE
++#else
+ #define DATAFILE	"/etc/" DATABASE
++#endif
++
+ 
+ #ifdef NEED_H_ERRNO
+ # include <netdb.h>
+diff -aur glibc.orig/shadow/lckpwdf.c glibc/shadow/lckpwdf.c
+--- glibc.orig/shadow/lckpwdf.c	2016-02-18 20:54:00.000000000 +0300
++++ glibc/shadow/lckpwdf.c	2016-04-16 11:21:33.784785638 +0300
+@@ -29,7 +29,7 @@
+ 
+ 
+ /* Name of the lock file.  */
+-#define PWD_LOCKFILE "/etc/.pwd.lock"
++#define PWD_LOCKFILE "/opt/etc/.pwd.lock"
+ 
+ /* How long to wait for getting the lock before returning with an
+    error.  */
+diff -aur glibc.orig/sysdeps/generic/paths.h glibc/sysdeps/generic/paths.h
+--- glibc.orig/sysdeps/generic/paths.h	2016-02-18 20:54:00.000000000 +0300
++++ glibc/sysdeps/generic/paths.h	2016-04-16 11:04:48.784785638 +0300
+@@ -44,7 +44,7 @@
+ #define	_PATH_DEVDB	"/var/run/dev.db"
+ #define	_PATH_DEVNULL	"/dev/null"
+ #define	_PATH_DRUM	"/dev/drum"
+-#define	_PATH_GSHADOW	"/etc/gshadow"
++#define	_PATH_GSHADOW	"/opt/etc/gshadow"
+ #define	_PATH_KMEM	"/dev/kmem"
+ #define	_PATH_LASTLOG	"/var/log/lastlog"
+ #define	_PATH_MAILDIR	"/var/mail"
+@@ -56,8 +56,8 @@
+ #define	_PATH_PRESERVE	"/var/lib"
+ #define	_PATH_RWHODIR	"/var/spool/rwho"
+ #define	_PATH_SENDMAIL	"/usr/sbin/sendmail"
+-#define	_PATH_SHADOW	"/etc/shadow"
+-#define	_PATH_SHELLS	"/etc/shells"
++#define	_PATH_SHADOW	"/opt/etc/shadow"
++#define	_PATH_SHELLS	"/opt/etc/shells"
+ #define	_PATH_TTY	"/dev/tty"
+ #define	_PATH_UNIX	"/vmunix"
+ #define	_PATH_UTMP	"/var/run/utmp"
+diff -aur glibc.orig/sysdeps/unix/sysv/linux/paths.h glibc/sysdeps/unix/sysv/linux/paths.h
+--- glibc.orig/sysdeps/unix/sysv/linux/paths.h	2016-02-18 20:54:00.000000000 +0300
++++ glibc/sysdeps/unix/sysv/linux/paths.h	2016-04-16 11:04:05.364785638 +0300
+@@ -44,7 +44,7 @@
+ #define	_PATH_DEVDB	"/var/run/dev.db"
+ #define	_PATH_DEVNULL	"/dev/null"
+ #define	_PATH_DRUM	"/dev/drum"
+-#define	_PATH_GSHADOW	"/etc/gshadow"
++#define	_PATH_GSHADOW	"/opt/etc/gshadow"
+ #define	_PATH_KLOG	"/proc/kmsg"
+ #define	_PATH_KMEM	"/dev/kmem"
+ #define	_PATH_LASTLOG	"/var/log/lastlog"
+@@ -57,8 +57,8 @@
+ #define	_PATH_PRESERVE	"/var/lib"
+ #define	_PATH_RWHODIR	"/var/spool/rwho"
+ #define	_PATH_SENDMAIL	"/usr/sbin/sendmail"
+-#define	_PATH_SHADOW	"/etc/shadow"
+-#define	_PATH_SHELLS	"/etc/shells"
++#define	_PATH_SHADOW	"/opt/etc/shadow"
++#define	_PATH_SHELLS	"/opt/etc/shells"
+ #define	_PATH_TTY	"/dev/tty"
+ #define	_PATH_UNIX	"/boot/vmlinux"
+ #define	_PATH_UTMP	"/var/run/utmp"

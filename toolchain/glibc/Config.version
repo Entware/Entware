@@ -3,8 +3,12 @@ if USE_GLIBC
 config GLIBC_VERSION
 	string
 	default "2.23" if GLIBC_VERSION_2_23
+	default "2.25" if GLIBC_VERSION_2_25
 
 config GLIBC_VERSION_2_23
+	bool
+
+config GLIBC_VERSION_2_25
 	bool
 
 endif
