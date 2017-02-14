@@ -3,32 +3,56 @@ export LANG=C
 export LC_ALL=C
 [ -n "$TOPDIR" ] && cd $TOPDIR
 
+GET_REV=$1
+
 try_version() {
 	[ -f version ] || return 1
 	REV="$(cat version)"
 	[ -n "$REV" ]
 }
 
-try_svn() {
-	[ -d .svn ] || return 1
-	REV="$(svn info | awk '/^Last Changed Rev:/ { print $4 }')"
-	REV="${REV:+r$REV}"
-	[ -n "$REV" ]
-}
-
 try_git() {
+	REBOOT=b22c8681ee0093a2a284d2deb01c00ec5ae8b483
 	git rev-parse --git-dir >/dev/null 2>&1 || return 1
-	REV="$(git log | grep -m 1 git-svn-id | awk '{ gsub(/.*@/, "", $0); print $1 }')"
-	REV="${REV:+r$REV}"
+
+	[ -n "$GET_REV" ] || GET_REV="HEAD"
+
+	case "$GET_REV" in
+	r*)
+		GET_REV="$(echo $GET_REV | tr -d 'r')"
+		BASE_REV="$(git rev-list ${REBOOT}..HEAD | wc -l | awk '{print $1}')"
+		REV="$(git rev-parse HEAD~$((BASE_REV - GET_REV)))"
+		;;
+	*)
+		BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+		ORIGIN="$(git rev-parse --verify --symbolic-full-name ${BRANCH}@{u} 2>/dev/null)"
+		[ -n "$ORIGIN" ] || ORIGIN="$(git rev-parse --verify --symbolic-full-name master@{u} 2>/dev/null)"
+		REV="$(git rev-list ${REBOOT}..$GET_REV | wc -l | awk '{print $1}')"
+
+		if [ -n "$ORIGIN" ]; then
+			UPSTREAM_BASE="$(git merge-base $GET_REV $ORIGIN)"
+			UPSTREAM_REV="$(git rev-list ${REBOOT}..$UPSTREAM_BASE | wc -l | awk '{print $1}')"
+		else
+			UPSTREAM_REV=0
+		fi
+
+		if [ "$REV" -gt "$UPSTREAM_REV" ]; then
+			REV="${UPSTREAM_REV}+$((REV - UPSTREAM_REV))"
+		fi
+
+		REV="${REV:+r$REV-$(git log --format="%h" -1)}"
+		;;
+	esac
+
 	[ -n "$REV" ]
 }
 
 try_hg() {
 	[ -d .hg ] || return 1
 	REV="$(hg log -r-1 --template '{desc}' | awk '{print $2}' | sed 's/\].*//')"
-	REV="${REV:+$REV}"
+	REV="${REV:+r$REV}"
 	[ -n "$REV" ]
 }
 
-try_version || try_svn || try_git || try_hg || REV="unknown"
+try_version || try_git || try_hg || REV="unknown"
 echo "$REV"
