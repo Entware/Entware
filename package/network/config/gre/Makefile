@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gre
 PKG_VERSION:=1
-PKG_RELEASE:=4
+PKG_RELEASE:=6
 PKG_LICENSE:=GPL-2.0
 
 include $(INCLUDE_DIR)/package.mk
@@ -58,6 +58,14 @@ endef
 define Package/gre/install
 	$(INSTALL_DIR) $(1)/lib/netifd/proto
 	$(INSTALL_BIN) ./files/gre.sh $(1)/lib/netifd/proto/gre.sh
+endef
+
+define Package/grev4/install
+	:
+endef
+
+define Package/grev6/install
+	:
 endef
 
 $(eval $(call BuildPackage,gre))

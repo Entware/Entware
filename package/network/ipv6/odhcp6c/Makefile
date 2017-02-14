@@ -8,16 +8,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=odhcp6c
-PKG_VERSION:=2016-06-30
-PKG_RELEASE=$(PKG_SOURCE_VERSION)
+PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_URL:=https://github.com/sbyx/odhcp6c.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=7533a6243dc3ac5a747cf6ccbc4d0539dafd3e07
-PKG_MIRROR_MD5SUM:=faaa26d09039c3133626f67a01b07b9922fea105e6566c44e78350fce51fa2b8
-PKG_MAINTAINER:=Steven Barth <steven@midlink.org>
+PKG_SOURCE_URL=$(LEDE_GIT)/project/odhcp6c.git
+PKG_SOURCE_DATE:=2017-02-08
+PKG_SOURCE_VERSION:=cfd986c389c59cc8199a42bd797863bdb0eba6b7
+PKG_MIRROR_HASH:=0040f94d11d0039505328a90b2ff48968db873e9e7967307631bf40ef5679275
+PKG_MAINTAINER:=Hans Dedecker <dedeckeh@gmail.com>
 PKG_LICENSE:=GPL-2.0
 
 include $(INCLUDE_DIR)/package.mk
@@ -31,7 +29,7 @@ define Package/odhcp6c
   SECTION:=net
   CATEGORY:=Network
   TITLE:=Embedded DHCPv6-client for OpenWrt
-  DEPENDS:=@IPV6
+  DEPENDS:=@IPV6 +libubox
 endef
 
 define Package/odhcp6c/config

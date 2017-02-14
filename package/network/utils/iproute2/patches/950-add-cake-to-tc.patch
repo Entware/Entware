@@ -1,8 +1,8 @@
 diff --git a/include/linux/pkt_sched.h b/include/linux/pkt_sched.h
-index 8d2530d..028b83c 100644
+index 8d2530d..c55a9a8 100644
 --- a/include/linux/pkt_sched.h
 +++ b/include/linux/pkt_sched.h
-@@ -850,4 +850,59 @@ struct tc_pie_xstats {
+@@ -850,4 +850,60 @@ struct tc_pie_xstats {
  	__u32 maxq;             /* maximum queue size */
  	__u32 ecn_mark;         /* packets marked with ecn*/
  };
@@ -22,6 +22,7 @@ index 8d2530d..028b83c 100644
 +	TCA_CAKE_NAT,
 +	TCA_CAKE_ETHERNET,
 +	TCA_CAKE_WASH,
++	TCA_CAKE_MPU,
 +	__TCA_CAKE_MAX
 +};
 +#define TCA_CAKE_MAX	(__TCA_CAKE_MAX - 1)
@@ -76,10 +77,10 @@ index 56acbaa..d421b8e 100644
  
 diff --git a/tc/q_cake.c b/tc/q_cake.c
 new file mode 100644
-index 0000000..14e5aab
+index 0000000..acbe56c
 --- /dev/null
 +++ b/tc/q_cake.c
-@@ -0,0 +1,654 @@
+@@ -0,0 +1,692 @@
 +/*
 + * Common Applications Kept Enhanced  --  CAKE
 + *
@@ -133,14 +134,20 @@ index 0000000..14e5aab
 +
 +static void explain(void)
 +{
-+	fprintf(stderr, "Usage: ... cake [ bandwidth RATE | unlimited* | autorate_ingress ]\n"
-+	                "                [ rtt TIME | datacentre | lan | metro | regional | internet* | oceanic | satellite | interplanetary ]\n"
-+	                "                [ besteffort | precedence | diffserv8 | diffserv4* ]\n"
-+	                "                [ flowblind | srchost | dsthost | hosts | flows* | dual-srchost | dual-dsthost | triple-isolate ] [ nat | nonat* ]\n"
-+	                "                [ ptm | atm | noatm* ] [ overhead N | conservative | raw* ]\n"
-+	                "                [ wash | nowash* ]\n"
-+	                "                [ memlimit LIMIT ]\n"
-+	                "    (* marks defaults)\n");
++	fprintf(stderr,
++"Usage: ... cake [ bandwidth RATE | unlimited* | autorate_ingress ]\n"
++"                [ rtt TIME | datacentre | lan | metro | regional |\n"
++"                  internet* | oceanic | satellite | interplanetary ]\n"
++"                [ besteffort | diffserv8 | diffserv4 | diffserv-llt |\n"
++"                  diffserv3* ]\n"
++"                [ flowblind | srchost | dsthost | hosts | flows |\n"
++"                  dual-srchost | dual-dsthost | triple-isolate* ]\n"
++"                [ nat | nonat* ]\n"
++"                [ wash | nowash * ]\n"
++"                [ memlimit LIMIT ]\n"
++"                [ ptm | atm | noatm* ] [ overhead N | conservative | raw* ]\n"
++"                [ mpu N ]\n"
++"                (* marks defaults)\n");
 +}
 +
 +static int cake_parse_opt(struct qdisc_util *qu, int argc, char **argv,
@@ -156,6 +163,7 @@ index 0000000..14e5aab
 +	bool overhead_set = false;
 +	bool overhead_override = false;
 +	int wash = -1;
++	int mpu = 0;
 +	int flowmode = -1;
 +	int nat = -1;
 +	int atm = -1;
@@ -224,6 +232,8 @@ index 0000000..14e5aab
 +			diffserv = 4;
 +		} else if (strcmp(*argv, "diffserv-llt") == 0) {
 +			diffserv = 5;
++		} else if (strcmp(*argv, "diffserv3") == 0) {
++			diffserv = 6;
 +
 +		} else if (strcmp(*argv, "nowash") == 0) {
 +			wash = 0;
@@ -337,6 +347,7 @@ index 0000000..14e5aab
 +			 * you may need to add vlan tag */
 +			overhead += 38;
 +			overhead_set = true;
++			mpu = 84;
 +
 +		/* Additional Ethernet-related overhead used by some ISPs */
 +		} else if (strcmp(*argv, "ether-vlan") == 0) {
@@ -352,6 +363,7 @@ index 0000000..14e5aab
 +			atm = 0;
 +			overhead += 18;
 +			overhead_set = true;
++			mpu = 64;
 +
 +		} else if (strcmp(*argv, "overhead") == 0) {
 +			char* p = NULL;
@@ -362,6 +374,15 @@ index 0000000..14e5aab
 +				return -1;
 +			}
 +			overhead_set = true;
++
++		} else if (strcmp(*argv, "mpu") == 0) {
++			char* p = NULL;
++			NEXT_ARG();
++			mpu = strtol(*argv, &p, 10);
++			if(!p || *p || !*argv || mpu < 0 || mpu > 256) {
++				fprintf(stderr, "Illegal \"mpu\", valid range is 0 to 256\\n");
++				return -1;
++			}
 +
 +		} else if (strcmp(*argv, "memlimit") == 0) {
 +			NEXT_ARG();
@@ -397,6 +418,8 @@ index 0000000..14e5aab
 +		unsigned zero = 0;
 +		addattr_l(n, 1024, TCA_CAKE_ETHERNET, &zero, sizeof(zero));
 +	}
++	if (mpu > 0)
++		addattr_l(n, 1024, TCA_CAKE_MPU, &mpu, sizeof(mpu));
 +	if (interval)
 +		addattr_l(n, 1024, TCA_CAKE_RTT, &interval, sizeof(interval));
 +	if (target)
@@ -425,6 +448,7 @@ index 0000000..14e5aab
 +	unsigned memlimit = 0;
 +	int overhead = 0;
 +	int ethernet = 0;
++	int mpu = 0;
 +	int atm = 0;
 +	int nat = 0;
 +	int autorate = 0;
@@ -471,6 +495,9 @@ index 0000000..14e5aab
 +			break;
 +		case 5:
 +			fprintf(f, "diffserv-llt ");
++			break;
++		case 6:
++			fprintf(f, "diffserv3 ");
 +			break;
 +		default:
 +			fprintf(f, "(?diffserv?) ");
@@ -527,6 +554,10 @@ index 0000000..14e5aab
 +	    RTA_PAYLOAD(tb[TCA_CAKE_OVERHEAD]) >= sizeof(__u32)) {
 +		overhead = rta_getattr_u32(tb[TCA_CAKE_OVERHEAD]);
 +	}
++	if (tb[TCA_CAKE_MPU] &&
++	    RTA_PAYLOAD(tb[TCA_CAKE_MPU]) >= sizeof(__u32)) {
++		mpu = rta_getattr_u32(tb[TCA_CAKE_MPU]);
++	}
 +	if (tb[TCA_CAKE_ETHERNET] &&
 +	    RTA_PAYLOAD(tb[TCA_CAKE_ETHERNET]) >= sizeof(__u32)) {
 +		ethernet = rta_getattr_u32(tb[TCA_CAKE_ETHERNET]);
@@ -558,6 +589,10 @@ index 0000000..14e5aab
 +		// its presence as a boolean for now.
 +		if (ethernet)
 +			fprintf(f, "via-ethernet ");
++	}
++
++	if (mpu) {
++		fprintf(f, "mpu %d ", mpu);
 +	}
 +
 +	if (memlimit)
@@ -621,6 +656,10 @@ index 0000000..14e5aab
 +			fprintf(f, " capacity estimate: %s\n", sprint_rate(stnc->capacity_estimate, b1));
 +
 +		switch(stnc->tin_cnt) {
++		case 3:
++			fprintf(f, "                 Bulk   Best Effort      Voice\n");
++			break;
++
 +		case 4:
 +			fprintf(f, "                 Bulk   Best Effort      Video       Voice\n");
 +			break;

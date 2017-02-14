@@ -148,17 +148,17 @@ menuconfig VERSIONOPT
 	default n
 	help
 		These options allow to override the version information embedded in
-		the /etc/openwrt_version, /etc/openwrt_release, /etc/banner and
-		/etc/opkg.conf files. Usually there is no need to set these, but
-		they're useful for release builds or custom OpenWrt redistributions
-		that should carry custom version tags.
+		the /etc/openwrt_version, /etc/openwrt_release, /etc/banner,
+		/etc/opkg.conf, and /etc/os-release files. Usually there is no need
+		to set these, but they're useful for release builds or custom OpenWrt
+		redistributions that should carry custom version tags.
 
 if VERSIONOPT
 
 	config VERSION_DIST
 		string
 		prompt "Release distribution"
-		default "OpenWrt"
+		default "LEDE"
 		help
 			This is the name of the release distribution.
 			If unspecified, it defaults to OpenWrt.
@@ -175,29 +175,39 @@ if VERSIONOPT
 		prompt "Release version number"
 		help
 			This is the release version number embedded in the image.
-			If unspecified, it defaults to the svn or git-svn revision
-			of the build tree.
+			If unspecified, it defaults to SNAPSHOT for the master branch
+			or to ##.##-SNAPSHOT on release branches.
+
+	config VERSION_CODE
+		string
+		prompt "Release version code"
+		help
+			This is the release version code embedded in the image.
+			If unspecified, it defaults to a revision number describing the
+			repository version of the source, e.g. the number of commits
+			since a branch point or a short Git commit ID.
 
 	config VERSION_REPO
 		string
 		prompt "Release repository"
-		default "http://downloads.openwrt.org/snapshots/trunk/%S/packages"
+		default "http://downloads.lede-project.org/snapshots"
 		help
 			This is the repository address embedded in the image, it defaults
 			to the trunk snapshot repo; the url may contain the following placeholders:
-			 %R .. Revision number
-			 %V .. Release version or revision number, uppercase
-			 %v .. Release version or revision number, lowercase
-			 %C .. Release version or "Bleeding Edge", uppercase
-			 %c .. Release version or "bleeding_edge", lowercase
+			 %R .. Repository revision ID
+			 %V .. Configured release version number or "SNAPSHOT", uppercase
+			 %v .. Configured release version number or "snapshot", lowercase
+			 %C .. Configured release revision code or value of %R, uppercase
+			 %c .. Configured release revision code or value of %R, lowercase
 			 %N .. Release name, uppercase
 			 %n .. Release name, lowercase
-			 %D .. Distribution name or "OpenWrt", uppercase
-			 %d .. Distribution name or "openwrt", lowercase
+			 %D .. Distribution name or "Lede", uppercase
+			 %d .. Distribution name or "lede", lowercase
 			 %T .. Target name
 			 %S .. Target/Subtarget name
+			 %A .. Package architecture
 			 %t .. Build taint flags, e.g. "no-all busybox"
-			 %M .. Manufacturer name or "OpenWrt"
+			 %M .. Manufacturer name or "Lede"
 			 %P .. Product name or "Generic"
 			 %h .. Hardware revision or "v0"
 
@@ -214,6 +224,18 @@ if VERSIONOPT
 		help
 			This is an URL to the manufacturer's website embedded in /etc/device_info
 			Useful for OEMs building OpenWrt based firmware
+
+	config VERSION_BUG_URL
+		string
+		prompt "Bug reporting URL"
+		help
+			This is an URL to provide users for providing bug reports
+
+	config VERSION_SUPPORT_URL
+		string
+		prompt "Support URL"
+		help
+			This an URL to provide users seeking support
 
 	config VERSION_PRODUCT
 		string
@@ -236,6 +258,15 @@ if VERSIONOPT
 		help
 			Enable this to include the version number in firmware image, SDK-
 			and Image Builder archive file names
+
+	config VERSION_CODE_FILENAMES
+		bool
+		prompt "Revision code in filenames"
+		default y
+		help
+			Enable this to include the revision identifier or the configured
+			version code into the firmware image, SDK- and Image Builder archive
+			file names
 endif
 
 
@@ -261,42 +292,3 @@ menuconfig PER_FEED_REPO
 		  Add not enabled feeds as commented out source lines to opkg.conf.
 
 source "tmp/.config-feeds.in"
-
-
-menuconfig SMIMEOPT
-	bool "Package signing options" if IMAGEOPT
-        default n
-	help
-		These options configure the signing key and certificate to
-		be used for signing and verifying packages.
-
-	config OPKGSMIME_CERT
-		string
-		prompt "Path to certificate (PEM certificate format)" if SMIMEOPT
-		help
-		  Path to the certificate to use for signature verification
-
-	config OPKGSMIME_KEY
-		string
-		prompt "Path to signing key (PEM private key format)" if SMIMEOPT
-		help
-		  Path to the key to use for signing packages
-
-	config OPKGSMIME_PASSPHRASE
-		bool
-		default y
-		prompt "Wait for a passphrase when signing packages?" if SMIMEOPT
-		help
-		  If this value is set, then the build will pause and request a passphrase
-                  from the command line when signing packages. This SHOULD NOT be used with
-                  automatic builds. If this value is not set, a file can be specified from
-                  which the passphrase will be read.
-
-	config OPKGSMIME_PASSFILE
-		string
-		prompt "Path to a file containing the passphrase" if SMIMEOPT
-                depends on !OPKGSMIME_PASSPHRASE
-		help
-		  Path to a file containing the passphrase for the signing key.
-                  If the signing key is not encrypted and does not require a passphrase,
-                  this option may be left blank.

@@ -8,15 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=relayd
-PKG_VERSION:=2016-02-07
-PKG_RELEASE=$(PKG_SOURCE_VERSION)
+PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE_URL=$(LEDE_GIT)/project/relayd.git
 PKG_SOURCE_PROTO:=git
+PKG_SOURCE_DATE:=2016-02-07
 PKG_SOURCE_VERSION:=ad0b25ad74345d367c62311e14b279f5ccb8ef13
-PKG_MIRROR_MD5SUM:=fb387d5edfecdaf8902bff37d02cb50d92110ab5987758fb98fc25a02257aee1
+PKG_MIRROR_HASH:=8818e9da8cc056961f21f1569e06e63b840965d1453dfcef70a8d84ea76f84d7
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=GPL-2.0
@@ -37,8 +35,6 @@ TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include
 define Package/relayd/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/relayd $(1)/usr/sbin/relayd
-	$(INSTALL_DIR) $(1)/etc/hotplug.d/iface
-	$(INSTALL_DATA) ./files/relay.hotplug $(1)/etc/hotplug.d/iface/30-relay
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/relay.init $(1)/etc/init.d/relayd
 endef

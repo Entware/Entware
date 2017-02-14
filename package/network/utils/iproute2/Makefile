@@ -9,11 +9,11 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=iproute2
 PKG_VERSION:=4.4.0
-PKG_RELEASE:=5
+PKG_RELEASE:=7
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/utils/net/iproute2
-PKG_MD5SUM:=d762653ec3e1ab0d4a9689e169ca184f
+PKG_HASH:=bc91c367288a19f78ef800cd6840363be1f22da8436fbae88e1a7250490d6514
 PKG_BUILD_PARALLEL:=1
 PKG_LICENSE:=GPL-2.0
 
@@ -30,14 +30,15 @@ define Package/iproute2/Default
   MAINTAINER:=Russell Senior <russell@personaltelco.net>
   DEPENDS:= +libnl-tiny
   VARIANT:=$(1)
+  PROVIDES:=$(3)
 endef
 
-define Package/ip
-$(call Package/iproute2/Default,tiny,Minimal)
+define Package/ip-tiny
+$(call Package/iproute2/Default,tiny,Minimal,ip)
   CONFLICTS:=ip-full
 endef
 
-Package/ip-full=$(call Package/iproute2/Default,full,Full)
+Package/ip-full:=$(call Package/iproute2/Default,full,Full,ip)
 
 define Package/tc
 $(call Package/iproute2/Default)
@@ -101,7 +102,7 @@ define Build/InstallDev
 	$(CP) $(PKG_BUILD_DIR)/lib/libnetlink.a $(1)/opt/lib/
 endef
 
-define Package/ip/install
+define Package/ip-tiny/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(INSTALL_DIR) $(1)/opt/etc/iproute2
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ip/ip $(1)/opt/bin/
@@ -143,7 +144,7 @@ define Package/nstat/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/misc/nstat $(1)/opt/sbin/
 endef
 
-$(eval $(call BuildPackage,ip))
+$(eval $(call BuildPackage,ip-tiny))
 $(eval $(call BuildPackage,ip-full))
 $(eval $(call BuildPackage,tc))
 $(eval $(call BuildPackage,genl))

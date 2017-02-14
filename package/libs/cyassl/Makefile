@@ -7,18 +7,17 @@
 
 include $(TOPDIR)/rules.mk
 
-# This update is from LEDE, not Openwrt
-
 PKG_NAME:=wolfssl
-PKG_VERSION:=3.9.10
+PKG_VERSION:=3.10.0
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).zip
 PKG_SOURCE_URL:=https://www.wolfssl.com/
-PKG_MD5SUM:=793921c0db96248be4a369cbfdf0cb7b37ee2be715b8b775b6cd32efe66f494e
+PKG_HASH:=66f7f2a8b8ee37d6b4beab3cb0dcb6a6980fd4674373bfd3bf1214b9d0d2c02e
 
 PKG_FIXUP:=libtool
 PKG_INSTALL:=1
+PKG_USE_MIPS16:=0
 PKG_BUILD_PARALLEL:=1
 PKG_LICENSE:=GPL-2.0+
 
@@ -44,8 +43,8 @@ endef
 
 TARGET_CFLAGS += $(FPIC)
 
+# --enable-stunnel needed for OpenSSL API compatibility bits
 CONFIGURE_ARGS += \
-	--enable-singlethreaded \
 	--enable-opensslextra \
 	--enable-sni \
 	--enable-stunnel \

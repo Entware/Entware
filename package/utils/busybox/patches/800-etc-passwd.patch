@@ -1,6 +1,6 @@
 --- a/include/libbb.h
 +++ b/include/libbb.h
-@@ -120,16 +120,16 @@
+@@ -123,16 +123,16 @@
  #endif
  /* Just in case libc doesn't define some of these... */
  #ifndef _PATH_PASSWD
@@ -23,7 +23,7 @@
  # include <netinet/in.h>
 --- a/loginutils/adduser.c
 +++ b/loginutils/adduser.c
-@@ -153,7 +153,7 @@
+@@ -204,7 +204,7 @@
  	char *p;
  	unsigned opts;
  	char *uid;

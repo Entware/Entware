@@ -15,6 +15,36 @@ config OPENSSL_WITH_SSL3
 	default n
 	prompt "Enable sslv3 support"
 
+config OPENSSL_WITH_DEPRECATED
+	bool
+	default y
+	prompt "Include deprecated APIs"
+
+config OPENSSL_WITH_DTLS
+	bool
+	default n
+	prompt "Enable DTLS support"
+
+config OPENSSL_WITH_COMPRESSION
+	bool
+	default n
+	prompt "Enable compression support"
+
+config OPENSSL_WITH_NPN
+	bool
+	default y
+	prompt "Enable NPN support"
+
+config OPENSSL_WITH_PSK
+	bool
+	default y
+	prompt "Enable PSK support"
+
+config OPENSSL_WITH_SRP
+	bool
+	default y
+	prompt "Enable SRP support"
+
 config OPENSSL_ENGINE_DIGEST
 	bool
 	depends on OPENSSL_ENGINE_CRYPTO
@@ -29,5 +59,4 @@ endif
 
 config OPENSSL_ENGINE_CRYPTO
 	bool
-	select OPENSSL_HARDWARE_SUPPORT
 	prompt "Crypto acceleration support" if PACKAGE_libopenssl

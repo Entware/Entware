@@ -4,7 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-# more binaries are added to server and client packages (as in debian)
+# more binaries are added to server and client packages (as in Debian)
 
 include $(TOPDIR)/rules.mk
 
@@ -15,7 +15,7 @@ PKG_RELEASE:=5
 PKG_SOURCE_URL:=http://ftp.samba.org/pub/samba \
 	http://ftp.samba.org/pub/samba/stable
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_MD5SUM:=76da2fa64edd94a0188531e7ecb27c4e
+PKG_HASH:=8f2c8a7f2bd89b0dfd228ed917815852f7c625b2bc0936304ac3ed63aaf83751
 
 PKG_LICENSE:=GPL-3.0
 PKG_LICENSE_FILES:=COPYING
@@ -146,23 +146,18 @@ define Package/samba36-server/install
 	$(LN) samba_multicall $(1)/opt/sbin/smbd
 	$(LN) samba_multicall $(1)/opt/sbin/nmbd
 	$(LN) samba_multicall $(1)/opt/sbin/smbpasswd
-	$(INSTALL_BIN) $(PKG_BUILD_BIN)/smbstatus $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_BIN)/pdbedit $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_BIN)/eventlogadm $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_BIN)/profiles $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_BIN)/tdbbackup $(1)/opt/sbin
+	$(INSTALL_BIN) \
+	    $(PKG_BUILD_BIN)/{smbstatus,pdbedit,eventlogadm,profiles,tdbbackup} \
+	    $(1)/opt/sbin
 	$(INSTALL_DIR) $(1)/opt/var/nmbd
 endef
 
 define Package/samba36-client/install
 	$(INSTALL_DIR) $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_BIN)/smbclient $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_BIN)/nmblookup $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_BIN)/smbcacls $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_BIN)/smbcquotas $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_BIN)/smbget $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_BIN)/smbspool $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_BIN)/smbtree $(1)/opt/sbin
+	$(INSTALL_BIN) \
+	    $(PKG_BUILD_BIN)/nmblookup \
+	    $(PKG_BUILD_BIN)/smb{client,cacls,cquotas,get,spool,tree} \
+	    $(1)/opt/sbin
 endef
 
 $(eval $(call BuildPackage,samba36-client))

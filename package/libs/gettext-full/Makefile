@@ -5,8 +5,6 @@
 # See /LICENSE for more information.
 #
 
-# Small Host configure changes are from LEDE
-
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gettext-full
@@ -15,7 +13,7 @@ PKG_RELEASE:=1
 
 PKG_SOURCE:=gettext-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/gettext
-PKG_MD5SUM:=df3f5690eaa30fd228537b00cb7b7590
+PKG_HASH:=105556dbc5c3fbbc2aa0edb46d22d055748b6f5c7cd7a8d99f8e7eb84e938be4
 PKG_BUILD_DIR:=$(BUILD_DIR)/gettext-$(PKG_VERSION)
 HOST_BUILD_DIR:=$(BUILD_DIR_HOST)/gettext-$(PKG_VERSION)
 
@@ -40,7 +38,7 @@ endef
 
 TARGET_CFLAGS += $(FPIC)
 ifneq ($(HOST_OS),Linux)
-  TARGET_CFLAGS += -I$(STAGING_DIR)/host/include
+  TARGET_CFLAGS += -I$(STAGING_DIR_HOSTPKG)/include
 endif
 ifdef CONFIG_USE_MUSL
   TARGET_CFLAGS += -D__UCLIBC__
@@ -64,6 +62,8 @@ CONFIGURE_ARGS += \
 	--without-emacs
 
 HOST_CONFIGURE_ARGS += \
+	--disable-shared \
+	--enable-static \
 	--disable-libasprintf \
 	--disable-rpath \
 	--disable-java \
@@ -74,7 +74,10 @@ HOST_CONFIGURE_ARGS += \
 
 
 HOST_CONFIGURE_VARS += \
-	EMACS="no"
+	EMACS="no" \
+	am_cv_lib_iconv=no \
+	am_cv_func_iconv=no \
+	ac_cv_header_iconv_h=no \
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/lib/libintl-full/include
@@ -86,7 +89,7 @@ define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/share/aclocal
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/share/aclocal/* $(1)/opt/share/aclocal/
 
-	$(SED) '/read dummy/d' $(STAGING_DIR)/host/bin/gettextize
+	$(SED) '/read dummy/d' $(STAGING_DIR_HOSTPKG)/bin/gettextize
 endef
 
 define Package/libintl-full/install

@@ -4,13 +4,11 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-# Upgraded from 5.9. ncurses-bin package added.
-
-# !!! OWRT DIFFERENCE !!!
 # opkg binary segfaults when a real package is replaced by "provided" package.
 # we removed PROVIDES libncurses field in libncursesw and added a real libncurses package that
 # installes symlinks. We've added more symlinks to make binaries from older packages to be compatible with
-# the new libncurses(w) package
+# the new libncurses(w) package.
+# Our patch set is different from LEDE for historical reason, it will be merged after next uptade in LEDE
 
 include $(TOPDIR)/rules.mk
 
@@ -21,7 +19,7 @@ PKG_RELEASE:=1c
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@GNU/ncurses
-PKG_MD5SUM:=ee13d052e1ead260d7c28071f46eefb1
+PKG_HASH:=f551c24b30ce8bfb6e96d9f59b42fbea30fa3a6123384172f9e7284bcf647260
 
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=README
@@ -85,9 +83,10 @@ CONFIGURE_ARGS += \
 	--with-normal \
 	--with-shared \
 	--with-terminfo-dirs=/opt/share/terminfo \
+	--with-default-terminfo-dir=/opt/share/terminfo \
+	--with-pkg-config-libdir=/opt/lib/pkgconfig \
 	--enable-widec \
-	--with-build-cppflags=-D_GNU_SOURCE \
-	--with-default-terminfo-dir=/opt/share/terminfo
+	--with-build-cppflags=-D_GNU_SOURCE
 
 HOST_CONFIGURE_ARGS += \
 	--without-cxx \

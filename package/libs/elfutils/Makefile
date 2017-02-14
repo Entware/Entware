@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=elfutils
-PKG_VERSION:=0.167
+PKG_VERSION:=0.168
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:=http://fedorahosted.org/releases/e/l/$(PKG_NAME)/$(PKG_VERSION)
-PKG_MD5SUM:=efc6c2067dfad5646777e93e85222e8f
+PKG_SOURCE_URL:=https://sourceware.org/$(PKG_NAME)/ftp/$(PKG_VERSION)
+PKG_HASH:=b88d07893ba1373c7dd69a7855974706d05377766568a7d9002706d5de72c276
 PKG_MAINTAINER:=Luiz Angelo Daros de Luca <luizluca@gmail.com>
 PKG_LICENSE:=GPL-3.0+
 PKG_LICENSE_FILES:=COPYING COPYING-GPLV2 COPYING-LGPLV3
@@ -55,10 +55,6 @@ ifeq ($(CONFIG_BUILD_NLS),y)
 TARGET_LDFLAGS += "-lintl"
 endif
 
-ifdef CONFIG_USE_UCLIBC
-CONFIGURE_VARS += \
-	LIBS="-largp"
-endif
 
 ifdef CONFIG_USE_MUSL
 CONFIGURE_VARS += \
@@ -67,6 +63,8 @@ endif
 
 CONFIGURE_ARGS += \
 	--without-lzma
+
+TARGET_CFLAGS += -D_GNU_SOURCE
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/include

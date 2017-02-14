@@ -7,16 +7,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=hostapd
-PKG_VERSION:=2016-09-05
-PKG_RELEASE:=1
-PKG_REV:=fcd85d9a3f2d9d63d0fa57e93446ad467db75b23
+PKG_RELEASE:=2
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=http://w1.fi/hostap.git
-PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=$(PKG_REV)
 PKG_SOURCE_PROTO:=git
-PKG_MIRROR_MD5SUM:=b1b690fedae8ff5c5801b4fb75508ea35c036aae86425ae324875fa57ef1a01b
+PKG_SOURCE_DATE:=2016-12-19
+PKG_SOURCE_VERSION:=ad02e79d12fd70ed6bd5fbaf64001a2851e5bb7b
+PKG_MIRROR_HASH:=7a0983f004b156d46911765c113754a4c00f56fb889430620bbd061b3b1fcf33
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=BSD-3-Clause
@@ -31,7 +28,8 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_hostapd-mini \
 	CONFIG_WPA_RFKILL_SUPPORT \
 	CONFIG_DRIVER_WEXT_SUPPORT \
-	CONFIG_DRIVER_11N_SUPPORT
+	CONFIG_DRIVER_11N_SUPPORT \
+	CONFIG_DRIVER_11AC_SUPPORT
 
 LOCAL_TYPE=$(strip \
 		$(if $(findstring wpad,$(BUILD_VARIANT)),wpad, \
@@ -52,7 +50,7 @@ ifneq ($(LOCAL_TYPE),hostapd)
   endif
 endif
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_BUILD_DIR=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -62,10 +60,15 @@ ifneq ($(CONFIG_DRIVER_11N_SUPPORT),)
   HOSTAPD_IEEE80211N:=y
 endif
 
+ifneq ($(CONFIG_DRIVER_11AC_SUPPORT),)
+  HOSTAPD_IEEE80211AC:=y
+endif
+
 DRIVER_MAKEOPTS= \
 	CONFIG_ACS=$(CONFIG_PACKAGE_kmod-cfg80211) \
 	CONFIG_DRIVER_NL80211=$(CONFIG_PACKAGE_kmod-cfg80211) \
 	CONFIG_IEEE80211N=$(HOSTAPD_IEEE80211N) \
+	CONFIG_IEEE80211AC=$(HOSTAPD_IEEE80211AC) \
 	CONFIG_DRIVER_WEXT=$(CONFIG_DRIVER_WEXT_SUPPORT) \
 
 ifeq ($(LOCAL_VARIANT),full)
@@ -193,10 +196,6 @@ define Package/wpa-supplicant
   VARIANT:=supplicant-full
 endef
 
-define Package/wpa-supplicant/Description
-  WPA Supplicant
-endef
-
 define Package/wpa-supplicant/config
 	source "$(SOURCE)/Config.in"
 endef
@@ -209,20 +208,12 @@ define Package/wpa-supplicant-p2p
   VARIANT:=supplicant-p2p
 endef
 
-define Package/wpa-supplicant-p2p/Description
-  WPA Supplicant (with Wi-Fi P2P support)
-endef
-
 define Package/wpa-supplicant-mesh
   $(Package/wpa-supplicant)
   TITLE:=WPA Supplicant (with 802.11s and SAE)
   DEPENDS:=$(DRV_DEPENDS) +PACKAGE_wpa-supplicant-mesh:libopenssl @PACKAGE_kmod-cfg80211 @(!TARGET_uml||BROKEN)
   CONFLICTS:=wpad wpad-mesh wpad-mesh
   VARIANT:=supplicant-mesh
-endef
-
-define Package/wpa-supplicant-mesh/Description
-  WPA Supplicant (variant with 802.11s and SAE support)
 endef
 
 define Package/wpa-supplicant-mini
@@ -233,19 +224,11 @@ define Package/wpa-supplicant-mini
   VARIANT:=supplicant-mini
 endef
 
-define Package/wpa-supplicant-mini/Description
-  WPA Supplicant (minimal version)
-endef
-
 define Package/wpa-cli
   SECTION:=net
   CATEGORY:=Network
   DEPENDS:=@PACKAGE_wpa-supplicant||PACKAGE_wpa-supplicant-p2p||PACKAGE_wpad-mini||PACKAGE_wpad||PACKAGE_wpad-mesh
-  TITLE:=WPA Supplicant command line interface
-endef
-
-define Package/wpa-cli/Description
-  WPA Supplicant control utility
+  TITLE:=WPA Supplicant command line control utility
 endef
 
 define Package/hostapd-common
@@ -259,7 +242,7 @@ define Package/eapol-test
   SECTION:=net
   CATEGORY:=Network
   VARIANT:=supplicant-full
-  DEPENDS:=$(DRV_DEPENDS)
+  DEPENDS:=$(DRV_DEPENDS) +WPA_SUPPLICANT_OPENSSL:libopenssl
 endef
 
 
@@ -335,19 +318,19 @@ define Build/Compile/wpad
 endef
 
 define Build/Compile/hostapd
-	$(call Build/RunMake,hostapd, \
+	+$(call Build/RunMake,hostapd, \
 		hostapd hostapd_cli \
 	)
 endef
 
 define Build/Compile/supplicant
-	$(call Build/RunMake,wpa_supplicant, \
+	+$(call Build/RunMake,wpa_supplicant, \
 		wpa_cli wpa_supplicant \
 	)
 endef
 
 define Build/Compile/supplicant-full
-	$(call Build/RunMake,wpa_supplicant, \
+	+$(call Build/RunMake,wpa_supplicant, \
 		eapol_test \
 	)
 endef

@@ -9,11 +9,11 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libtool
 PKG_VERSION:=2.4
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/libtool
-PKG_MD5SUM:=afcce660d3dc54c63a0a5ba3cf05272239dc3c54bbeba20f6bad250f9dc007ae
+PKG_HASH:=afcce660d3dc54c63a0a5ba3cf05272239dc3c54bbeba20f6bad250f9dc007ae
 
 PKG_LICENSE:=GPL-2.0+
 PKG_LICENSE_FILES:=COPYING
@@ -22,7 +22,7 @@ PKG_BUILD_PARALLEL:=0
 
 include $(INCLUDE_DIR)/package.mk
 
-CONFIGURE_PREFIX=$(STAGING_DIR)/host
+CONFIGURE_PREFIX=$(STAGING_DIR_HOSTPKG)
 export GLOBAL_LIBDIR=$(STAGING_DIR)/usr/lib
 
 define Package/libltdl
@@ -34,14 +34,14 @@ endef
 
 define Build/InstallDev
 	$(MAKE) -C $(PKG_BUILD_DIR) \
-		bindir="$(2)/bin" \
-		datadir="$(2)/share" \
-		prefix="$(2)" \
-		exec_prefix="$(2)" \
+		bindir="$(2)/libltdl/bin" \
+		datadir="$(2)/libltdl/share" \
+		prefix="$(2)/libltdl" \
+		exec_prefix="$(2)/libltdl" \
 		install
 	$(INSTALL_DIR) $(1)/opt/lib $(1)/opt/include
-	mv $(2)/lib/* $(1)/opt/lib/
-	mv $(2)/include/* $(1)/opt/include/
+	mv $(2)/libltdl/lib/* $(1)/opt/lib/
+	mv $(2)/libltdl/include/* $(1)/opt/include/
 endef
 
 define Package/libltdl/install

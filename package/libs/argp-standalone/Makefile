@@ -13,7 +13,7 @@ PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.lysator.liu.se/~nisse/misc/
-PKG_MD5SUM:=720704bac078d067111b32444e24ba69
+PKG_HASH:=dec79694da1319acd2238ce95df57f3680fea2482096e483323fddf3d818d8be
 PKG_MAINTAINER:=Ted Hess <thess@kitschensync.net>
 
 PKG_LICENSE:=LGPL-2.1
@@ -37,12 +37,12 @@ MAKE_FLAGS += \
 
 
 define Build/InstallDev
-	$(INSTALL_DIR) $(1)/usr/include
+	$(INSTALL_DIR) $(1)/opt/include
 	$(CP)   $(PKG_BUILD_DIR)/argp.h \
-		$(1)/usr/include/
-	$(INSTALL_DIR) $(1)/usr/lib
+		$(1)/opt/include/
+	$(INSTALL_DIR) $(1)/opt/lib
 	$(CP)   $(PKG_BUILD_DIR)/libargp.a \
-		$(1)/usr/lib/
+		$(1)/opt/lib/
 endef
 
 $(eval $(call BuildPackage,argp-standalone))

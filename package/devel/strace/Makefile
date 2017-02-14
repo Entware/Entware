@@ -5,16 +5,14 @@
 # See /LICENSE for more information.
 #
 
-# This update is from LEDE, not Openwrt!
-
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=strace
 
-PKG_VERSION:=4.14
+PKG_VERSION:=4.15
 PKG_RELEASE:=1
-PKG_MD5SUM:=1e39b5f7583256d7dc21170b9da529ae
+PKG_HASH:=c0cdc094d6141fd9dbf6aaad605142d651ae10998b660fda57fc61f7ad583ca9
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@SF/$(PKG_NAME)

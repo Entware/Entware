@@ -9,12 +9,12 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openvpn
 
-PKG_VERSION:=2.3.13
-PKG_RELEASE:=1
+PKG_VERSION:=2.4.0
+PKG_RELEASE:=3
 
 PKG_SOURCE_URL:=http://swupdate.openvpn.net/community/releases
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_MD5SUM:=9cde0c8000fd32d5275adb55f8bb1d8ba429ff3de35f60a36e81f3859b7537e0
+PKG_HASH:=6f23ba49a1dbeb658f49c7ae17d9ea979de6d92c7357de3d55cd4525e1b2f87e
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
 
@@ -34,11 +34,16 @@ define Package/openvpn/Default
   MENU:=1
   DEPENDS:=+OPENVPN_$(1)_ENABLE_LZO:liblzo $(3)
   VARIANT:=$(1)
+#ifeq ($(1),nossl)
+#  PROVIDES:=openvpn
+#else
+#  PROVIDES:=openvpn openvpn-crypto
+#endif
   MAINTAINER:=Mirko Vogt <mirko@openwrt.org>
 endef
 
-Package/openvpn-openssl=$(call Package/openvpn/Default,openssl,OpenSSL,+libopenssl)
-Package/openvpn-polarssl=$(call Package/openvpn/Default,polarssl,PolarSSL,+libpolarssl)
+Package/openvpn-openssl=$(call Package/openvpn/Default,openssl,OpenSSL,+PACKAGE_openvpn-openssl:libopenssl)
+Package/openvpn-mbedtls=$(call Package/openvpn/Default,mbedtls,mbedTLS,+PACKAGE_openvpn-mbedtls:libmbedtls)
 Package/openvpn-nossl=$(call Package/openvpn/Default,nossl,plaintext (no SSL))
 
 define Package/openvpn/config/Default
@@ -46,11 +51,11 @@ define Package/openvpn/config/Default
 endef
 
 Package/openvpn-openssl/config=$(call Package/openvpn/config/Default,openssl)
-Package/openvpn-polarssl/config=$(call Package/openvpn/config/Default,polarssl)
+Package/openvpn-mbedtls/config=$(call Package/openvpn/config/Default,mbedtls)
 Package/openvpn-nossl/config=$(call Package/openvpn/config/Default,nossl)
 
-ifeq ($(BUILD_VARIANT),polarssl)
-CONFIG_OPENVPN_POLARSSL:=y
+ifeq ($(BUILD_VARIANT),mbedtls)
+CONFIG_OPENVPN_MBEDTLS:=y
 endif
 ifeq ($(BUILD_VARIANT),openssl)
 CONFIG_OPENVPN_OPENSSL:=y
@@ -65,6 +70,9 @@ CONFIGURE_VARS += \
 	IPROUTE=/opt/sbin/ip \
 	NETSTAT=/opt/bin/netstat
 
+#TARGET_CFLAGS += -ffunction-sections -fdata-sections
+#TARGET_LDFLAGS += -Wl,--gc-sections
+
 define Build/Configure
 	$(call Build/Configure/Default, \
 		$(if $(CONFIG_OPENVPN_$(BUILD_VARIANT)_ENABLE_SMALL),--enable-small) \
@@ -74,6 +82,7 @@ define Build/Configure
 		--disable-debug \
 		--disable-pkcs11 \
 		$(if $(CONFIG_OPENVPN_$(BUILD_VARIANT)_ENABLE_LZO),--enable,--disable)-lzo \
+		$(if $(CONFIG_OPENVPN_$(BUILD_VARIANT)_ENABLE_LZ4),--enable,--disable)-lz4 \
 		$(if $(CONFIG_OPENVPN_$(BUILD_VARIANT)_ENABLE_X509_ALT_USERNAME),enable,disable-x509-alt-username)-ssl \
 		$(if $(CONFIG_OPENVPN_$(BUILD_VARIANT)_ENABLE_SERVER),--enable,--disable)-server \
 		$(if $(CONFIG_OPENVPN_$(BUILD_VARIANT)_ENABLE_MANAGEMENT),--enable,--disable)-management \
@@ -86,7 +95,7 @@ define Build/Configure
 		$(if $(CONFIG_OPENVPN_$(BUILD_VARIANT)_ENABLE_PF),--enable,--disable)-pf \
 		$(if $(CONFIG_OPENVPN_NOSSL),--disable-ssl --disable-crypto,--enable-ssl --enable-crypto) \
 		$(if $(CONFIG_OPENVPN_OPENSSL),--with-crypto-library=openssl) \
-		$(if $(CONFIG_OPENVPN_POLARSSL),--with-crypto-library=polarssl) \
+		$(if $(CONFIG_OPENVPN_MBEDTLS),--with-crypto-library=mbedtls) \
 	)
 endef
 
@@ -105,6 +114,7 @@ define Package/openvpn-$(BUILD_VARIANT)/install
 		$(1)/opt/etc/init.d
 endef
 
+
 $(eval $(call BuildPackage,openvpn-openssl))
-$(eval $(call BuildPackage,openvpn-polarssl))
+$(eval $(call BuildPackage,openvpn-mbedtls))
 $(eval $(call BuildPackage,openvpn-nossl))

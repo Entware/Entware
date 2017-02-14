@@ -1,0 +1,17 @@
+# DP: do not set the ABIVERSION to 5 for MIPS objects with non-executable stack
+
+This is basically a revert of upstream commit 17733f5be9. The GNU libc
+side is not yet ready for that.
+
+--- a/bfd/elfxx-mips.c
++++ b/bfd/elfxx-mips.c
+@@ -16187,9 +16187,6 @@
+   if (mips_elf_tdata (abfd)->abiflags.fp_abi == Val_GNU_MIPS_ABI_FP_64
+       || mips_elf_tdata (abfd)->abiflags.fp_abi == Val_GNU_MIPS_ABI_FP_64A)
+     i_ehdrp->e_ident[EI_ABIVERSION] = 3;
+-
+-  if (elf_stack_flags (abfd) && !(elf_stack_flags (abfd) & PF_X))
+-    i_ehdrp->e_ident[EI_ABIVERSION] = 5;
+ }
+ 
+ int

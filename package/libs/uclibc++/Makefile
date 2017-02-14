@@ -14,7 +14,7 @@ PKG_RELEASE:=3
 
 PKG_SOURCE:=uClibc++-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=http://cxx.uclibc.org/src/
-PKG_MD5SUM:=394c119363dd8b469fb898442a6764b8
+PKG_HASH:=be16fc6a6eb2e59df420ee41e7042f38e27ebaf5c2762d90e75803364a7b00db
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/uClibc++-$(PKG_VERSION)
 PKG_BUILD_PARALLEL:=1
@@ -90,7 +90,7 @@ define Build/InstallDev
 	$(SED) 's!\(^\|[[:space:]]\)-[IL]$(TOOLCHAIN_DIR)/[^[:space:]]*!!g' $(TOOLCHAIN_DIR)/bin/g++-uc
 	$(SED) 's|-I/include/|-I$$$${STAGING_DIR:-$(STAGING_DIR)}/opt/include/uClibc++/|g' $(TOOLCHAIN_DIR)/bin/g++-uc
 	$(SED) 's|-L/lib/|-L$$$${STAGING_DIR:-$(STAGING_DIR)}/lib/|g' $(TOOLCHAIN_DIR)/bin/g++-uc
-# add another wrapper which links against both uClibc++ and libstdc++ 
+# add another wrapper which links against both uClibc++ and libstdc++
 	$(INSTALL_BIN) $(TOOLCHAIN_DIR)/bin/g++-uc $(TOOLCHAIN_DIR)/bin/g++-uc+std
 	$(SED) 's|^WRAPPER_INCLUDEDIR=.*||g' $(TOOLCHAIN_DIR)/bin/g++-uc+std
 	$(SED) 's|-luClibc++|-Wl,-Bdynamic,-luClibc++,-Bstatic,-lstdc++,-Bdynamic|g' $(TOOLCHAIN_DIR)/bin/g++-uc+std

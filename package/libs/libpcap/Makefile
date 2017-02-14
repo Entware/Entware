@@ -13,7 +13,7 @@ PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.tcpdump.org/release/
-PKG_MD5SUM:=3d48f9cd171ff12b0efd9134b52f1447
+PKG_HASH:=673dbc69fdc3f5a86fb5759ab19899039a8e5e6c631749e48dcd9c6f0c83541e
 PKG_FIXUP:=patch-libtool
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
@@ -49,8 +49,7 @@ TARGET_CFLAGS += \
 CONFIGURE_VARS += \
 	ac_cv_linux_vers=$(LINUX_VERSION) \
 	ac_cv_header_libusb_1_0_libusb_h=no \
-	ac_cv_netfilter_can_compile=no \
-	ac_cv_header_linux_wireless_h=yes
+	ac_cv_netfilter_can_compile=no
 
 
 CONFIGURE_ARGS += \
