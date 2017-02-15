@@ -1,13 +1,13 @@
 --- a/prctl.c
 +++ b/prctl.c
-@@ -251,7 +251,7 @@
+@@ -273,7 +273,7 @@
  
  	case PR_SET_SECCOMP:
  		tprints(", ");
--		printxval_long(seccomp_mode, tcp->u_arg[1],
-+		printxval_long(seccomp_modex, tcp->u_arg[1],
- 			  "SECCOMP_MODE_???");
- 		if (SECCOMP_MODE_STRICT == tcp->u_arg[1])
+-		printxval64(seccomp_mode, arg2,
++		printxval64(sseccomp_mode, arg2,
+ 			    "SECCOMP_MODE_???");
+ 		if (SECCOMP_MODE_STRICT == arg2)
  			return RVAL_DECODED;
 --- a/xlat/seccomp_mode.h
 +++ b/xlat/seccomp_mode.h
@@ -16,7 +16,7 @@
  
  static
 -const struct xlat seccomp_mode[] = {
-+const struct xlat seccomp_modex[] = {
++const struct xlat sseccomp_mode[] = {
   XLAT(SECCOMP_MODE_DISABLED),
   XLAT(SECCOMP_MODE_STRICT),
   XLAT(SECCOMP_MODE_FILTER),
