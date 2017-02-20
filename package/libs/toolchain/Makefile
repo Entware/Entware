@@ -83,7 +83,7 @@ then
 fi
 if [ -f '/opt/usr/lib/locale/locale-archive' ]
 then
-	echo "You can download locale sources from http://pkg.entware.net/sources/i18n_glib223.tar.gz"
+	echo "You can download locale sources from http://pkg.entware.net/sources/i18n_glib225.tar.gz"
 	echo "You can add new locales to Entware using /opt/bin/localedef.new"
 fi
 if ! [ -f '/opt/usr/lib/locale/locale-archive' ]
