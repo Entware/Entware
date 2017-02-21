@@ -18,7 +18,7 @@ DEFAULT_PACKAGES := toolchain
 include $(INCLUDE_DIR)/target.mk
 
 define Target/Description
-	Build Software Repository for MIPSEL soft float routers.
+	Build Software Repository for MIPS soft float routers.
 endef
 
 $(eval $(call BuildTarget))
