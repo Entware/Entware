@@ -1,1 +1,4 @@
-Добавить в установщик пакета gcc echo сообщение о wiki и headers
+1) Добавить в установщик пакета gcc echo сообщение о wiki и headers
+2) ??? Добавить патч в glibc (Makeconfig) - поменять gconvdir -> = /opt/lib/gconv
+(в случае добавления пакета gconv-modules)
+
