@@ -1,0 +1,34 @@
+Package libnetfilter-conntrack depends on package libnfnetlink. iptables
+checks package libnetfilter-conntrack whatever its package config
+libnfnetlink is enabled or not. When libnfnetlink is disabled but
+package libnetfilter-conntrack exists, it fails randomly with:
+
+| In file included from .../iptables/1.4.21-r0/iptables-1.4.21/extensions/libxt_connlabel.c:8:0:
+| .../tmp/sysroots/qemumips/usr/include/libnetfilter_conntrack/libnetfilter_conntrack.h:14:42: fatal error: libnfnetlink/linux_nfnetlink.h: No such file or directory
+| compilation terminated.
+| GNUmakefile:96: recipe for target 'libxt_connlabel.oo' failed
+
+Only check libnetfilter-conntrack when libnfnetlink is enabled to fix it.
+
+Upstream-Status: Pending
+
+Signed-off-by: Kai Kang <kai.kang@windriver.com>
+
+diff --git a/configure.ac b/configure.ac
+index 5d7e62b..e331ee7 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -85,8 +85,12 @@ if test "$ac_cv_header_linux_ip_vs_h" != "yes"; then
+ 	blacklist_modules="$blacklist_modules ipvs";
+ fi;
+ 
+-PKG_CHECK_MODULES([libnetfilter_conntrack], [libnetfilter_conntrack >= 1.0.4],
++nfconntrack=0
++AS_IF([test "x$enable_libnfnetlink" = "xyes"], [
++  PKG_CHECK_MODULES([libnetfilter_conntrack], [libnetfilter_conntrack >= 1.0.4],
+ 	[nfconntrack=1], [nfconntrack=0])
++  ])
++
+ AM_CONDITIONAL([HAVE_LIBNETFILTER_CONNTRACK], [test "$nfconntrack" = 1])
+ 
+ if test "$nfconntrack" -ne 1; then
