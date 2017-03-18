@@ -18,7 +18,7 @@ include $(INCLUDE_DIR)/package.mk
 ifeq ($(CONFIG_BIG_ENDIAN),y)
 TARGET_CFLAGS+= -DHAVE_BIG_ENDIAN=1
 endif
-TARGET_CFLAGS+= -D_GNU_SOURCE
+TARGET_CFLAGS+= -D_GNU_SOURCE -I$(STAGING_DIR)/opt/include
 
 define Package/adb
   SECTION:=utils
@@ -40,13 +40,13 @@ define Build/Compile
 	$(MAKE) -C $(PKG_BUILD_DIR)/adb/ \
 		$(TARGET_CONFIGURE_OPTS) \
 		TARGET=Linux \
-		CFLAGS="$(TARGET_CFLAGS)" \
+		CFLAGS="$(TARGET_CFLAGS) $(TARGET_CPPFLAGS)" \
 		LDFLAGS="$(TARGET_LDFLAGS)"
 endef
 
 define Package/adb/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/adb/adb $(1)/usr/bin/
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/adb/adb $(1)/opt/bin/
 endef
 
 $(eval $(call BuildPackage,adb))
