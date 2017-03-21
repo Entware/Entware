@@ -40,6 +40,13 @@ $(call Package/gcc/Default)
   DEPENDS:=@USE_GLIBC
 endef
 
+define Package/gconv-modules
+$(call Package/gcc/Default)
+  TITLE:=Glibc gconv modules
+  VERSION:=$(LIBC_VERSION)-$(PKG_RELEASE)
+  DEPENDS:=@USE_GLIBC
+endef
+
 define Package/locales/config
 	menu "Configuration"
 		depends on EXTERNAL_TOOLCHAIN && PACKAGE_locales
@@ -673,6 +680,11 @@ icharmaps=ANSI_X3.4-1968.gz UTF-8.gz
 	exit 0
   endef
 
+  define Package/gconv-modules/install
+	$(INSTALL_DIR) $(1)/opt/lib/gconv
+	$(CP) $(TOOLCHAIN_DIR)/lib/gconv/* $(1)/opt/lib/gconv/
+  endef
+
 else
 
   define Package/libgcc/install
@@ -820,3 +832,4 @@ $(eval $(call BuildPackage,libgo))
 $(eval $(call BuildPackage,ldd))
 $(eval $(call BuildPackage,ldconfig))
 $(eval $(call BuildPackage,locales))
+$(eval $(call BuildPackage,gconv-modules))
