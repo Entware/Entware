@@ -4,7 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-# ionice and fsfreeze packages added, add swapon/swapoff binaries
+# column, ionice and fsfreeze packages added, add swapon/swapoff binaries
 
 include $(TOPDIR)/rules.mk
 
@@ -161,6 +161,15 @@ $(call Package/util-linux/Default)
   TITLE:=display or manipulate disk partition table
   DEPENDS:= +libblkid +libncurses +libsmartcols +libfdisk +libmount
   SUBMENU:=Disc
+endef
+
+define Package/column
+$(call Package/util-linux/Default)
+  TITLE:=columnate lists
+endef
+
+define Package/column/description
+ The  column  utility  formats  its  input  into  multiple  columns
 endef
 
 define Package/cfdisk/description
@@ -556,6 +565,11 @@ define Package/cfdisk/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/cfdisk $(1)/opt/sbin/
 endef
 
+define Package/column/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/column $(1)/opt/bin/
+endef
+
 define Package/dmesg/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/dmesg $(1)/opt/bin/
@@ -708,6 +722,7 @@ $(eval $(call BuildPackage,blkdiscard))
 $(eval $(call BuildPackage,blkid))
 $(eval $(call BuildPackage,cal))
 $(eval $(call BuildPackage,cfdisk))
+$(eval $(call BuildPackage,column))
 $(eval $(call BuildPackage,dmesg))
 $(eval $(call BuildPackage,fdisk))
 $(eval $(call BuildPackage,findfs))
