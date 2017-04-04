@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2006-2015 OpenWrt.org
+# Copyright (C) 2006-2016 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -9,22 +9,21 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=gdb
 
 ifeq ($(CONFIG_arc),y)
-PKG_VERSION:=arc-2015.06-gdb
+PKG_VERSION:=arc-2016.03-gdb
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://github.com/foss-for-synopsys-dwc-arc-processors/binutils-gdb/archive/arc-2015.06-gdb/
-PKG_MD5SUM:=d318829bfd2ed62714817f0d25706825
+PKG_SOURCE_URL:=https://github.com/foss-for-synopsys-dwc-arc-processors/binutils-gdb/archive/arc-2016.03-gdb
+PKG_HASH:=6a91f86cc487c1548d3f5d4f29f7226d2019c0db8a63633aeabd5914a340f3f9
 GDB_DIR:=binutils-$(PKG_NAME)-$(PKG_VERSION)
+PATCH_DIR:=./patches-arc
 else
-PKG_VERSION:=7.10
+PKG_VERSION:=7.12.1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/gdb
-PKG_MD5SUM:=2a35bac41fa8e10bf04f3a0dd7f7f363
+PKG_HASH:=4607680b973d3ec92c30ad029f1b7dbde3876869e6b3a117d8a7e90081113186
 GDB_DIR:=$(PKG_NAME)-$(PKG_VERSION)
 endif
-
-PATCH_DIR:=./patches/$(PKG_VERSION)
 
 HOST_BUILD_DIR:=$(BUILD_DIR_TOOLCHAIN)/$(GDB_DIR)
 

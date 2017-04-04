@@ -1,4 +1,5 @@
 GCC_VARIANT:=initial
+GCC_PREPARE=$(CONFIG_USE_MUSL)
 
 include ../common.mk
 
@@ -17,7 +18,7 @@ define Host/Compile
 endef
 
 define Host/Install
-	$(GCC_MAKE) -C $(GCC_BUILD_DIR) \
+	+$(GCC_MAKE) $(HOST_JOBS) -C $(GCC_BUILD_DIR) \
 		prefix="$(TOOLCHAIN_DIR)/initial" \
 		install-gcc \
 		install-target-libgcc

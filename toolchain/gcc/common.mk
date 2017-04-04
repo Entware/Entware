@@ -71,6 +71,15 @@ export libgcc_cv_fixed_point=no
 ifdef CONFIG_USE_UCLIBC
   export glibcxx_cv_c99_math_tr1=no
 endif
+ifdef CONFIG_INSTALL_GCCGO
+  export libgo_cv_c_split_stack_supported=no
+endif
+
+ifdef CONFIG_GCC_USE_GRAPHITE
+  GRAPHITE_CONFIGURE=--with-isl=$(REAL_STAGING_DIR_HOST)
+else
+  GRAPHITE_CONFIGURE=--without-isl --without-cloog
+endif
 
 GCC_CONFIGURE:= \
 	SHELL="$(BASH)" \
@@ -145,16 +154,41 @@ ifneq ($(CONFIG_SOFT_FLOAT),y)
   endif
 endif
 
+ifeq ($(CONFIG_TARGET_x86)$(CONFIG_USE_GLIBC)$(CONFIG_INSTALL_GCCGO),yyy)
+  TARGET_CFLAGS+=-fno-split-stack
+endif
+
 GCC_MAKE:= \
 	export SHELL="$(BASH)"; \
 	$(MAKE) \
 		CFLAGS="$(HOST_CFLAGS)" \
 		CFLAGS_FOR_TARGET="$(TARGET_CFLAGS)" \
-		CXXFLAGS_FOR_TARGET="$(TARGET_CFLAGS)"
+		CXXFLAGS_FOR_TARGET="$(TARGET_CFLAGS)" \
+		GOCFLAGS_FOR_TARGET="$(TARGET_CFLAGS)"
 
-define Host/Prepare
-	mkdir -p $(GCC_BUILD_DIR)
+define Host/SetToolchainInfo
+	$(SED) 's,TARGET_CROSS=.*,TARGET_CROSS=$(REAL_GNU_TARGET_NAME)-,' $(TOOLCHAIN_DIR)/info.mk
+	$(SED) 's,GCC_VERSION=.*,GCC_VERSION=$(GCC_VERSION),' $(TOOLCHAIN_DIR)/info.mk
 endef
+
+ifneq ($(GCC_PREPARE),)
+  define Host/Prepare
+	$(call Host/SetToolchainInfo)
+	$(call Host/Prepare/Default)
+	ln -snf $(GCC_DIR) $(BUILD_DIR_TOOLCHAIN)/$(PKG_NAME)
+	$(CP) $(SCRIPT_DIR)/config.{guess,sub} $(HOST_SOURCE_DIR)/
+	$(SED) 's,^MULTILIB_OSDIRNAMES,# MULTILIB_OSDIRNAMES,' $(HOST_SOURCE_DIR)/gcc/config/*/t-*
+	$(SED) 'd' $(HOST_SOURCE_DIR)/gcc/DEV-PHASE
+	$(SED) 's, DATESTAMP,,' $(HOST_SOURCE_DIR)/gcc/version.c
+	#(cd $(HOST_SOURCE_DIR)/libstdc++-v3; autoconf;);
+	$(SED) 's,gcc_no_link=yes,gcc_no_link=no,' $(HOST_SOURCE_DIR)/libstdc++-v3/configure
+	mkdir -p $(GCC_BUILD_DIR)
+  endef
+else
+  define Host/Prepare
+	mkdir -p $(GCC_BUILD_DIR)
+  endef
+endif
 
 define Host/Configure
 	(cd $(GCC_BUILD_DIR) && rm -f config.cache; \
@@ -163,7 +197,7 @@ define Host/Configure
 endef
 
 define Host/Clean
-	rm -rf \
+	rm -rf $(if $(GCC_PREPARE),$(HOST_SOURCE_DIR)) \
 		$(STAGING_DIR_HOST)/stamp/.gcc_* \
 		$(STAGING_DIR_HOST)/stamp/.binutils_* \
 		$(GCC_BUILD_DIR) \
