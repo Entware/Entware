@@ -18,7 +18,7 @@ $(if $(findstring $(space),$(TOPDIR)),$(error ERROR: The path to the LEDE direct
 
 world:
 
-include $(TOPDIR)/include/host.mk
+export PATH:=$(TOPDIR)/staging_dir/host/bin:$(PATH)
 
 ifneq ($(OPENWRT_BUILD),1)
   _SINGLE=export MAKEFLAGS=$(space);
@@ -95,9 +95,10 @@ headers: FORCE
 	tar -czf $(BIN_DIR)/include.tar.gz -C $(STAGING_DIR)/opt/include .
 
 prepare: .config $(tools/stamp-compile) $(toolchain/stamp-compile)
+	$(_SINGLE)$(SUBMAKE) -r diffconfig
+
 world: prepare $(target/stamp-compile) $(package/stamp-compile) FORCE
 	$(_SINGLE)$(SUBMAKE) -r package/index
-	$(_SINGLE)$(SUBMAKE) -r diffconfig
 	$(_SINGLE)$(SUBMAKE) -r checksum
 	$(_SINGLE)$(SUBMAKE) -r headers
 

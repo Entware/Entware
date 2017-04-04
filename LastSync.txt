@@ -1,8 +1,5 @@
-commit 2711b94932a01ecd00ee9cfba7dcbb1cf4fe2517
-Author: Alexander Couzens <lynxis@fe80.eu>
-Date:   Sat Jan 28 17:23:16 2017 +0100
+commit cffeb31107e27a48ddaf4953590acdefc66f2de9
+Author: Felix Fietkau <nbd@nbd.name>
+Date:   Mon Apr 3 15:08:28 2017 +0200
 
-    lantiq: fix unaligned access in xrx200_poll_rx()
-
-    Signed-off-by: Alexander Couzens <lynxis@fe80.eu>
-
+    mac80211: backport an upstream fix for queue start/stop handling
