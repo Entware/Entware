@@ -39,6 +39,14 @@ menuconfig DEVEL
 		help
 		  Automatically rebuild packages when their files change.
 
+	config AUTOREMOVE
+		bool "Automatic removal of build directories" if DEVEL
+		default n
+		help
+		  Automatically delete build directories after make target completed.
+		  This allows you to symlink build_dir into a scratch location, e.g. a ramdisk,
+		  which does not have enough space to keep a complete build_dir.
+
 	config BUILD_SUFFIX
 		string "Build suffix to append to the target BUILD_DIR variable" if DEVEL
 		default ""
@@ -59,7 +67,7 @@ menuconfig DEVEL
 		bool "Use ccache" if DEVEL
 		default n
 		help
-		  Compiler cache; see http://ccache.samba.org/.
+		  Compiler cache; see https://ccache.samba.org/
 
 	config EXTERNAL_KERNEL_TREE
 		string "Use external kernel tree" if DEVEL

@@ -26,7 +26,7 @@ config KERNEL_PRINTK
 
 config KERNEL_CRASHLOG
 	bool "Crash logging"
-	depends on !(arm || powerpc || sparc || TARGET_uml)
+	depends on !(arm || powerpc || sparc || TARGET_uml || i386 || x86_64)
 	default y
 
 config KERNEL_SWAP
@@ -62,7 +62,7 @@ config KERNEL_PROFILING
 
 config KERNEL_KALLSYMS
 	bool "Compile the kernel with symbol table information"
-	default y
+	default y if !SMALL_FLASH
 	help
 	  This will give you more information in stack traces from kernel oopses.
 
@@ -190,6 +190,14 @@ config KERNEL_MAGIC_SYSRQ
 	bool "Compile the kernel with SysRq support"
 	default y
 
+config KERNEL_DEBUG_PINCTRL
+	bool "Compile the kernel with pinctrl debugging"
+	select KERNEL_DEBUG_KERNEL
+
+config KERNEL_DEBUG_GPIO
+	bool "Compile the kernel with gpio debugging"
+	select KERNEL_DEBUG_KERNEL
+
 config KERNEL_COREDUMP
 	bool
 
@@ -250,6 +258,25 @@ if KERNEL_DEVTMPFS
 		default n
 
 endif
+
+config KERNEL_KEYS
+    bool "Enable kernel access key retention support"
+    default n
+
+config KERNEL_PERSISTENT_KEYRINGS
+    bool "Enable kernel persistent keyrings"
+    depends on KERNEL_KEYS
+    default n
+
+config KERNEL_BIG_KEYS
+    bool "Enable large payload keys on kernel keyrings"
+    depends on KERNEL_KEYS
+    default n
+
+config KERNEL_ENCRYPTED_KEYS
+    tristate "Enable keys with encrypted payloads on kernel keyrings"
+    depends on KERNEL_KEYS
+    default n
 
 #
 # CGROUP support symbols
@@ -630,3 +657,105 @@ if KERNEL_IP_PNP
 		def_bool y
 
 endif
+
+menu "Filesystem ACL and attr support options"
+	config USE_FS_ACL_ATTR
+		bool "Use filesystem ACL and attr support by default"
+		default n
+		help
+		  Make using ACLs (e.g. POSIX ACL, NFSv4 ACL) the default
+		  for kernel and packages, except tmpfs, flash filesystems,
+		  and old NFS.  Also enable userspace extended attribute support
+		  by default.  (OpenWrt already has an expection it will be
+		  present in the kernel).
+
+	config KERNEL_FS_POSIX_ACL
+		bool "Enable POSIX ACL support"
+		default y if USE_FS_ACL_ATTR
+
+	config KERNEL_BTRFS_FS_POSIX_ACL
+		bool "Enable POSIX ACL for BtrFS Filesystems"
+		select KERNEL_FS_POSIX_ACL
+		default y if USE_FS_ACL_ATTR
+
+	config KERNEL_EXT4_FS_POSIX_ACL
+		bool "Enable POSIX ACL for Ext4 Filesystems"
+		select KERNEL_FS_POSIX_ACL
+		default y if USE_FS_ACL_ATTR
+
+	config KERNEL_F2FS_FS_POSIX_ACL
+		bool "Enable POSIX ACL for F2FS Filesystems"
+		select KERNEL_FS_POSIX_ACL
+		default n
+
+	config KERNEL_JFFS2_FS_POSIX_ACL
+		bool "Enable POSIX ACL for JFFS2 Filesystems"
+		select KERNEL_FS_POSIX_ACL
+		default n
+
+	config KERNEL_TMPFS_POSIX_ACL
+		bool "Enable POSIX ACL for TMPFS Filesystems"
+		select KERNEL_FS_POSIX_ACL
+		default n
+
+	config KERNEL_CIFS_ACL
+		bool "Enable CIFS ACLs"
+		select KERNEL_FS_POSIX_ACL
+		default y if USE_FS_ACL_ATTR
+
+	config KERNEL_HFS_FS_POSIX_ACL
+		bool "Enable POSIX ACL for HFS Filesystems"
+		select KERNEL_FS_POSIX_ACL
+		default y if USE_FS_ACL_ATTR
+
+	config KERNEL_HFSPLUG_FS_POSIX_ACL
+		bool "Enable POSIX ACL for HFS+ Filesystems"
+		select KERNEL_FS_POSIX_ACL
+		default y if USE_FS_ACL_ATTR
+
+	config KERNEL_NFS_ACL_SUPPORT
+		bool "Enable ACLs for NFS"
+		default y if USE_FS_ACL_ATTR
+
+	config KERNEL_NFS_V3_ACL_SUPPORT
+		bool "Enable ACLs for NFSv3"
+		default n
+
+	config KERNEL_NFSD_V2_ACL_SUPPORT
+		bool "Enable ACLs for NFSDv2"
+		default n
+
+	config KERNEL_NFSD_V3_ACL_SUPPORT
+		bool "Enable ACLs for NFSDv3"
+		default n
+
+	config KERNEL_REISER_FS_POSIX_ACL
+		bool "Enable POSIX ACLs for ReiserFS"
+		select KERNEL_FS_POSIX_ACL
+		default y if USE_FS_ACL_ATTR
+
+	config KERNEL_XFS_POSIX_ACL
+		bool "Enable POSIX ACLs for XFS"
+		select KERNEL_FS_POSIX_ACL
+		default y if USE_FS_ACL_ATTR
+
+	config KERNEL_JFS_POSIX_ACL
+		bool "Enable POSIX ACLs for JFS"
+		select KERNEL_FS_POSIX_ACL
+		default y if USE_FS_ACL_ATTR
+
+endmenu
+
+config KERNEL_DEVMEM
+	bool "/dev/mem virtual device support"
+	help
+	  Say Y here if you want to support the /dev/mem device.
+	  The /dev/mem device is used to access areas of physical
+	  memory.
+
+config KERNEL_DEVKMEM
+	bool "/dev/kmem virtual device support"
+	help
+	  Say Y here if you want to support the /dev/kmem device. The
+	  /dev/kmem device is rarely used, but can be used for certain
+	  kind of kernel debugging operations.
