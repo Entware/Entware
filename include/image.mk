@@ -8,7 +8,6 @@
 override TARGET_BUILD=
 include $(INCLUDE_DIR)/prereq.mk
 include $(INCLUDE_DIR)/kernel.mk
-include $(INCLUDE_DIR)/host.mk
 include $(INCLUDE_DIR)/version.mk
 include $(INCLUDE_DIR)/image-commands.mk
 
@@ -363,7 +362,7 @@ endef
 
 DEFAULT_DEVICE_VARS := \
   DEVICE_NAME KERNEL KERNEL_INITRAMFS KERNEL_SIZE KERNEL_INITRAMFS_IMAGE \
-  DEVICE_DTS DEVICE_DTS_DIR BOARD_NAME CMDLINE \
+  KERNEL_LOADADDR DEVICE_DTS DEVICE_DTS_DIR BOARD_NAME CMDLINE \
   UBOOTENV_IN_UBI KERNEL_IN_UBI \
   BLOCKSIZE PAGESIZE SUBPAGESIZE VID_HDR_OFFSET \
   UBINIZE_OPTS UIMAGE_NAME UBINIZE_PARTS \
@@ -420,7 +419,7 @@ define Device/Build/initramfs
   $(BIN_DIR)/$$(KERNEL_INITRAMFS_IMAGE): $(KDIR)/tmp/$$(KERNEL_INITRAMFS_IMAGE)
 	cp $$^ $$@
 
-  $(KDIR)/tmp/$$(KERNEL_INITRAMFS_IMAGE): $(KDIR)/$$(KERNEL_INITRAMFS_NAME) $(CURDIR)/Makefile $$(KERNEL_DEPENDS)
+  $(KDIR)/tmp/$$(KERNEL_INITRAMFS_IMAGE): $(KDIR)/$$(KERNEL_INITRAMFS_NAME) $(CURDIR)/Makefile $$(KERNEL_DEPENDS) image_prepare
 	@rm -f $$@
 	$$(call concat_cmd,$$(KERNEL_INITRAMFS))
 endef
@@ -444,7 +443,7 @@ define Device/Build/kernel
     ifdef CONFIG_IB
       install: $$(KDIR_KERNEL_IMAGE)
     endif
-    $$(KDIR_KERNEL_IMAGE): $(KDIR)/$$(KERNEL_NAME) $(CURDIR)/Makefile $$(KERNEL_DEPENDS)
+    $$(KDIR_KERNEL_IMAGE): $(KDIR)/$$(KERNEL_NAME) $(CURDIR)/Makefile $$(KERNEL_DEPENDS) image_prepare
 	@rm -f $$@
 	$$(call concat_cmd,$$(KERNEL))
 	$$(if $$(KERNEL_SIZE),$$(call Build/check-size,$$(KERNEL_SIZE)))

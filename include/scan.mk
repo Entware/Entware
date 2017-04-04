@@ -3,14 +3,14 @@ TMP_DIR:=$(TOPDIR)/tmp
 
 all: $(TMP_DIR)/.$(SCAN_TARGET)
 
-include $(TOPDIR)/include/host.mk
-
 SCAN_TARGET ?= packageinfo
 SCAN_NAME ?= package
 SCAN_DIR ?= package
 TARGET_STAMP:=$(TMP_DIR)/info/.files-$(SCAN_TARGET).stamp
 FILELIST:=$(TMP_DIR)/info/.files-$(SCAN_TARGET)-$(SCAN_COOKIE)
 OVERRIDELIST:=$(TMP_DIR)/info/.overrides-$(SCAN_TARGET)-$(SCAN_COOKIE)
+
+export PATH:=$(TOPDIR)/staging_dir/host/bin:$(PATH)
 
 ifeq ($(IS_TTY),1)
   define progress
@@ -56,7 +56,7 @@ endif
 
 $(FILELIST): $(OVERRIDELIST)
 	rm -f $(TMP_DIR)/info/.files-$(SCAN_TARGET)-*
-	$(call FIND_L, $(SCAN_DIR)) $(SCAN_EXTRA) -mindepth 1 $(if $(SCAN_DEPTH),-maxdepth $(SCAN_DEPTH)) -name Makefile | xargs grep -aHE 'call $(GREP_STRING)' | sed -e 's#^$(SCAN_DIR)/##' -e 's#/Makefile:.*##' | uniq | awk -v of=$(OVERRIDELIST) -f include/scan.awk > $@
+	find -L $(SCAN_DIR) $(SCAN_EXTRA) -mindepth 1 $(if $(SCAN_DEPTH),-maxdepth $(SCAN_DEPTH)) -name Makefile | xargs grep -aHE 'call $(GREP_STRING)' | sed -e 's#^$(SCAN_DIR)/##' -e 's#/Makefile:.*##' | uniq | awk -v of=$(OVERRIDELIST) -f include/scan.awk > $@
 
 $(TMP_DIR)/info/.files-$(SCAN_TARGET).mk: $(FILELIST)
 	( \

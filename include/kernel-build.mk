@@ -4,7 +4,6 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-include $(INCLUDE_DIR)/host.mk
 include $(INCLUDE_DIR)/prereq.mk
 include $(INCLUDE_DIR)/depends.mk
 
@@ -28,11 +27,12 @@ define Kernel/Configure
 endef
 
 define Kernel/CompileModules
-	@echo "Skipping Kernel/CompileModules"
+	$(call Kernel/CompileModules/Default)
 endef
 
 define Kernel/CompileImage
-	@echo "Skipping Kernel/CompileImage"
+	$(call Kernel/CompileImage/Default)
+	$(call Kernel/CompileImage/Initramfs)
 endef
 
 define Kernel/Clean
@@ -151,7 +151,7 @@ define BuildKernel
   endef
 
   download: $(if $(LINUX_SITE),$(DL_DIR)/$(LINUX_SOURCE))
-  prepare: $(STAMP_CONFIGURED)
+  prepare: $(STAMP_PREPARED)
   compile: $(LINUX_DIR)/.modules
 	$(MAKE) -C image compile TARGET_BUILD=
 
