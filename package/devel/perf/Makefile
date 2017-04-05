@@ -51,6 +51,7 @@ MAKE_FLAGS = \
 	NO_GTK2=1 \
 	NO_LIBAUDIT=1 \
 	NO_LIBCRYPTO=1 \
+	NO_LIBUNWIND=1 \
 	CROSS_COMPILE="$(TARGET_CROSS)" \
 	CC="$(TARGET_CC)" \
 	LD="$(TARGET_CROSS)ld" \
@@ -60,8 +61,10 @@ MAKE_FLAGS = \
 	WERROR=0 \
 	prefix=/usr
 
+ifdef CONFIG_LINUX_4_4
 ifdef CONFIG_USE_MUSL
  MAKE_FLAGS += EXTRA_CFLAGS="-I$(CURDIR)/musl-include -include $(CURDIR)/musl-compat.h -D__UCLIBC__"
+endif
 endif
 
 define Build/Compile

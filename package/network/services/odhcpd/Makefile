@@ -10,11 +10,11 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=odhcpd
 PKG_RELEASE:=1
 
-PKG_SOURCE_URL:=git://git.lede-project.org/project/odhcpd.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2017-01-26
-PKG_SOURCE_VERSION:=c4f9ace5560562d3ba7dfefb9e422240d594a460
-PKG_MIRROR_HASH:=323a1123ce37c5f1e60366204d0ed273c0ee003e7a43010bf0882cf67629ee39
+PKG_SOURCE_URL=$(LEDE_GIT)/project/odhcpd.git
+PKG_SOURCE_DATE:=2017-03-29
+PKG_SOURCE_VERSION:=3d9f4067d56660a2c75ab2ce9b801ae1a4ff4cde
+PKG_MIRROR_HASH:=d4ffa35979dbba55a2ce1cc92085ed6a5fb4fa59c2da7412126db1b3a00599e8
 
 PKG_MAINTAINER:=Hans Dedecker <dedeckeh@gmail.com>
 PKG_LICENSE:=GPL-2.0
@@ -33,7 +33,7 @@ define Package/odhcpd
   SECTION:=net
   CATEGORY:=Network
   TITLE:=OpenWrt DHCP/DHCPv6(-PD)/RA Server & Relay
-  DEPENDS:=+libubox +libuci +libubus
+  DEPENDS:=+libubox +libuci +libubus +libnl-tiny
 endef
 
 define Package/odhcpd/config

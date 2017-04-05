@@ -1,0 +1,237 @@
+diff -aurN a/extensions/libxt_ndmmark.c b/extensions/libxt_ndmmark.c
+--- a/extensions/libxt_ndmmark.c	1970-01-01 03:00:00.000000000 +0300
++++ b/extensions/libxt_ndmmark.c	2017-01-26 16:12:50.376121000 +0300
+@@ -0,0 +1,214 @@
++#include <stdbool.h>
++#include <stdio.h>
++#include <xtables.h>
++#include <linux/netfilter/xt_ndmmark.h>
++
++struct xt_ndmmark_info {
++	uint8_t mark, mask;
++	uint8_t invert;
++};
++
++enum {
++	XT_MARK_SET=0,
++	XT_MARK_AND,
++	XT_MARK_OR,
++};
++
++enum {
++	O_MARK = 0,
++	O_SET_MARK,
++	O_AND_MARK,
++	O_OR_MARK,
++	O_XOR_MARK,
++	O_SET_XMARK,
++	F_SET_MARK  = 1 << O_SET_MARK,
++	F_AND_MARK  = 1 << O_AND_MARK,
++	F_OR_MARK   = 1 << O_OR_MARK,
++	F_XOR_MARK  = 1 << O_XOR_MARK,
++	F_SET_XMARK = 1 << O_SET_XMARK,
++	F_ANY       = F_SET_MARK | F_AND_MARK | F_OR_MARK |
++	              F_XOR_MARK | F_SET_XMARK,
++};
++
++static void ndmmark_mt_help(void)
++{
++	printf(
++"ndmmark match options:\n"
++"[!] --ndmmark value[/mask]    Match ndmmark value with optional mask\n");
++}
++
++static const struct xt_option_entry ndmmark_mt_opts[] = {
++	{.name = "ndmmark", .id = O_MARK, .type = XTTYPE_TOSMASK,
++	 .flags = XTOPT_MAND | XTOPT_INVERT},
++	XTOPT_TABLEEND,
++};
++
++static void ndmmark_mt_parse(struct xt_option_call *cb)
++{
++	struct xt_ndmmark_info *info = cb->data;
++
++	xtables_option_parse(cb);
++
++	if (cb->invert)
++		info->invert = 1;
++
++	info->mark = cb->val.tos_value;
++	info->mask = cb->val.tos_mask;
++}
++
++static void print_ndmmark(unsigned int mark, unsigned int mask)
++{
++	if (mask != 0xffU)
++		printf(" 0x%x/0x%x", mark, mask);
++	else
++		printf(" 0x%x", mark);
++}
++
++static void
++ndmmark_mt_print(const void *ip, const struct xt_entry_match *match, int numeric)
++{
++	const struct xt_ndmmark_info *info = (const void *)match->data;
++
++	printf(" ndmmark match");
++
++	if (info->invert)
++		printf(" !");
++
++	print_ndmmark(info->mark, info->mask);
++}
++
++static void
++ndmmark_mt_save(const void *ip, const struct xt_entry_match *match)
++{
++	const struct xt_ndmmark_info *info = (const void *)match->data;
++
++	if (info->invert)
++		printf(" !");
++
++	printf(" --ndmmark");
++	print_ndmmark(info->mark, info->mask);
++}
++
++static const struct xt_option_entry ndmmark_tg_opts[] = {
++	{.name = "set-xndmmark", .id = O_SET_XMARK, .type = XTTYPE_TOSMASK,
++	 .excl = F_ANY},
++	{.name = "set-ndmmark", .id = O_SET_MARK, .type = XTTYPE_TOSMASK,
++	 .excl = F_ANY},
++	{.name = "and-ndmmark", .id = O_AND_MARK, .type = XTTYPE_UINT8,
++	 .excl = F_ANY},
++	{.name = "or-ndmmark", .id = O_OR_MARK, .type = XTTYPE_UINT8,
++	 .excl = F_ANY},
++	{.name = "xor-ndmmark", .id = O_XOR_MARK, .type = XTTYPE_UINT8,
++	 .excl = F_ANY},
++	XTOPT_TABLEEND,
++};
++
++static void ndmmark_tg_help(void)
++{
++	printf(
++"NDMMARK target options:\n"
++"  --set-xndmmark value[/mask]  Clear bits in mask and XOR value into ndmmark\n"
++"  --set-ndmmark value[/mask]   Clear bits in mask and OR value into ndmmark\n"
++"  --and-ndmmark bits           Binary AND the ndmmark with bits\n"
++"  --or-ndmmark bits            Binary OR the ndmmark with bits\n"
++"  --xor-ndmmark bits           Binary XOR the ndmmark with bits\n"
++"\n");
++}
++
++static void ndmmark_tg_parse(struct xt_option_call *cb)
++{
++	struct xt_ndmmark_tginfo *info = cb->data;
++
++	xtables_option_parse(cb);
++	switch (cb->entry->id) {
++	case O_SET_XMARK:
++		info->mark = cb->val.tos_value;
++		info->mask = cb->val.tos_mask;
++		break;
++	case O_SET_MARK:
++		info->mark = cb->val.tos_value;
++		info->mask = cb->val.tos_value | cb->val.tos_mask;
++		break;
++	case O_AND_MARK:
++		info->mark = 0;
++		info->mask = ~cb->val.u8;
++		break;
++	case O_OR_MARK:
++		info->mark = info->mask = cb->val.u8;
++		break;
++	case O_XOR_MARK:
++		info->mark = cb->val.u8;
++		info->mask = 0;
++		break;
++	}
++}
++
++static void ndmmark_tg_check(struct xt_fcheck_call *cb)
++{
++	if (cb->xflags == 0)
++		xtables_error(PARAMETER_PROBLEM, "NDMMARK: One of the --set-xndmmark, "
++		           "--{and,or,xor,set}-ndmmark options is required");
++}
++
++static void ndmmark_tg_print(const void *ip, const struct xt_entry_target *target,
++                          int numeric)
++{
++	const struct xt_ndmmark_tginfo *info = (const void *)target->data;
++
++	if (info->mark == 0)
++		printf(" NDMMARK and 0x%x", (unsigned int)(uint8_t)~info->mask);
++	else if (info->mark == info->mask)
++		printf(" NDMMARK or 0x%x", info->mark);
++	else if (info->mask == 0)
++		printf(" NDMMARK xor 0x%x", info->mark);
++	else if (info->mask == 0xffU)
++		printf(" NDMMARK set 0x%x", info->mark);
++	else
++		printf(" NDMMARK xset 0x%x/0x%x", info->mark, info->mask);
++}
++
++static void ndmmark_tg_save(const void *ip, const struct xt_entry_target *target)
++{
++	const struct xt_ndmmark_tginfo *info = (const void *)target->data;
++
++	printf(" --set-xndmmark 0x%x/0x%x", info->mark, info->mask);
++}
++
++static struct xtables_match ndmmark_mt_reg[] = {
++	{
++		.family        = NFPROTO_UNSPEC,
++		.name          = "ndmmark",
++		.revision      = 0,
++		.version       = XTABLES_VERSION,
++		.size          = XT_ALIGN(sizeof(struct xt_ndmmark_info)),
++		.userspacesize = XT_ALIGN(sizeof(struct xt_ndmmark_info)),
++		.help          = ndmmark_mt_help,
++		.print         = ndmmark_mt_print,
++		.save          = ndmmark_mt_save,
++		.x6_parse      = ndmmark_mt_parse,
++		.x6_options    = ndmmark_mt_opts,
++	},
++};
++
++static struct xtables_target ndmmark_tg_reg[] = {
++	{
++		.version       = XTABLES_VERSION,
++		.name          = "NDMMARK",
++		.revision      = 0,
++		.family        = NFPROTO_UNSPEC,
++		.size          = XT_ALIGN(sizeof(struct xt_ndmmark_tginfo)),
++		.userspacesize = XT_ALIGN(sizeof(struct xt_ndmmark_tginfo)),
++		.help          = ndmmark_tg_help,
++		.print         = ndmmark_tg_print,
++		.save          = ndmmark_tg_save,
++		.x6_parse      = ndmmark_tg_parse,
++		.x6_fcheck     = ndmmark_tg_check,
++		.x6_options    = ndmmark_tg_opts,
++	},
++};
++
++void _init(void)
++{
++	xtables_register_matches(ndmmark_mt_reg, ARRAY_SIZE(ndmmark_mt_reg));
++	xtables_register_targets(ndmmark_tg_reg, ARRAY_SIZE(ndmmark_tg_reg));
++}
+diff -aurN a/include/linux/netfilter/xt_ndmmark.h b/include/linux/netfilter/xt_ndmmark.h
+--- a/include/linux/netfilter/xt_ndmmark.h	1970-01-01 03:00:00.000000000 +0300
++++ b/include/linux/netfilter/xt_ndmmark.h	2007-01-15 00:00:00.000000000 +0300
+@@ -0,0 +1,15 @@
++#ifndef _XT_NDMMARK_H
++#define _XT_NDMMARK_H
++
++#include <linux/types.h>
++
++struct xt_ndmmark_tginfo {
++	__u8 mark, mask;
++};
++
++struct xt_ndmmark_mtinfo {
++	__u8 mark, mask;
++	__u8 invert;
++};
++
++#endif /* _XT_NDMMARK_H */

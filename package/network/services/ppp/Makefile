@@ -10,7 +10,7 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=ppp
 PKG_VERSION:=2.4.7
-PKG_RELEASE:=10
+PKG_RELEASE:=11
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://download.samba.org/pub/ppp/
@@ -30,7 +30,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/ppp/Default
   SECTION:=net
   CATEGORY:=Network
-  URL:=http://ppp.samba.org/
+  URL:=https://ppp.samba.org/
 endef
 
 define Package/ppp
@@ -156,6 +156,19 @@ define Package/pppstats/description
 This package contains an utility to report PPP statistics.
 endef
 
+define Package/pppoe-discovery
+$(call Package/ppp/Default)
+  DEPENDS:=@(PACKAGE_ppp||PACKAGE_ppp-multilink) +ppp-mod-pppoe
+  TITLE:=Perform a PPPoE-discovery process
+endef
+
+define Package/pppoe-discovery/description
+This tool performs the same discovery process as pppoe, but does
+not initiate a session. Can be useful to debug pppoe.
+endef
+
+
+
 # for 2.6 kernels ???? no, 3.4 also
 LINUX_UAPI_DIR=""
 
@@ -268,6 +281,11 @@ define Package/pppstats/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/sbin/pppstats $(1)/opt/sbin/
 endef
 
+define Package/pppoe-discovery/install
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/sbin/pppoe-discovery $(1)/opt/sbin/
+endef
+
 $(eval $(call BuildPackage,ppp))
 $(eval $(call BuildPackage,ppp-multilink))
 $(eval $(call BuildPackage,ppp-mod-pppoa))
@@ -279,3 +297,4 @@ $(eval $(call BuildPackage,ppp-mod-passwordfd))
 $(eval $(call BuildPackage,chat))
 $(eval $(call BuildPackage,pppdump))
 $(eval $(call BuildPackage,pppstats))
+$(eval $(call BuildPackage,pppoe-discovery))

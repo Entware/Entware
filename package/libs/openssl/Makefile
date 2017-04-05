@@ -19,11 +19,12 @@ PKG_BUILD_PARALLEL:=0
 
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=http://www.openssl.org/source/ \
-	ftp://ftp.openssl.org/source/ \
-	http://www.openssl.org/source/old/$(PKG_BASE)/ \
-	ftp://ftp.funet.fi/pub/crypt/mirrors/ftp.openssl.org/source \
-	ftp://ftp.sunet.se/pub/security/tools/net/openssl/source/
+PKG_SOURCE_URL:= \
+	http://ftp.fi.muni.cz/pub/openssl/source/ \
+	http://ftp.linux.hr/pub/openssl/source/ \
+	http://gd.tuwien.ac.at/infosys/security/openssl/source/ \
+	http://www.openssl.org/source/ \
+	http://www.openssl.org/source/old/$(PKG_BASE)/
 PKG_HASH:=6b3977c61f2aedf0f96367dcfb5c6e578cf37e7b8d913b4ecb6643c3cb88d8c0
 
 PKG_LICENSE:=OpenSSL
@@ -169,7 +170,7 @@ else
   endif
 endif
 
-STAMP_CONFIGURED := $(STAMP_CONFIGURED)_$(subst $(space),_,$(OPENSSL_OPTIONS))
+STAMP_CONFIGURED := $(STAMP_CONFIGURED)_$(shell echo $(OPENSSL_OPTIONS) | mkhash md5)
 
 define Build/Configure
 	[ -f $(STAMP_CONFIGURED) ] || { \
@@ -196,7 +197,8 @@ define Build/Configure
 		depend
 endef
 
-TARGET_CFLAGS += $(FPIC) -I$(CURDIR)/include
+TARGET_CFLAGS += $(FPIC) -I$(CURDIR)/include -ffunction-sections -fdata-sections
+TARGET_LDFLAGS += -Wl,--gc-sections
 
 define Build/Compile
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
