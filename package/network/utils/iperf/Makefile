@@ -49,8 +49,8 @@ CONFIGURE_VARS += CXXFLAGS="$$$$CXXFLAGS -fno-rtti"
 CONFIGURE_VARS += LIBS="-lpthread -lm"
 
 define Package/iperf/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/iperf $(1)/usr/bin/iperf
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/iperf $(1)/opt/bin/iperf
 endef
 
 $(eval $(call BuildPackage,iperf))
