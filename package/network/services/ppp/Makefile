@@ -228,8 +228,6 @@ define Package/ppp-mod-pppoe/install
 	$(INSTALL_DIR) $(1)/opt/lib/pppd/$(PKG_VERSION)
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/lib/pppd/$(PKG_VERSION)/rp-pppoe.so \
 		$(1)/opt/lib/pppd/$(PKG_VERSION)/
-	$(INSTALL_DIR) $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/sbin/pppoe-discovery $(1)/opt/sbin/
 
 endef
 
