@@ -28,8 +28,8 @@ tools-y += mm-macros missing-macros cmake scons bc findutils gengetopt patchelf
 tools-y += mtools
 tools-y += lzma
 tools-$(BUILD_ISL) += isl
-tools-$(CONFIG_INSTALL_GCCGO) += go-src
-tools-$(CONFIG_INSTALL_GCCGO) += go-bootstrap
+tools-y += go-src
+tools-y += go-bootstrap
 
 # builddir dependencies
 $(curdir)/bison/compile := $(curdir)/flex/compile
