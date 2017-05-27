@@ -56,6 +56,7 @@ define Package/Default
   VARIANT:=
   DEFAULT_VARIANT:=
   USERID:=
+  ALTERNATIVES:=
 endef
 
 Build/Patch:=$(Build/Patch/Default)
@@ -92,7 +93,6 @@ CONFIGURE_ARGS = \
 		--mandir=$(CONFIGURE_PREFIX)/man \
 		--infodir=$(CONFIGURE_PREFIX)/info \
 		$(DISABLE_NLS) \
-		$(DISABLE_LARGEFILE) \
 		$(DISABLE_IPV6)
 
 CONFIGURE_VARS = \
