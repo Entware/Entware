@@ -22,8 +22,8 @@
 +		snprintf(filename, len + 22, "%s/.ssh/authorized_keys",
 +					ses.authstate.pw_dir);
 +	} else {
-+		filename = m_malloc(30);
-+		strncpy(filename, "/opt/etc/dropbear/authorized_keys", 30);
++		filename = m_malloc(34);
++		strncpy(filename, "/opt/etc/dropbear/authorized_keys", 34);
 +	}
 +
  
