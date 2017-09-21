@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=samba
 PKG_VERSION:=3.6.25
-PKG_RELEASE:=5
+PKG_RELEASE:=8
 
 PKG_SOURCE_URL:=https://download.samba.org/pub/samba \
 		https://download.samba.org/pub/samba/stable
@@ -47,12 +47,19 @@ define Package/samba36-client
   DEPENDS:=+libreadline +libncurses
 endef
 
+define Package/samba36-net
+  SECTION:=net
+  CATEGORY:=Network
+  TITLE:=Samba 3.6 SMB/CIFS net commands
+  URL:=https://www.samba.org/
+  DEPENDS:=+libreadline +libncurses
+endef
+
 define Package/samba36-server/config
 	config PACKAGE_SAMBA_MAX_DEBUG_LEVEL
 		int "Maximum level of compiled-in debug messages"
 		depends on PACKAGE_samba36-server || PACKAGE_samba36-client
 		default -1
-
 endef
 
 define Package/samba36-server/description
@@ -160,6 +167,12 @@ define Package/samba36-client/install
 	    $(1)/opt/sbin
 endef
 
+define Package/samba36-net/install
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_BIN)/net $(1)/opt/sbin
+endef
+
 $(eval $(call BuildPackage,samba36-client))
 $(eval $(call BuildPackage,samba36-server))
+$(eval $(call BuildPackage,samba36-net))
 

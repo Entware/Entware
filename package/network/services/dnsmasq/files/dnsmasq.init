@@ -89,12 +89,24 @@ log_once() {
 		logger -t dnsmasq "$@"
 }
 
+has_handler() {
+	local file
+
+	for file in /etc/hotplug.d/dhcp/* /etc/hotplug.d/tftp/* /etc/hotplug.d/neigh/*; do
+		[ -f "$file" ] && return 0
+	done
+
+	return 1
+}
+
 append_bool() {
 	local section="$1"
 	local option="$2"
 	local value="$3"
+	local default="$4"
 	local _loctmp
-	config_get_bool _loctmp "$section" "$option" 0
+	[ -z "$default" ] && default="0"
+	config_get_bool _loctmp "$section" "$option" "$default"
 	[ $_loctmp -gt 0 ] && xappend "$value"
 }
 
@@ -113,6 +125,10 @@ append_server() {
 	xappend "--server=$1"
 }
 
+append_rev_server() {
+        xappend "--rev-server=$1"
+}
+
 append_address() {
 	xappend "--address=$1"
 }
@@ -122,12 +138,12 @@ append_ipset() {
 }
 
 append_interface() {
-	network_get_device ifname "$1" || return
+	network_get_device ifname "$1" || ifname="$1"
 	xappend "--interface=$ifname"
 }
 
 append_notinterface() {
-	network_get_device ifname "$1" || return
+	network_get_device ifname "$1" || ifname="$1"
 	xappend "--except-interface=$ifname"
 }
 
@@ -303,7 +319,12 @@ dhcp_host_add() {
 	fi
 
 	if [ -n "$hostid" ]; then
-			hex_to_hostid hostid "$hostid"
+		hex_to_hostid hostid "$hostid"
+	fi
+
+	tags=""
+	if [ -n "$tag" ]; then
+		for t in $tag; do append tags "$t" ",set:"; done
 	fi
 
 	config_get_bool broadcast "$cfg" broadcast 0
@@ -311,7 +332,7 @@ dhcp_host_add() {
 
 	[ "$broadcast" = "0" ] && broadcast= || broadcast=",set:needs-broadcast"
 
-	hosttag="${networkid:+,set:${networkid}}${tag:+,set:${tag}}$broadcast"
+	hosttag="${networkid:+,set:${networkid}}${tags:+,set:${tags}}$broadcast"
 	nametime="${name:+,$name}${leasetime:+,$leasetime}"
 
 	if [ $DNSMASQ_DHCP_VER -eq 6 ]; then
@@ -362,8 +383,8 @@ dhcp_this_host_add() {
 				for lanaddr6 in $lanaddrs6 ; do
 					case "$lanaddr6" in
 					"${ulaprefix%%:/*}"*)
-							dhcp_domain_add "" "$routername" "$lanaddr6"
-							;;
+						dhcp_domain_add "" "$routername" "$lanaddr6"
+						;;
 					esac
 				done
 			fi
@@ -428,6 +449,7 @@ dhcp_add() {
 	local cfg="$1"
 	local dhcp6range="::"
 	local nettag
+	local tags
 
 	config_get net "$cfg" interface
 	[ -n "$net" ] || return 0
@@ -479,6 +501,12 @@ dhcp_add() {
 	dhcp_this_host_add "$net" "$ifname" "$ADD_LOCAL_FQDN"
 
 	start="$( dhcp_calc "$start" )"
+
+	add_tag() {
+		tags="${tags}tag:$1,"
+	}
+	config_list_foreach "$cfg" tag add_tag
+
 	nettag="${networkid:+set:${networkid},}"
 
 	if [ "$limit" -gt 0 ] ; then
@@ -496,7 +524,7 @@ dhcp_add() {
 
 
 	if [ "$dhcpv4" != "disabled" ] ; then
-		xappend "--dhcp-range=$nettag$START,$END,$NETMASK,$leasetime${options:+ $options}"
+		xappend "--dhcp-range=$tags$nettag$START,$END,$NETMASK,$leasetime${options:+ $options}"
 	fi
 
 
@@ -552,7 +580,8 @@ dhcp_add() {
 		dhcp_option_append "option6:dns-server,$dnss" "$networkid"
 	fi
 
-	dhcp_option_add "$cfg" "$networkid"
+	dhcp_option_add "$cfg" "$networkid" 0
+	dhcp_option_add "$cfg" "$networkid" 2
 }
 
 dhcp_option_append() {
@@ -568,18 +597,20 @@ dhcp_option_add() {
 	local cfg="$1"
 	local networkid="$2"
 	local force="$3"
+	local opt="dhcp_option"
 
 	[ "$force" = "0" ] && force=
+	[ "$force" = "2" ] && opt="dhcp_option_force"
 
 	local list_len
-	config_get list_len "$cfg" dhcp_option_LENGTH
+	config_get list_len "$cfg" "${opt}_LENGTH"
 
 	if [ -n "$list_len" ]; then
-		config_list_foreach "$cfg" dhcp_option dhcp_option_append "$networkid" "$force"
+		config_list_foreach "$cfg" "$opt" dhcp_option_append "$networkid" "$force"
 	else
-		config_get dhcp_option "$cfg" dhcp_option
+		config_get dhcp_option "$cfg" "$opt"
 
-		[ -n "$dhcp_option" ] && echo "Warning: the 'option dhcp_option' syntax is deprecated, use 'list dhcp_option'" >&2
+		[ -n "$dhcp_option" ] && echo "Warning: the 'option $opt' syntax is deprecated, use 'list $opt'" >&2
 
 		local option
 		for option in $dhcp_option; do
@@ -781,7 +812,7 @@ dnsmasq_start()
 	config_get tftp_root "$cfg" "tftp_root"
 	[ -n "$tftp_root" ] && mkdir -p "$tftp_root" && append_bool "$cfg" enable_tftp "--enable-tftp"
 	append_bool "$cfg" tftp_no_fail "--tftp-no-fail"
-	append_bool "$cfg" nonwildcard "--bind-dynamic"
+	append_bool "$cfg" nonwildcard "--bind-dynamic" 1
 	append_bool "$cfg" fqdn "--dhcp-fqdn"
 	append_bool "$cfg" proxydnssec "--proxy-dnssec"
 	append_bool "$cfg" localservice "--local-service"
@@ -804,6 +835,7 @@ dnsmasq_start()
 	append_parm "$cfg" "domain" "--domain"
 	append_parm "$cfg" "local" "--server"
 	config_list_foreach "$cfg" "server" append_server
+	config_list_foreach "$cfg" "rev_server" append_rev_server
 	config_list_foreach "$cfg" "address" append_address
 	config_list_foreach "$cfg" "ipset" append_ipset
 	config_list_foreach "$cfg" "interface" append_interface
@@ -832,8 +864,10 @@ dnsmasq_start()
 	config_get_bool readethers "$cfg" readethers
 	[ "$readethers" = "1" -a \! -e "/etc/ethers" ] && touch /etc/ethers
 
-	xappend "--dhcp-script=$DHCPSCRIPT"
 	config_get user_dhcpscript $cfg dhcpscript
+	if has_handler || [ -n "$user_dhcpscript" ]; then
+		xappend "--dhcp-script=$DHCPSCRIPT"
+	fi
 
 	config_get leasefile $cfg leasefile "/tmp/dhcp.leases"
 	[ -n "$leasefile" -a \! -e "$leasefile" ] && touch "$leasefile"
@@ -894,6 +928,7 @@ dnsmasq_start()
 	}
 
 	dhcp_option_add "$cfg" "" 0
+	dhcp_option_add "$cfg" "" 2
 
 	xappend "--dhcp-broadcast=tag:needs-broadcast"
 

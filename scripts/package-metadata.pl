@@ -460,20 +460,27 @@ sub gen_package_mk() {
 			next unless $pkg->{"builddepends/$type"};
 			foreach my $dep (@{$pkg->{"builddepends/$type"}}) {
 				my $suffix = "";
+				my $deptype = "";
 				my $condition;
 
 				if ($dep =~ /^(.+):(.+)/) {
 					$condition = $1;
 					$dep = $2;
 				}
-				if ($dep =~ /^(.+)(\/.+)/) {
+				if ($dep =~ /^(.+)\/(.+)/) {
 					$dep = $1;
-					$suffix = $2;
+					$deptype = $2;
+					$suffix = "/$2";
 				}
 
 				my $idx = "";
 				my $pkg_dep = $package{$dep};
 				if (defined($pkg_dep) && defined($pkg_dep->{src})) {
+					unless (!$deptype || grep { $_ eq $deptype } @{$pkg_dep->{buildtypes}}) {
+						warn sprintf "WARNING: Makefile '%s' has a %s build dependency on '%s/%s' but '%s' does not implement a '%s' build type\n",
+							$pkg->{makefile}, $type, $pkg_dep->{src}, $deptype, $pkg_dep->{makefile}, $deptype;
+						next;
+					}
 					$idx = $pkg_dep->{subdir}.$pkg_dep->{src};
 				} elsif (defined($srcpackage{$dep})) {
 					$idx = $subdir{$dep}.$dep;
@@ -499,14 +506,16 @@ sub gen_package_mk() {
 			my $condition;
 			my $prefix = "";
 			my $suffix = "";
+			my $deptype = "";
 
 			if ($deps =~ /^(.+):(.+)/) {
 				$condition = $1;
 				$deps = $2;
 			}
-			if ($deps =~ /^(.+)(\/.+)/) {
+			if ($deps =~ /^(.+)\/(.+)/) {
 				$deps = $1;
-				$suffix = $2;
+				$deptype = $2;
+				$suffix = "/$2";
 			}
 
 			my $pkg_dep = $package{$deps};
@@ -521,7 +530,17 @@ sub gen_package_mk() {
 			foreach my $dep (@deps) {
 				$pkg_dep = $package{$deps};
 				if (defined $pkg_dep->{src}) {
-					($pkg->{src} ne $pkg_dep->{src}.$suffix) and $idx = $pkg_dep->{subdir}.$pkg_dep->{src};
+					unless (!$deptype || grep { $_ eq $deptype } @{$pkg_dep->{buildtypes}}) {
+						warn sprintf "WARNING: Makefile '%s' has a build dependency on '%s/%s' but '%s' does not implement a '%s' build type\n",
+							$pkg->{makefile}, $pkg_dep->{src}, $deptype, $pkg_dep->{makefile}, $deptype;
+						next;
+					}
+					unless ($pkg->{src} ne $pkg_dep->{sec}.$suffix) {
+						warn sprintf "WARNING: Makefile '%s' has a build dependency on itself\n",
+							$pkg->{makefile};
+						next;
+					}
+					$idx = $pkg_dep->{subdir}.$pkg_dep->{src};
 				} elsif (defined($srcpackage{$dep})) {
 					$idx = $subdir{$dep}.$dep;
 				}
@@ -573,7 +592,7 @@ ifndef DUMP_TARGET_DB
 	( \\
 $cmds \\
 	) > \$@
-	
+
 ifneq (\$(IMAGEOPT)\$(CONFIG_IMAGEOPT),)
   package/preconfig: \$(TARGET_DIR)/etc/uci-defaults/$preconfig
 endif
@@ -632,6 +651,16 @@ sub gen_version_filtered_list() {
 	}
 }
 
+sub gen_usergroup_list() {
+	parse_package_metadata($ARGV[0]) or exit 1;
+	for my $name (keys %usernames) {
+		print "user $name $usernames{$name}{id} $usernames{$name}{makefile}\n";
+	}
+	for my $name (keys %groupnames) {
+		print "group $name $groupnames{$name}{id} $groupnames{$name}{makefile}\n";
+	}
+}
+
 sub parse_command() {
 	GetOptions("ignore=s", \@ignore);
 	my $cmd = shift @ARGV;
@@ -643,6 +672,7 @@ sub parse_command() {
 		/^subdirs$/ and return gen_package_subdirs();
 		/^license$/ and return gen_package_license(0);
 		/^licensefull$/ and return gen_package_license(1);
+		/^usergroup$/ and return gen_usergroup_list();
 		/^version_filter$/ and return gen_version_filtered_list();
 	}
 	die <<EOF
@@ -654,6 +684,7 @@ Available Commands:
 	$0 subdirs [file]			Package subdir information in makefile format
 	$0 license [file] 			Package license information
 	$0 licensefull [file] 			Package license information (full list)
+	$0 usergroup [file]			Package usergroup allocation list
 	$0 version_filter [patchver] [list...]	Filter list of version tagged strings
 
 Options:

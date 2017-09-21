@@ -1,7 +1,6 @@
-commit 43e4e1f4a530dd9a03fdad55ef62fe9c379561bf
-Author: Filip Moc <lede@moc6.cz>
-Date:   Thu May 25 21:55:32 2017 +0200
+commit 9c500db89680af5d89fb679e08452c8f090d804d
+Author: Jiawei Wang <me@jwang.link>
+Date:   Wed Sep 13 14:04:22 2017 +0800
 
-    Move enablemodem from ramips to new package adb-enablemodem and make it used also by TL-MR6400
+    ramips: fix used MAC addresses for Phicomm K2P
     
-    Signed-off-by: Filip Moc <lede@moc6.cz>

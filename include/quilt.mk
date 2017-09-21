@@ -8,6 +8,11 @@ ifeq ($(TARGET_BUILD),1)
   PKG_BUILD_DIR:=$(LINUX_DIR)
 endif
 
+ifneq ($(filter host-refresh refresh,$(MAKECMDGOALS)),)
+  override QUILT=1
+  override HOST_QUILT=1
+endif
+
 ifneq ($(PKG_BUILD_DIR),)
   QUILT?=$(if $(wildcard $(PKG_BUILD_DIR)/.quilt_used),y)
   ifneq ($(QUILT),)
@@ -35,11 +40,6 @@ PATCH_DIR?=./patches
 FILES_DIR?=./files
 HOST_PATCH_DIR?=$(PATCH_DIR)
 HOST_FILES_DIR?=$(FILES_DIR)
-
-ifneq ($(filter host-refresh refresh,$(MAKECMDGOALS)),)
-  override QUILT=1
-  override HOST_QUILT=1
-endif
 
 QUILT_CMD:=quilt --quiltrc=-
 
@@ -97,7 +97,13 @@ define Kernel/Patch/Default
 	$(if $(QUILT),rm -rf $(PKG_BUILD_DIR)/patches; mkdir -p $(PKG_BUILD_DIR)/patches)
 	$(if $(kernel_files),$(CP) $(kernel_files) $(LINUX_DIR)/)
 	find $(LINUX_DIR)/ -name \*.rej -or -name \*.orig | $(XARGS) rm -f
+	if [ -d $(GENERIC_PLATFORM_DIR)/patches$(if $(wildcard $(GENERIC_PLATFORM_DIR)/patches-$(KERNEL_PATCHVER)),-$(KERNEL_PATCHVER)) ]; then \
+		echo "generic patches directory is present. please move your patches to the pending directory" ; \
+		exit 1; \
+	fi
+	$(call PatchDir,$(PKG_BUILD_DIR),$(GENERIC_BACKPORT_DIR),generic-backport/)
 	$(call PatchDir,$(PKG_BUILD_DIR),$(GENERIC_PATCH_DIR),generic/)
+	$(call PatchDir,$(PKG_BUILD_DIR),$(GENERIC_HACK_DIR),generic-hack/)
 	$(call PatchDir,$(PKG_BUILD_DIR),$(PATCH_DIR),platform/)
 endef
 
@@ -124,7 +130,9 @@ define Quilt/Refresh/Kernel
 		echo "All kernel patches must start with either generic/ or platform/"; \
 		false; \
 	}
+	$(call Quilt/RefreshDir,$(PKG_BUILD_DIR),$(GENERIC_BACKPORT_DIR),generic-backport/)
 	$(call Quilt/RefreshDir,$(PKG_BUILD_DIR),$(GENERIC_PATCH_DIR),generic/)
+	$(call Quilt/RefreshDir,$(PKG_BUILD_DIR),$(GENERIC_HACK_DIR),generic-hack/)
 	$(call Quilt/RefreshDir,$(PKG_BUILD_DIR),$(PATCH_DIR),platform/)
 endef
 

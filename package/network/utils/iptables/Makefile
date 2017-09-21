@@ -5,6 +5,7 @@
 # See /LICENSE for more information.
 #
 # Do not split extensions into separate packages, do not install dev headers
+# We do not upgrade 1.4.21 to a newer version in Entware
 
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk

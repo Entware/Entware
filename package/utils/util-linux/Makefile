@@ -9,12 +9,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=util-linux
-PKG_VERSION:=2.29.2
-PKG_RELEASE:=1
+PKG_VERSION:=2.30.1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.29
-PKG_HASH:=accea4d678209f97f634f40a93b7e9fcad5915d1f4749f6c47bee6bf110fe8e3
+PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.30
+PKG_HASH:=1be4363a91ac428c9e43fc04dc6d2c66a19ec1e36f1105bd4b481540be13b841
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=	COPYING					\
@@ -30,6 +30,8 @@ PKG_BUILD_PARALLEL:=1
 
 PKG_FIXUP:=autoreconf
 PKG_INSTALL:=1
+
+DISABLE_NLS:=--disable-nls
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -161,6 +163,7 @@ endef
 define Package/column
 $(call Package/util-linux/Default)
   TITLE:=columnate lists
+  DEPENDS:= +libsmartcols
 endef
 
 define Package/column/description
@@ -174,6 +177,7 @@ endef
 define Package/dmesg
 $(call Package/util-linux/Default)
   TITLE:=print or control the kernel ring buffer
+  DEPENDS:= +libncursesw
 endef
 
 define Package/dmesg/description
@@ -183,7 +187,7 @@ endef
 define Package/fdisk
 $(call Package/util-linux/Default)
   TITLE:=manipulate disk partition table
-  DEPENDS:= +libblkid +libsmartcols +libfdisk
+  DEPENDS:= +libblkid +libsmartcols +libfdisk +libncursesw
   SUBMENU=Disc
 endef
 
@@ -381,7 +385,7 @@ define Package/sfdisk
 $(call Package/util-linux/Default)
   TITLE:=partition table manipulator for Linux
   SUBMENU=Disc
-  DEPENDS:= +libblkid +libfdisk +libsmartcols
+  DEPENDS:= +libblkid +libfdisk +libsmartcols +libncursesw
 endef
 
 define Package/sfdisk/description

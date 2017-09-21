@@ -48,7 +48,7 @@ config KERNEL_ARM_PMU
 	depends on (arm || arm64)
 
 config KERNEL_PERF_EVENTS
-	bool
+	bool "Compile the kernel with performance events and counters"
 	default n
 	select KERNEL_ARM_PMU if (arm || arm64)
 
@@ -170,10 +170,6 @@ config KERNEL_AIO
 	bool "Compile the kernel with asynchronous IO support"
 	default n
 
-config KERNEL_DIRECT_IO
-	bool "Compile the kernel with direct IO support"
-	default n
-
 config KERNEL_FHANDLE
 	bool "Compile the kernel with support for fhandle syscalls"
 	default n
@@ -234,6 +230,16 @@ config KERNEL_RELAY
 
 config KERNEL_KEXEC
 	bool "Enable kexec support"
+
+config KERNEL_PROC_VMCORE
+	bool
+
+config KERNEL_CRASH_DUMP
+	depends on i386 || x86_64 || arm || armeb
+	select KERNEL_KEXEC
+	select KERNEL_PROC_VMCORE
+	bool "Enable support for kexec crashdump"
+	default y
 
 config USE_RFKILL
 	bool "Enable rfkill support"

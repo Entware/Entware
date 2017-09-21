@@ -1,6 +1,6 @@
 --- a/include/pathnames.h
 +++ b/include/pathnames.h
-@@ -22,71 +22,69 @@
+@@ -22,69 +22,67 @@
  #undef _PATH_DEFPATH
  
  #ifdef USE_USRDIR_PATHS_ONLY
@@ -20,9 +20,6 @@
 -# define _PATH_DEFPATH_ROOT	"/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
 +# define _PATH_DEFPATH_ROOT	"/opt/usr/sbin:/opt/sbin:/opt/bin:/usr/sbin:/usr/bin:/sbin:/bin"
  #endif
- 
--#define _PATH_WTMPLOCK		"/etc/wtmplock"
-+#define _PATH_WTMPLOCK		"/opt/etc/wtmplock"
  
  #define	_PATH_HUSHLOGIN		".hushlogin"
 -#define	_PATH_HUSHLOGINS	"/etc/hushlogins"
@@ -96,7 +93,7 @@
  #define _PATH_PROC_SWAPS	"/proc/swaps"
  #define _PATH_PROC_FILESYSTEMS	"/proc/filesystems"
  #define _PATH_PROC_MOUNTS	"/proc/mounts"
-@@ -153,10 +151,10 @@
+@@ -151,10 +149,10 @@
  #ifdef CONFIG_ADJTIME_PATH
  # define _PATH_ADJTIME		CONFIG_ADJTIME_PATH
  #else
@@ -109,7 +106,7 @@
  #ifdef __ia64__
  # define _PATH_RTC_DEV		"/dev/efirtc"
  #else
-@@ -164,7 +162,7 @@
+@@ -162,7 +160,7 @@
  #endif
  
  #ifndef _PATH_BTMP
