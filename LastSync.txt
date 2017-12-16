@@ -1,6 +1,6 @@
-commit 9c500db89680af5d89fb679e08452c8f090d804d
-Author: Jiawei Wang <me@jwang.link>
-Date:   Wed Sep 13 14:04:22 2017 +0800
+commit 9f8d28285d569f28ad3db9b2cbb61814b2c90fdc
+Author: John Crispin <john@phrozen.org>
+Date:   Thu Dec 14 10:58:15 2017 +0100
 
-    ramips: fix used MAC addresses for Phicomm K2P
+    Revert "ar71xx: TL-WR1043N v4/v5: add orange WAN LED support"
     

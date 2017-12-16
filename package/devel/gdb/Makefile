@@ -8,23 +8,24 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gdb
-PKG_VERSION:=7.12.1
-PKG_RELEASE:=3
+PKG_VERSION:=8.0.1
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/gdb
-PKG_HASH:=4607680b973d3ec92c30ad029f1b7dbde3876869e6b3a117d8a7e90081113186
+PKG_HASH:=3dbd5f93e36ba2815ad0efab030dcd0c7b211d7b353a40a53f4c02d7d56295e3
 
 PKG_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
 PKG_LICENSE:=GPL-3.0+
+PKG_CPE_ID:=cpe:/a:gnu:gdb
 
 include $(INCLUDE_DIR)/package.mk
 
 define Package/gdb/Default
   SECTION:=devel
   CATEGORY:=Development
-  DEPENDS:=+!USE_MUSL:libthread-db +PACKAGE_zlib:zlib
+  DEPENDS:=+!USE_MUSL:libthread-db +PACKAGE_zlib:zlib @!arc
   URL:=http://www.gnu.org/software/gdb/
 endef
 
@@ -43,6 +44,7 @@ endef
 define Package/gdbserver
 $(call Package/gdb/Default)
   TITLE:=Remote server for GNU Debugger
+  DEPENDS+=+libstdcpp
 endef
 
 define Package/gdbserver/description

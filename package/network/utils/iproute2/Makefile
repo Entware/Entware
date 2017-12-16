@@ -5,7 +5,7 @@
 # See /LICENSE for more information.
 #
 # Entware comment
-# We will keep this version becasu arm feed use 3.2 kernel. 
+# We will keep this version because arm feed use 3.2 kernel. 
 # We use 3.2 kernels because Synology still use it on arm NASes.
 #
 

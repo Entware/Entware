@@ -11,7 +11,7 @@ ifneq ($(DUMP),1)
   all: compile
 endif
 
-KERNEL_FILE_DEPENDS=$(GENERIC_PATCH_DIR) $(PATCH_DIR) $(GENERIC_FILES_DIR) $(FILES_DIR)
+KERNEL_FILE_DEPENDS=$(BACKPORT_PATCH_DIR) $(GENERIC_PATCH_DIR) $(GENERIC_HACK_DIR) $(PATCH_DIR) $(GENERIC_FILES_DIR) $(FILES_DIR)
 STAMP_PREPARED=$(LINUX_DIR)/.prepared$(if $(QUILT)$(DUMP),,_$(shell $(call find_md5,$(KERNEL_FILE_DEPENDS),)))
 STAMP_CONFIGURED:=$(LINUX_DIR)/.configured
 include $(INCLUDE_DIR)/download.mk
@@ -31,8 +31,6 @@ define Kernel/CompileModules
 endef
 
 define Kernel/CompileImage
-	$(call Kernel/CompileImage/Default)
-	$(call Kernel/CompileImage/Initramfs)
 endef
 
 define Kernel/Clean
@@ -104,7 +102,7 @@ define BuildKernel
   $(KERNEL_BUILD_DIR)/symtab.h: FORCE
 	rm -f $(KERNEL_BUILD_DIR)/symtab.h
 	touch $(KERNEL_BUILD_DIR)/symtab.h
-	+$(MAKE) $(KERNEL_MAKEOPTS) vmlinux
+	+$(KERNEL_MAKE) vmlinux
 	find $(LINUX_DIR) $(STAGING_DIR_ROOT)/lib/modules -name \*.ko | \
 		xargs $(TARGET_CROSS)nm | \
 		awk '$$$$1 == "U" { print $$$$2 } ' | \
@@ -159,7 +157,9 @@ define BuildKernel
 	rm -f $(LINUX_DIR)/.config.prev
 	rm -f $(STAMP_CONFIGURED)
 	$(LINUX_RECONF_CMD) > $(LINUX_DIR)/.config
-	$(_SINGLE)$(MAKE) -C $(LINUX_DIR) $(KERNEL_MAKEOPTS) HOST_LOADLIBES="-L$(STAGING_DIR_HOST)/lib -lncurses" $$@
+	$(_SINGLE)$(KERNEL_MAKE) \
+		$(if $(findstring Darwin,$(HOST_OS)),HOST_LOADLIBES="-L$(STAGING_DIR_HOST)/lib -lncurses") \
+		$$@
 	$(LINUX_RECONF_DIFF) $(LINUX_DIR)/.config > $(LINUX_RECONFIG_TARGET)
 
   install: $(LINUX_DIR)/.image
