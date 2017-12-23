@@ -100,6 +100,7 @@ CONFIGURE_VARS += \
 CONFIGURE_ARGS += \
 	--exec-prefix=/opt \
 	--prefix=/ \
+	--enable-external-libtdb=no \
 	--disable-avahi \
 	--disable-cups \
 	--disable-pie \
