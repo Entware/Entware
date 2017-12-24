@@ -348,7 +348,7 @@ config BUSYBOX_DEFAULT_UNXZ
 	default n
 config BUSYBOX_DEFAULT_XZCAT
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_XZ
 	bool
 	default n
