@@ -1,0 +1,48 @@
+--- a/Makefile
++++ b/Makefile
+@@ -5,16 +5,16 @@
+ PROGVERSION_:=2.0.10
+ PROGVERSION:=$(PROGVERSION_)-$(PROGRELEASE)
+ PROGDATE:=December\ 2011
+-LOCKFILE?=/var/lib/ebtables/lock
++LOCKFILE?=/opt/var/lib/ebtables/lock
+ LOCKDIR:=$(shell echo $(LOCKFILE) | sed 's/\(.*\)\/.*/\1/')/
+ 
+ # default paths
+-LIBDIR:=/usr/lib
+-MANDIR:=/usr/local/man
+-BINDIR:=/usr/local/sbin
+-ETCDIR:=/etc
+-INITDIR:=/etc/rc.d/init.d
+-SYSCONFIGDIR:=/etc/sysconfig
++LIBDIR:=/opt/lib
++MANDIR:=/opt/share/man
++BINDIR:=/opt/sbin
++ETCDIR:=/opt/etc
++INITDIR:=/opt/etc/init.d
++SYSCONFIGDIR:=/opt/etc
+ DESTDIR:=
+ 
+ CFLAGS:=-Wall -Wunused -Werror
+--- a/include/ethernetdb.h
++++ b/include/ethernetdb.h
+@@ -27,7 +27,7 @@
+ 
+ /* Absolute file name for network data base files.  */
+ #ifndef	_PATH_ETHERTYPES
+-#define	_PATH_ETHERTYPES	"/etc/ethertypes"
++#define	_PATH_ETHERTYPES	"/opt/etc/ethertypes"
+ #endif				/* _PATH_ETHERTYPES */
+ 
+ struct ethertypeent {
+--- a/libebtc.c
++++ b/libebtc.c
+@@ -135,7 +135,7 @@
+ }
+ 
+ #ifndef LOCKFILE
+-#define LOCKDIR "/var/lib/ebtables"
++#define LOCKDIR "/opt/var/lib/ebtables"
+ #define LOCKFILE LOCKDIR"/lock"
+ #endif
+ int use_lockfd;
