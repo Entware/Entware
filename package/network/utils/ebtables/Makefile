@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ebtables
-PKG_SOURCE_DATE:=2015-10-28
+PKG_SOURCE_DATE:=2017-10-24
 PKG_RELEASE:=1
 
 PKG_SOURCE_URL:=https://git.netfilter.org/ebtables
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=4c3e5cd3dbae3ea773e9dcca7cf019b2713af70d
-PKG_MIRROR_HASH:=997a877da02d6e2141e6d31c5d4dd005737facecfdbea07308c0e1286db8591c
+PKG_SOURCE_VERSION:=6a826591878db3fa9e2a94b87a3d5edd8e0fc442
+PKG_MIRROR_HASH:=7100f34f8d9373c88a788e8161f8158b364b4d6c87f766fc353382b6111196bd
 
 PKG_LICENSE:=GPL-2.0
 
@@ -24,7 +24,7 @@ define Package/ebtables
   SECTION:=net
   CATEGORY:=Network
   SUBMENU:=Firewall
-  DEPENDS:=+kmod-ebtables
+#  DEPENDS:=+kmod-ebtables
   TITLE:=Ethernet bridge firewall administration utility
   URL:=http://ebtables.sourceforge.net/
 endef
@@ -50,22 +50,22 @@ MAKE_VARS += EXT_LIBSI="$(LIBGCC_S)"
 
 MAKE_FLAGS += \
 	CFLAGS="$(TARGET_CFLAGS)" \
-	LIBDIR="/usr/lib/ebtables"
+	LIBDIR="/opt/lib/ebtables"
 
 define Package/ebtables/install
-	$(INSTALL_DIR) $(1)/etc
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/ethertypes $(1)/etc/
-	$(INSTALL_DIR) $(1)/usr/lib/ebtables
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/lib*.so $(1)/usr/lib/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/extensions/*.so $(1)/usr/lib/ebtables/
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ebtables $(1)/usr/sbin/
+	$(INSTALL_DIR) $(1)/opt/etc
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/ethertypes $(1)/opt/etc/
+	$(INSTALL_DIR) $(1)/opt/lib/ebtables
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/lib*.so $(1)/opt/lib/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/extensions/*.so $(1)/opt/lib/ebtables/
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ebtables $(1)/opt/sbin/
 endef
 
 define Package/ebtables-utils/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ebtables-save $(1)/usr/sbin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ebtables-restore $(1)/usr/sbin/
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ebtables-save $(1)/opt/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ebtables-restore $(1)/opt/sbin/
 endef
 
 $(eval $(call BuildPackage,ebtables))
