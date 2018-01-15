@@ -7,7 +7,7 @@ The main differences from the original project are
 - glibc is now a system library for all architectures including mips(el);
 - glibc has a patch that allows to use separate (from the original firmware) users and passwords;
 - two different installations are possible for most devices: (1) standard, (2) alternative (with serarated from firmware users);
-- busybox from Entware is forced instolled;
+- busybox from Entware is forced installed;
  
 Glibc patch above moves files /etc/passwd, /etc/shaddow, /etc/group, /etc/gshadow, /etc/shells, /etc/localtime to /opt/etc folder. For most devices this allows two different instalation type.
 
