@@ -90,9 +90,16 @@ ifeq ($(ARCH),x86_64)
 		--enable-only64bit
 	BITS := 64bit
 else
+    ifeq ($(ARCH),aarch64)
+		CONFIGURE_ARGS += \
+			--enable-only64bit
+		BITS := 64bit
+		CPU := amd64
+    else
 	CONFIGURE_ARGS += \
 		--enable-only32bit
 	BITS := 32bit
+    endif
 endif
 
 CONFIGURE_ARGS += \

@@ -193,6 +193,9 @@ DYNLINKER=ld-uClibc.so.0
 endif
 
 ifeq  ($(LIBC),glibc)
+  ifeq ($(ARCH),aarch64)
+    DYNLINKER=ld-linux-aarch64.so.1
+  endif
   ifeq ($(ARCH),arm)
     DYNLINKER=ld-linux.so.3
   endif
@@ -282,6 +285,9 @@ ifeq ($(ARCH),mips)
 endif
 ifeq ($(ARCH),mipsel)
     GOARCH=mipsle
+endif
+ifeq ($(ARCH),aarch64)
+    GOARCH=arm64
 endif
 ifeq ($(ARCH),arm)
     GOARCH=arm
