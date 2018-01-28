@@ -77,12 +77,12 @@ endef
 
 TARGET_CPPFLAGS := \
 	-I$(PKG_BUILD_DIR)/include \
-	-I$(LINUX_DIR)/include \
+	-I$(LINUX_DIR)/user_headers/include \
 	$(TARGET_CPPFLAGS)
 
 TARGET_CFLAGS += \
 	-I$(PKG_BUILD_DIR)/include \
-	-I$(LINUX_DIR)/include \
+	-I$(LINUX_DIR)/user_headers/include \
 	-ffunction-sections -fdata-sections \
 	-DNO_LEGACY
 
@@ -92,7 +92,7 @@ TARGET_LDFLAGS += \
 CONFIGURE_ARGS += \
 	--enable-shared \
 	--enable-devel \
-	--with-kernel="$(LINUX_DIR)" \
+	--with-kernel="$(LINUX_DIR)/user_headers" \
 	--with-xtlibdir=/opt/lib/iptables \
 	--enable-static \
 	$(if $(CONFIG_IPV6),,--disable-ipv6)

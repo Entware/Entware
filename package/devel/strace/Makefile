@@ -28,7 +28,7 @@ PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
-HOST_CFLAGS += -I$(LINUX_DIR)/include
+HOST_CFLAGS += -I$(LINUX_DIR)/user_headers/include
 
 CONFIGURE_VARS+= \
 	LDFLAGS_FOR_BUILD="$(HOST_LDFLAGS)" \
@@ -56,10 +56,6 @@ config PACKAGE_strace_libunwind
 endef
 
 CONFIGURE_ARGS += --with-libunwind=$(if $(CONFIG_PACKAGE_strace_libunwind),yes,no)
-
-TARGET_CFLAGS += \
-	-I$(LINUX_DIR)/include
-
 MAKE_FLAGS := \
 	CCOPT="$(TARGET_CFLAGS)"
 
