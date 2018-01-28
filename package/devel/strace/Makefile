@@ -36,13 +36,6 @@ CONFIGURE_VARS+= \
 	CFLAGS_FOR_BUILD="$(HOST_CFLAGS)" \
 	CC_FOR_BUILD="$(HOST_CC)"
 
-ifeq ($(ARCH),aarch64)
-		CONFIGURE_ARGS += \
-			ac_cv_type_struct_flock=y \
-			ac_cv_type_struct_flock64=y
-endif
-
-
 define Package/strace
   SECTION:=utils
   CATEGORY:=Utilities
