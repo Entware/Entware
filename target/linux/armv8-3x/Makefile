@@ -9,9 +9,9 @@ include $(TOPDIR)/rules.mk
 
 ARCH:=aarch64
 BOARD:=armv8-3x
-BOARDNAME:=Entware-3x (aarch64,kernel-3.4.112)
+BOARDNAME:=Entware-3x (aarch64,kernel-3.x)
 FEATURES:=usb audio pci
-KERNEL_PATCHVER:=3.12.54
+KERNEL_PATCHVER:=3.10.108
 CPU_TYPE:=cortex-a53
 DEFAULT_PACKAGES := toolchain
 
