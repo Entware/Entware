@@ -77,7 +77,6 @@ endif
 MAKE_FLAGS += \
 	CCOPT="$(TARGET_CFLAGS)" INCLS="-I. $(TARGET_CPPFLAGS)"
 
-
 define Package/tcpdump/install
 	$(INSTALL_DIR) $(1)/opt/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/tcpdump $(1)/opt/sbin/
