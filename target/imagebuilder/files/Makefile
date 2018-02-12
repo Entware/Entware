@@ -13,7 +13,7 @@ export TOPDIR LC_ALL LANG
 export OPENWRT_VERBOSE=s
 all: help
 
-include $(TOPDIR)/include/host.mk
+export PATH:=$(TOPDIR)/staging_dir/host/bin:$(PATH)
 
 ifneq ($(OPENWRT_BUILD),1)
   override OPENWRT_BUILD=1
@@ -56,10 +56,7 @@ PACKAGE_DIR:=$(TOPDIR)/packages
 LISTS_DIR:=$(subst $(space),/,$(patsubst %,..,$(subst /,$(space),$(TARGET_DIR))))$(DL_DIR)
 OPKG:= \
   IPKG_NO_SCRIPT=1 \
-  IPKG_TMP="$(TMP_DIR)/ipkgtmp" \
   IPKG_INSTROOT="$(TARGET_DIR)" \
-  IPKG_CONF_DIR="$(TMP_DIR)" \
-  IPKG_OFFLINE_ROOT="$(TARGET_DIR)" \
   $(STAGING_DIR_HOST)/bin/opkg \
 	-f $(TOPDIR)/repositories.conf \
 	--force-depends \
@@ -72,24 +69,19 @@ OPKG:= \
 	--add-arch all:100 \
 	--add-arch $(ARCH_PACKAGES):200
 
-define Profile
-  $(eval $(call Profile/Default))
-  $(eval $(call Profile/$(1)))
-  ifeq ($(USER_PROFILE),)
-    USER_PROFILE:=$(1)
-  endif
-  $(1)_NAME:=$(NAME)
-  $(1)_PACKAGES:=$(PACKAGES)
-  PROFILE_NAMES += $(1)
-  PROFILE_LIST += \
-  	echo '$(1):'; [ -z '$(NAME)' ] || echo '	$(NAME)'; echo '	Packages: $(PACKAGES)';
-endef
-
 include $(INCLUDE_DIR)/target.mk
+-include .profiles.mk
+
+USER_PROFILE ?= $(firstword $(PROFILE_NAMES))
+PROFILE_LIST = $(foreach p,$(PROFILE_NAMES), \
+	echo '$(patsubst DEVICE_%,%,$(p)):'; $(if $($(p)_NAME),echo '    $(subst ','"'"',$($(p)_NAME))'; ) echo '    Packages: $($(p)_PACKAGES)'; \
+)
+
+.profiles.mk: .targetinfo
+	@$(SCRIPT_DIR)/target-metadata.pl profile_mk $< '$(BOARD)$(if $(SUBTARGET),/$(SUBTARGET))' > $@
 
 staging_dir/host/.prereq-build: include/prereq-build.mk
 	mkdir -p tmp
-	rm -f tmp/.host.mk
 	@$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -s -f $(TOPDIR)/include/prereq-build.mk prereq 2>/dev/null || { \
 		echo "Prerequisite check failed. Use FORCE=1 to override."; \
 		false; \
@@ -108,7 +100,7 @@ _call_info: FORCE
 	echo 'Available Profiles:'
 	echo; $(PROFILE_LIST)
 
-BUILD_PACKAGES:=$(sort $(DEFAULT_PACKAGES) $(USER_PACKAGES) $($(USER_PROFILE)_PACKAGES) kernel)
+BUILD_PACKAGES:=$(USER_PACKAGES) $(sort $(DEFAULT_PACKAGES) $($(USER_PROFILE)_PACKAGES) kernel)
 # "-pkgname" in the package list means remove "pkgname" from the package list
 BUILD_PACKAGES:=$(filter-out $(filter -%,$(BUILD_PACKAGES)) $(patsubst -%,%,$(filter -%,$(BUILD_PACKAGES))),$(BUILD_PACKAGES))
 PACKAGES:=
@@ -119,28 +111,36 @@ _call_image: staging_dir/host/.prereq-build
 	echo
 	rm -rf $(TARGET_DIR)
 	mkdir -p $(TARGET_DIR) $(BIN_DIR) $(TMP_DIR) $(DL_DIR)
-	if [ ! -f "$(PACKAGE_DIR)/Packages" ] || [ ! -f "$(PACKAGE_DIR)/Packages.gz" ] || [ "`find $(PACKAGE_DIR) -cnewer $(PACKAGE_DIR)/Packages.gz`" ]; then \
-		echo "Package list missing or not up-to-date, generating it.";\
-		$(MAKE) package_index; \
-	else \
-		mkdir -p $(TARGET_DIR)/tmp; \
-		$(OPKG) update || true; \
-	fi
+	$(MAKE) package_reload
 	$(MAKE) package_install
 ifneq ($(USER_FILES),)
 	$(MAKE) copy_files
 endif
-	$(MAKE) package_postinst
-	$(MAKE) build_image
+	$(MAKE) -s package_postinst
+	$(MAKE) -s build_image
+	$(MAKE) -s checksum
 
 package_index: FORCE
-	@echo
-	@echo Building package index...
+	@echo >&2
+	@echo Building package index... >&2
 	@mkdir -p $(TMP_DIR) $(TARGET_DIR)/tmp
 	(cd $(PACKAGE_DIR); $(SCRIPT_DIR)/ipkg-make-index.sh . > Packages && \
 		gzip -9nc Packages > Packages.gz \
 	) >/dev/null 2>/dev/null
-	$(OPKG) update || true
+	$(OPKG) update >&2 || true
+
+package_reload:
+	if [ ! -f "$(PACKAGE_DIR)/Packages" ] || [ ! -f "$(PACKAGE_DIR)/Packages.gz" ] || [ "`find $(PACKAGE_DIR) -cnewer $(PACKAGE_DIR)/Packages.gz`" ]; then \
+		echo "Package list missing or not up-to-date, generating it." >&2 ;\
+		$(MAKE) package_index; \
+	else \
+		mkdir -p $(TARGET_DIR)/tmp; \
+		$(OPKG) update >&2 || true; \
+	fi
+
+package_list: FORCE
+	@$(MAKE) -s package_reload
+	@$(OPKG) list --size 2>/dev/null
 
 package_install: FORCE
 	@echo
@@ -177,6 +177,11 @@ build_image: FORCE
 	$(NO_TRACE_MAKE) -C target/linux/$(BOARD)/image install TARGET_BUILD=1 IB=1 EXTRA_IMAGE_NAME="$(EXTRA_IMAGE_NAME)" \
 		$(if $(USER_PROFILE),PROFILE="$(USER_PROFILE)")
 
+checksum: FORCE
+	@echo
+	@echo Calculating checksums...
+	@$(call sha256sums,$(BIN_DIR))
+
 clean:
 	rm -rf $(TMP_DIR) $(DL_DIR) $(TARGET_DIR) $(BIN_DIR)
 
@@ -184,17 +189,19 @@ clean:
 info:
 	(unset PROFILE FILES PACKAGES MAKEFLAGS; $(MAKE) -s _call_info)
 
+PROFILE_FILTER = $(filter DEVICE_$(PROFILE) $(PROFILE),$(PROFILE_NAMES))
+
 image:
 ifneq ($(PROFILE),)
-  ifeq ($(filter $(PROFILE),$(PROFILE_NAMES)),)
+  ifeq ($(PROFILE_FILTER),)
 	@echo 'Profile "$(PROFILE)" does not exist!'
 	@echo 'Use "make info" to get a list of available profile names.'
 	@exit 1
   endif
 endif
 	(unset PROFILE FILES PACKAGES MAKEFLAGS; \
-	$(MAKE) _call_image \
-		$(if $(PROFILE),USER_PROFILE="$(PROFILE)") \
+	$(MAKE) -s _call_image \
+		$(if $(PROFILE),USER_PROFILE="$(PROFILE_FILTER)") \
 		$(if $(FILES),USER_FILES="$(FILES)") \
 		$(if $(PACKAGES),USER_PACKAGES="$(PACKAGES)") \
 		$(if $(BIN_DIR),BIN_DIR="$(BIN_DIR)"))
