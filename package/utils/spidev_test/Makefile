@@ -37,4 +37,4 @@ define Package/spidev-test/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/spidev_test $(1)/sbin/
 endef
 
-$(eval $(call BuildPackage,spidev-test))
+#$(eval $(call BuildPackage,spidev-test))
