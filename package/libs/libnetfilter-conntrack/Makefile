@@ -16,9 +16,6 @@ PKG_SOURCE_DATE:=2017-07-25
 PKG_SOURCE_VERSION:=e870432649955d377a73ee5a72cb23f0f6b5e4c5
 PKG_MIRROR_HASH:=6891e6bea956d5d3514524918f439dfe8b5806397d8d40d1afc69b9bfebc1d57
 
-# dirty trick - build iptables first (so iptables does not depend om libnetfilter-conntrack
-PKG_BUILD_DEPENDS:=iptables
-
 PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 
 PKG_FIXUP:=autoreconf
