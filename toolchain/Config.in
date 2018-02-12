@@ -96,16 +96,25 @@ menuconfig EXTERNAL_TOOLCHAIN
 		default "/opt/cross/powerpc-unknown-linux-gnu"  if powerpc
 		default "/opt/cross/x86_64-unknown-linux-gnu"   if x86_64
 
-	config TOOLCHAIN_LIBC
-		string
+	choice TOOLCHAIN_LIBC_TYPE
 		prompt "Toolchain libc"  if DEVEL
 		depends on EXTERNAL_TOOLCHAIN && !NATIVE_TOOLCHAIN
-		default "uclibc"
 		help
 		  Specify the libc type used by the external toolchain. The given value
 		  is passed as -m flag to all gcc and g++ invocations. This is mainly
 		  intended for multilib toolchains which support glibc and uclibc at
 		  the same time. If no value is specified, no -m flag is passed.
+
+		config EXTERNAL_TOOLCHAIN_LIBC_USE_GLIBC
+			bool "glibc"
+			select USE_GLIBC
+
+	endchoice
+
+	config TOOLCHAIN_LIBC
+		string
+		depends on EXTERNAL_TOOLCHAIN && !NATIVE_TOOLCHAIN
+		default "glibc" if EXTERNAL_TOOLCHAIN_LIBC_USE_GLIBC
 
 	config TOOLCHAIN_BIN_PATH
 		string
@@ -222,7 +231,6 @@ choice
 	config LIBC_USE_GLIBC
 		bool "Use glibc"
 		select USE_GLIBC
-		depends on !arc
 
 endchoice
 
@@ -242,12 +250,16 @@ config GDB
 config USE_GLIBC
 	bool
 
+config SSP_SUPPORT
+	default y if USE_MUSL || GCC_LIBSSP
+	bool
+
 config USE_EXTERNAL_LIBC
 	bool
 	default y if EXTERNAL_TOOLCHAIN || NATIVE_TOOLCHAIN
 
+source "toolchain/binutils/Config.version"
 source "toolchain/gcc/Config.version"
-
 source "toolchain/glibc/Config.version"
 
 config LIBC
@@ -262,10 +274,6 @@ config TARGET_SUFFIX
 	string
 	default "gnueabi"         if USE_GLIBC && (arm || armeb)
 	default "gnu"             if USE_GLIBC && !(arm || armeb)
-	default "uclibcgnueabi"   if USE_UCLIBC && (arm || armeb)
-	default "uclibc"          if USE_UCLIBC && !(arm || armeb)
-	default "muslgnueabi"     if USE_MUSL && (arm || armeb)
-	default "musl"            if USE_MUSL && !(arm || armeb)
 
 config MIPS64_ABI
 	depends on mips64 || mips64el
