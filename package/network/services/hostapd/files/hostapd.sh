@@ -172,8 +172,10 @@ hostapd_common_add_bss_config() {
 
 	config_add_string nasid
 	config_add_string ownip
+	config_add_string radius_client_addr
 	config_add_string iapp_interface
 	config_add_string eap_type ca_cert client_cert identity anonymous_identity auth priv_key priv_key_pwd
+	config_add_string ieee80211w_mgmt_cipher
 
 	config_add_int dynamic_vlan vlan_naming
 	config_add_string vlan_tagged_interface vlan_bridge
@@ -304,7 +306,7 @@ hostapd_set_bss_options() {
 			json_get_vars \
 				auth_server auth_secret auth_port \
 				dae_client dae_secret dae_port \
-				ownip \
+				ownip radius_client_addr \
 				eap_reauth_period
 
 			# radius can provide VLAN ID for clients
@@ -331,6 +333,7 @@ hostapd_set_bss_options() {
 			}
 
 			[ -n "$ownip" ] && append bss_conf "own_ip_addr=$ownip" "$N"
+			[ -n "$radius_client_addr" ] && append bss_conf "radius_client_addr=$radius_client_addr" "$N"
 			append bss_conf "eapol_key_index_workaround=1" "$N"
 			append bss_conf "ieee8021x=1" "$N"
 
@@ -444,9 +447,10 @@ hostapd_set_bss_options() {
 		# RSN -> allow management frame protection
 		case "$ieee80211w" in
 			[012])
-				json_get_vars ieee80211w_max_timeout ieee80211w_retry_timeout
+				json_get_vars ieee80211w_mgmt_cipher ieee80211w_max_timeout ieee80211w_retry_timeout
 				append bss_conf "ieee80211w=$ieee80211w" "$N"
 				[ "$ieee80211w" -gt "0" ] && {
+					append bss_conf "group_mgmt_cipher=${ieee80211w_mgmt_cipher:-AES-128-CMAC}" "$N"
 					[ -n "$ieee80211w_max_timeout" ] && \
 						append bss_conf "assoc_sa_query_max_timeout=$ieee80211w_max_timeout" "$N"
 					[ -n "$ieee80211w_retry_timeout" ] && \
