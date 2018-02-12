@@ -21,6 +21,7 @@ DUMP:=1
 endif
 
 export TMP_DIR:=$(TOPDIR)/tmp
+export TMPDIR:=$(TMP_DIR)
 
 qstrip=$(strip $(subst ",,$(1)))
 #"))
@@ -170,8 +171,8 @@ TARGET_CXXFLAGS = $(TARGET_CFLAGS)
 TARGET_ASFLAGS_DEFAULT = $(TARGET_CFLAGS)
 TARGET_ASFLAGS = $(TARGET_ASFLAGS_DEFAULT)
 TARGET_GCCGOFLAGS = -g1 -O2
-TARGET_CPPFLAGS:=-I$(STAGING_DIR)/opt/include -I$(STAGING_DIR)/include
-TARGET_LDFLAGS:=-L$(STAGING_DIR)/opt/lib -L$(STAGING_DIR)/lib -Wl,-rpath,/opt/lib -Wl,-rpath-link=$(STAGING_DIR)/opt/lib
+TARGET_CPPFLAGS:=-I$(STAGING_DIR)/opt/include
+TARGET_LDFLAGS:=-L$(STAGING_DIR)/opt/lib -Wl,-rpath,/opt/lib -Wl,-rpath-link=$(STAGING_DIR)/opt/lib
 ifneq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
 LIBGCC_S_PATH=$(realpath $(wildcard $(call qstrip,$(CONFIG_LIBGCC_ROOT_DIR))/$(call qstrip,$(CONFIG_LIBGCC_FILE_SPEC))))
 LIBGCC_S=$(if $(LIBGCC_S_PATH),-L$(dir $(LIBGCC_S_PATH)) -lgcc_s)
@@ -225,7 +226,6 @@ ifndef DUMP
     export GCC_HONOUR_COPTS:=0
     TARGET_CROSS:=$(if $(TARGET_CROSS),$(TARGET_CROSS),$(OPTIMIZE_FOR_CPU)-openwrt-linux$(if $(TARGET_SUFFIX),-$(TARGET_SUFFIX))-)
     TARGET_CFLAGS+= -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result
-    TARGET_CPPFLAGS+= -I$(TOOLCHAIN_DIR)/include
     ifeq ($(CONFIG_USE_MUSL),y)
       TARGET_CPPFLAGS+= -I$(TOOLCHAIN_DIR)/include/fortify
     endif
@@ -308,9 +308,9 @@ endif
 
 HOSTCC:=gcc
 HOSTCXX:=g++
-HOST_CPPFLAGS:=-I$(STAGING_DIR_HOST)/include -I$(STAGING_DIR_HOST)/usr/include $(if $(IS_PACKAGE_BUILD),-I$(STAGING_DIR_HOSTPKG)/include -I$(STAGING_DIR)/host/include)
+HOST_CPPFLAGS:=-I$(STAGING_DIR_HOST)/include $(if $(IS_PACKAGE_BUILD),-I$(STAGING_DIR_HOSTPKG)/include -I$(STAGING_DIR)/host/include)
 HOST_CFLAGS:=-O2 $(HOST_CPPFLAGS)
-HOST_LDFLAGS:=-L$(STAGING_DIR_HOST)/lib -L$(STAGING_DIR_HOST)/usr/lib $(if $(IS_PACKAGE_BUILD),-L$(STAGING_DIR_HOSTPKG)/lib -L$(STAGING_DIR)/host/lib)
+HOST_LDFLAGS:=-L$(STAGING_DIR_HOST)/lib $(if $(IS_PACKAGE_BUILD),-L$(STAGING_DIR_HOSTPKG)/lib -L$(STAGING_DIR)/host/lib)
 
 ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
   TARGET_AR:=$(TARGET_CROSS)gcc-ar
@@ -417,10 +417,6 @@ endef
 
 define shexport
 export $(call shvar,$(1))=$$(call $(1))
-endef
-
-define include_mk
-$(eval -include $(if $(DUMP),,$(STAGING_DIR)/mk/$(strip $(1))))
 endef
 
 # Execute commands under flock
