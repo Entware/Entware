@@ -39,14 +39,15 @@ TARGET_CFLAGS += \
 	$(TARGET_CPPFLAGS)
 
 MAKE_FLAGS += \
+	prefix=/opt \
 	CONFIGURE_ARGS="$(CONFIGURE_ARGS)" \
 	LIBS_EADCLIENT="$(PKG_BUILD_DIR)/tinysrp/libtinysrp.a" \
-	LIBS_EAD="$(PKG_BUILD_DIR)/tinysrp/libtinysrp.a $(STAGING_DIR)/usr/lib/libpcap.a" \
+	LIBS_EAD="$(PKG_BUILD_DIR)/tinysrp/libtinysrp.a $(STAGING_DIR)/opt/lib/libpcap.a" \
 	CFLAGS="$(TARGET_CFLAGS)"
 
 define Package/ead/install
-	$(INSTALL_DIR) $(1)/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ead $(1)/sbin/
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ead $(1)/opt/sbin/
 endef
 
 $(eval $(call BuildPackage,ead))
