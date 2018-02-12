@@ -43,7 +43,6 @@ define Package/openvpn/Default
 #else
 #  PROVIDES:=openvpn openvpn-crypto
 #endif
-  MAINTAINER:=Mirko Vogt <mirko@openwrt.org>
 endef
 
 Package/openvpn-openssl=$(call Package/openvpn/Default,openssl,OpenSSL,+PACKAGE_openvpn-openssl:libopenssl)
@@ -117,7 +116,6 @@ define Package/openvpn-$(BUILD_VARIANT)/install
 		files/S20openvpn \
 		$(1)/opt/etc/init.d
 endef
-
 
 $(eval $(call BuildPackage,openvpn-openssl))
 $(eval $(call BuildPackage,openvpn-mbedtls))
