@@ -11,12 +11,12 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=wireguard
 
-PKG_VERSION:=0.0.20171211
+PKG_VERSION:=0.0.20180202
 PKG_RELEASE:=1
 
 PKG_SOURCE:=WireGuard-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=https://git.zx2c4.com/WireGuard/snapshot/
-PKG_HASH:=57d799d35e92c905e548d00adeb7ed1ead4d6560f084c99e5aae0a87b4eb09e4
+PKG_HASH:=ee3415b482265ad9e8721aa746aaffdf311058a2d1a4d80e7b6d11bbbf71c722
 
 PKG_LICENSE:=GPL-2.0 Apache-2.0
 PKG_LICENSE_FILES:=COPYING
@@ -110,6 +110,6 @@ define KernelPackage/wireguard/description
   This package provides the kernel module for WireGuard.
 endef
 
-$(eval $(call BuildPackage,wireguard))
-$(eval $(call BuildPackage,wireguard-tools))
-$(eval $(call KernelPackage,wireguard))
+#$(eval $(call BuildPackage,wireguard))
+#$(eval $(call BuildPackage,wireguard-tools))
+#$(eval $(call KernelPackage,wireguard))
