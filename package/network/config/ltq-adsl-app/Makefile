@@ -10,7 +10,7 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=dsl_cpe_control_danube
 PKG_VERSION:=3.24.4.4
-PKG_RELEASE:=5
+PKG_RELEASE:=6
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_BUILD_DIR:=$(BUILD_DIR)/dsl_cpe_control-$(PKG_VERSION)
 PKG_SOURCE_URL:=http://mirror2.openwrt.org/sources/
@@ -24,7 +24,7 @@ PKG_CONFIG_DEPENDS:=\
 	CONFIG_LTQ_DSL_ENABLE_SOAP \
 	CONFIG_LTQ_DSL_ENABLE_DSL_EVENT_POLLING
 
-PKG_BUILD_DEPENDS:=TARGET_lantiq_xway:kmod-ltq-adsl-danube TARGET_lantiq_xway_legacy:kmod-ltq-adsl-danube TARGET_lantiq_ase:kmod-ltq-adsl-ase
+#PKG_BUILD_DEPENDS:=ltq-adsl
 
 PKG_FLAGS:=nonshared
 
@@ -35,7 +35,7 @@ define Package/ltq-adsl-app
   CATEGORY:=Network
   TITLE:=Lantiq DSL userland tool
   URL:=http://www.lantiq.com/
-  DEPENDS:=@(TARGET_lantiq_xway||TARGET_lantiq_xway_legacy||TARGET_lantiq_ase) +libpthread +ip
+  DEPENDS:=@(TARGET_lantiq_xway||TARGET_lantiq_xway_legacy||TARGET_lantiq_ase) +libpthread
   MENU:=1
 endef
 
@@ -76,12 +76,11 @@ CONFIGURE_ARGS += \
 TARGET_CFLAGS += -I$(LINUX_DIR)/include
 
 define Package/ltq-adsl-app/install
-	$(INSTALL_DIR) $(1)/etc/init.d $(1)/sbin $(1)/etc/hotplug.d/dsl $(1)/etc/hotplug.d/net
+	$(INSTALL_DIR) $(1)/etc/init.d $(1)/sbin $(1)/etc/hotplug.d/dsl
 	$(INSTALL_BIN) ./files/dsl_control $(1)/etc/init.d/
 	$(INSTALL_BIN) ./files/10_atm.sh $(1)/etc/hotplug.d/dsl
 	$(INSTALL_BIN) ./files/10_ptm.sh $(1)/etc/hotplug.d/dsl
-	$(INSTALL_BIN) ./files/10-adsl_rename $(1)/etc/hotplug.d/net
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/dsl_cpe_control $(1)/sbin
 endef
 
-$(eval $(call BuildPackage,ltq-adsl-app))
+#$(eval $(call BuildPackage,ltq-adsl-app))
