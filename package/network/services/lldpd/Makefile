@@ -74,7 +74,7 @@ CONFIGURE_ARGS += \
 	--with-embedded-libevent=no \
 	--disable-hardening \
 	--without-xml \
-	--sysconfdir=/tmp \
+	--sysconfdir=/opt/etc \
 	--enable-oldies \
 	$(if $(CONFIG_LLDPD_WITH_CDP),,--disable-cdp) \
 	$(if $(CONFIG_LLDPD_WITH_FDP),,--disable-fdp) \
