@@ -1,0 +1,11 @@
+--- a/tc/tc_core.c
++++ b/tc/tc_core.c
+@@ -186,7 +186,7 @@
+ again:
+ 	for (i = s->tsize - 1; i >= 0; i--) {
+ 		sz = tc_adjust_size((i + 1) << s->cell_log, s->mpu, linklayer);
+-		if ((sz >> s->size_log) > UINT16_MAX) {
++		if ((sz >> s->size_log) > __INT16_MAX__) {
+ 			s->size_log++;
+ 			goto again;
+ 		}

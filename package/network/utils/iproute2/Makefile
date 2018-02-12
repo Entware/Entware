@@ -20,6 +20,7 @@ PKG_SOURCE_URL:=@KERNEL/linux/utils/net/iproute2
 PKG_HASH:=bc91c367288a19f78ef800cd6840363be1f22da8436fbae88e1a7250490d6514
 PKG_BUILD_PARALLEL:=1
 PKG_LICENSE:=GPL-2.0
+PKG_CPE_ID:=cpe:/a:iproute2_project:iproute2
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
 
@@ -83,7 +84,7 @@ define Build/Configure
 	$(SED) "s,-I/usr/include/db3,," $(PKG_BUILD_DIR)/Makefile
 	$(SED) "s,^KERNEL_INCLUDE.*,KERNEL_INCLUDE=$(LINUX_DIR)/include," \
 		$(PKG_BUILD_DIR)/Makefile
-	$(SED) "s,^LIBC_INCLUDE.*,LIBC_INCLUDE=$(STAGING_DIR)/include," \
+	$(SED) "s,^LIBC_INCLUDE.*,LIBC_INCLUDE=$(STAGING_DIR)/opt/include," \
 		$(PKG_BUILD_DIR)/Makefile
 	echo "static const char SNAPSHOT[] = \"$(PKG_VERSION)-$(PKG_RELEASE)-entware\";" \
 		> $(PKG_BUILD_DIR)/include/SNAPSHOT.h
