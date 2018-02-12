@@ -71,4 +71,4 @@ define Package/libnetfilter-log/install
 		$(1)/usr/lib/
 endef
 
-$(eval $(call BuildPackage,libnetfilter-log))
+#$(eval $(call BuildPackage,libnetfilter-log))
