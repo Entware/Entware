@@ -20,13 +20,13 @@ PKG_LICENSE:=BSD-3-Clause
 
 PKG_BUILD_PARALLEL:=1
 
-include $(INCLUDE_DIR)/uclibc++.mk
+#include $(INCLUDE_DIR)/uclibc++.mk
 include $(INCLUDE_DIR)/package.mk
 
 define Package/iperf
   SECTION:=net
   CATEGORY:=Network
-  DEPENDS:= $(CXX_DEPENDS) +libpthread
+  DEPENDS:= +libstdcpp +libpthread
   TITLE:=Internet Protocol bandwidth measuring tool
   URL:=http://sourceforge.net/projects/iperf2/
 endef
