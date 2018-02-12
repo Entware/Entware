@@ -13,13 +13,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ncurses
-PKG_VERSION:=6.0
-PKG_RELEASE:=1c
+PKG_VERSION:=6.1
+PKG_RELEASE:=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@GNU/ncurses
-PKG_HASH:=f551c24b30ce8bfb6e96d9f59b42fbea30fa3a6123384172f9e7284bcf647260
+PKG_HASH:=aa057eeeb4a14d470101eff4597d5833dcef5965331be3528c08d99cebaa0d17
 
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=README
@@ -55,6 +55,14 @@ define Package/libncurses
   DEPENDS:= +libncursesw
 endef
 
+define Package/libncurses-dev
+  SECTION:=devel
+  CATEGORY:=Development
+  SUBMENU:=Libraries
+  DEPENDS:=zlib +libncurses
+  TITLE:=Development files for the ncurses library
+endef
+
 define Package/ncurses-bin
   SECTION:=utils
   CATEGORY:=Utilities
@@ -86,7 +94,8 @@ CONFIGURE_ARGS += \
 	--with-default-terminfo-dir=/opt/share/terminfo \
 	--with-pkg-config-libdir=/opt/lib/pkgconfig \
 	--enable-widec \
-	--with-build-cppflags=-D_GNU_SOURCE
+	--with-build-cppflags=-D_GNU_SOURCE \
+	--disable-stripping
 
 HOST_CONFIGURE_ARGS += \
 	--without-cxx \
@@ -96,7 +105,8 @@ HOST_CONFIGURE_ARGS += \
 	--without-manpages \
 	--without-profile \
 	--without-tests \
-	--without-curses-h
+	--without-curses-h \
+	--disable-stripping
 
 
 ifeq ($(HOST_OS),FreeBSD)
@@ -116,7 +126,7 @@ define Build/Install/Default
 	$(MAKE_VARS) \
 	$(MAKE) -C $(PKG_BUILD_DIR)/$(MAKE_PATH) \
 		$(MAKE_INSTALL_FLAGS) \
-		$(1) install.libs install.data install.progs;
+		$(1) install.progs install.libs install.data;
 endef
 
 define Package/ncurses-bin/install
@@ -156,6 +166,15 @@ define Package/libncursesw/install
 	done
 endef
 
+define Package/libncurses-dev/install
+	$(INSTALL_DIR) $(1)/opt/include
+	$(CP) $(PKG_INSTALL_DIR)/opt/include/*.h $(1)/opt/include/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/*.a $(1)/opt/lib/
+	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/*.pc $(1)/opt/lib/pkgconfig/
+endef
+
 define Package/libncurses/install
 	$(INSTALL_DIR) $(1)/opt/lib
 	ln -s libncurses.so.6.0 $(1)/opt/lib/libcurses.so
@@ -168,15 +187,16 @@ endef
 
 define Build/InstallDev
 	$(CP) $(PKG_INSTALL_DIR)/* $(1)
-		for lib in ncurses panel menu form; do \
+	for lib in ncurses panel menu form; do \
 		ln -s lib$$$${lib}w.so $(1)/opt/lib/lib$$$${lib}.so; \
 	done
-	$(LN) . $(1)/opt/include/ncursesw
-	$(INSTALL_DIR) $(1)/opt/bin $(2)/bin
+	ln -s . $(1)/opt/include/ncursesw
+	$(TARGET_CROSS)ar rc $(1)/opt/lib/libtinfo.a
+	$(INSTALL_DIR) $(2)/bin
 	$(CP) $(PKG_INSTALL_DIR)/opt/bin/ncursesw6-config $(2)/bin/
 	$(SED) 's,^\(prefix\|exec_prefix\)=.*,\1=$(STAGING_DIR)/opt,g' -e 's/$$$$INCS //g' \
 		$(2)/bin/ncursesw6-config
-	$(LN) $(STAGING_DIR)/host/bin/ncursesw6-config $(1)/opt/bin/ncursesw6-config
+	ln -sf $(STAGING_DIR)/host/bin/ncursesw6-config $(1)/opt/bin/ncursesw6-config
 endef
 
 define Host/Compile
@@ -192,4 +212,5 @@ $(eval $(call HostBuild))
 $(eval $(call BuildPackage,terminfo))
 $(eval $(call BuildPackage,libncursesw))
 $(eval $(call BuildPackage,libncurses))
+$(eval $(call BuildPackage,libncurses-dev))
 $(eval $(call BuildPackage,ncurses-bin))

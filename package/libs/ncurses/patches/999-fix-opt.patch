@@ -1,0 +1,118 @@
+--- a/include/tic.h
++++ b/include/tic.h
+@@ -241,7 +241,7 @@
+ #define MAX_TERMINFO_LENGTH	4096
+ 
+ #ifndef TERMINFO
+-#define TERMINFO "/usr/share/terminfo"
++#define TERMINFO "/opt/share/terminfo"
+ #endif
+ 
+ #ifdef NCURSES_TERM_ENTRY_H_incl
+--- a/ncurses/tinfo/comp_scan.c
++++ b/ncurses/tinfo/comp_scan.c
+@@ -54,7 +54,7 @@
+ 
+ /*
+  * Maximum length of string capability we'll accept before raising an error.
+- * Yes, there is a real capability in /etc/termcap this long, an "is".
++ * Yes, there is a real capability in /opt/etc/termcap this long, an "is".
+  */
+ #define MAXCAPLEN	600
+ 
+--- a/ncurses/tinfo/read_termcap.c
++++ b/ncurses/tinfo/read_termcap.c
+@@ -801,12 +801,12 @@
+ 
+     /*
+      * TERMCAP can have one of two things in it.  It can be the name of a file
+-     * to use instead of /etc/termcap.  In this case it better start with a
++     * to use instead of /opt/etc/termcap.  In this case it better start with a
+      * "/".  Or it can be an entry to use so we don't have to read the file. 
+      * In this case it has to already have the newlines crunched out.  If
+      * TERMCAP does not hold a file name then a path of names is searched
+      * instead.  The path is found in the TERMPATH variable, or becomes
+-     * "$HOME/.termcap /etc/termcap" if no TERMPATH exists.
++     * "$HOME/.termcap /opt/etc/termcap" if no TERMPATH exists.
+      */
+     _nc_str_init(&desc, pathbuf, sizeof(pathbuf));
+     if (cp == NULL) {
+@@ -1005,7 +1005,7 @@
+      * of reading a termcap file.  If it does begin with a slash, the string is
+      * used as a path name of the termcap file to search.  If TERMCAP does not
+      * begin with a slash and name is different from TERM, tgetent() searches
+-     * the files $HOME/.termcap and /usr/share/misc/termcap, in that order,
++     * the files $HOME/.termcap and /opt/share/misc/termcap, in that order,
+      * unless the environment variable TERMPATH exists, in which case it
+      * specifies a list of file pathnames (separated by spaces or colons) to be
+      * searched instead.
+@@ -1073,7 +1073,7 @@
+     }
+ 
+     /*
+-     * Probably /etc/termcap is a symlink to /usr/share/misc/termcap.
++     * Probably /opt/etc/termcap is a symlink to /opt/share/misc/termcap.
+      * Avoid reading the same file twice.
+      */
+ #if HAVE_LINK
+@@ -1165,7 +1165,7 @@
+ 		 * be very fast.
+ 		 *
+ 		 * Disadvantage:  After the first time a termcap type is loaded
+-		 * by its user, editing it in the /etc/termcap file, or in
++		 * by its user, editing it in the /opt/etc/termcap file, or in
+ 		 * TERMCAP, or in a local ~/.termcap, will be ineffective
+ 		 * unless the terminfo entry is explicitly removed.
+ 		 */
+
+--- a/progs/tic.c
++++ b/progs/tic.c
+@@ -386,7 +386,7 @@
+ {
+     FILE *result = 0;
+ 
+-    _nc_STRCPY(filename, "/tmp/XXXXXX", PATH_MAX);
++    _nc_STRCPY(filename, "/opt/tmp/XXXXXX", PATH_MAX);
+ #if HAVE_MKSTEMP
+     {
+ 	int oldmask = (int) umask(077);
+@@ -900,7 +900,7 @@
+     } else {
+ 	if (infodump == TRUE) {
+ 	    /* captoinfo's no-argument case */
+-	    source_file = "/etc/termcap";
++	    source_file = "/opt/etc/termcap";
+ 	    if ((termcap = getenv("TERMCAP")) != 0
+ 		&& (namelst = make_namelist(getenv("TERM"))) != 0) {
+ 		if (access(termcap, F_OK) == 0) {
+--- a/progs/tset.c
++++ b/progs/tset.c
+@@ -558,7 +558,7 @@
+ #if HAVE_GETTTYNAM
+ 	/*
+ 	 * We have the 4.3BSD library call getttynam(3); that means
+-	 * there's an /etc/ttys to look up device-to-type mappings in.
++	 * there's an /opt/etc/ttys to look up device-to-type mappings in.
+ 	 * Try ttyname(3); check for dialup or other mapping.
+ 	 */
+ 	if ((t = getttynam(p))) {
+@@ -566,8 +566,8 @@
+ 	    goto map;
+ 	}
+ #else
+-	if ((fp = fopen("/etc/ttytype", "r")) != 0
+-	    || (fp = fopen("/etc/ttys", "r")) != 0) {
++	if ((fp = fopen("/opt/etc/ttytype", "r")) != 0
++	    || (fp = fopen("/opt/etc/ttys", "r")) != 0) {
+ 	    char buffer[BUFSIZ];
+ 	    char *s, *t, *d;
+ 
+@@ -598,7 +598,7 @@
+ 
+     /*
+      * If not a path, remove TERMCAP from the environment so we get a
+-     * real entry from /etc/termcap.  This prevents us from being fooled
++     * real entry from /opt/etc/termcap.  This prevents us from being fooled
+      * by out of date stuff in the environment.
+      */
+   found:
