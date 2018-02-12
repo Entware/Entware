@@ -80,13 +80,6 @@ endef
 
 TARGET_CFLAGS += -ffunction-sections $(FPIC)
 
-define Build/Compile
-	$(call Build/Compile/Default)
-	make -C $(PKG_BUILD_DIR) \
-		DESTDIR="$(PKG_INSTALL_DIR)" \
-		install
-endef
-
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/include/libnl3 $(1)/opt/lib/pkgconfig
 	$(CP) $(PKG_INSTALL_DIR)/opt/include/libnl3/* $(1)/opt/include/libnl3/
