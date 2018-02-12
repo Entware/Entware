@@ -24,7 +24,7 @@ define Package/arptables
   CATEGORY:=Network
   SUBMENU:=Firewall
   TITLE:=ARP firewalling software
-  DEPENDS:=+kmod-arptables
+#  DEPENDS:=+kmod-arptables
   URL:=https://git.netfilter.org/arptables/
 endef
 
@@ -33,8 +33,8 @@ MAKE_FLAGS += \
 	KERNEL_DIR="$(LINUX_DIR)"
 
 define Package/arptables/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(CP) $(PKG_BUILD_DIR)/$(PKG_NAME) $(1)/usr/sbin/
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(CP) $(PKG_BUILD_DIR)/$(PKG_NAME) $(1)/opt/sbin/
 endef
 
 $(eval $(call BuildPackage,arptables))
