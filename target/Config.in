@@ -63,14 +63,17 @@ config USES_TARGZ
 config USES_CPIOGZ
 	bool
 
+config USES_MINOR
+	bool
+
 config USES_UBIFS
 	bool
 	select NAND_SUPPORT
 
-config PROFILE_KCONFIG
+config LOW_MEMORY_FOOTPRINT
 	bool
 
-config LOW_MEMORY_FOOTPRINT
+config SMALL_FLASH
 	bool
 
 config NOMMU
@@ -87,6 +90,9 @@ config NAND_SUPPORT
 	bool
 
 config ARCH_64BIT
+	bool
+
+config VIRTIO_SUPPORT
 	bool
 
 # Architecture selection
@@ -198,6 +204,7 @@ config ARCH
 	default "mips64"    if mips64
 	default "mips64el"  if mips64el
 	default "powerpc"   if powerpc
+	default "powerpc64" if powerpc64
 	default "sh3"       if sh3
 	default "sh3eb"     if sh3eb
 	default "sh4"       if sh4
