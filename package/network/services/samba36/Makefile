@@ -101,6 +101,7 @@ CONFIGURE_ARGS += \
 	--exec-prefix=/opt \
 	--prefix=/ \
 	--enable-external-libtdb=no \
+	--enable-external-libtalloc=no \
 	--disable-avahi \
 	--disable-cups \
 	--disable-pie \
