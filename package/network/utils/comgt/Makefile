@@ -34,7 +34,7 @@ endef
 define Package/comgt
 $(call Package/comgt/Default)
   TITLE:=Option/Vodafone 3G/GPRS control tool
-  DEPENDS:=
+  DEPENDS:=+chat
   URL:=http://manpages.ubuntu.com/manpages/trusty/man1/comgt.1.html
 endef
 
