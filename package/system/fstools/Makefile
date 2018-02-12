@@ -11,10 +11,10 @@ PKG_NAME:=fstools
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(LEDE_GIT)/project/fstools.git
-PKG_SOURCE_DATE:=2017-07-31
-PKG_SOURCE_VERSION:=8ab4fda66a136f5b0f1e5dff9d3649961ffc9158
-PKG_MIRROR_HASH:=f04712fbefbcc2af1da9364310ac6dd771322c3ce2d920d2c003aaea97dbe4b4
+PKG_SOURCE_URL=$(PROJECT_GIT)/project/fstools.git
+PKG_SOURCE_DATE:=2018-02-11
+PKG_SOURCE_VERSION:=3d239815bb048041ec0d48cba273573d148ad7a9
+PKG_MIRROR_HASH:=28b7e9f6b8ba4ad3dcab44daa629df412af103bf31448177cffb0d176f0aacf1
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=GPL-2.0
@@ -115,7 +115,7 @@ define Build/InstallDev
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libubi-utils.a $(1)/usr/lib/
 endef
 
-$(eval $(call BuildPackage,fstools))
-$(eval $(call BuildPackage,snapshot-tool))
-$(eval $(call BuildPackage,block-mount))
-$(eval $(call BuildPackage,blockd))
+#$(eval $(call BuildPackage,fstools))
+#$(eval $(call BuildPackage,snapshot-tool))
+#$(eval $(call BuildPackage,block-mount))
+#$(eval $(call BuildPackage,blockd))
