@@ -11,7 +11,9 @@
 /tmp
 /logs
 /feeds
+/feeds.conf
 /files
+/overlay
 /package/feeds
 /package/openwrt-packages
 key-build*
@@ -23,3 +25,5 @@ key-build*
 .emacs.desktop*
 TAGS*~
 git-src
+.project
+.cproject
