@@ -43,4 +43,4 @@ define Package/zram-swap/install
 	$(INSTALL_BIN) ./files/zram.init $(1)/etc/init.d/zram
 endef
 
-$(eval $(call BuildPackage,zram-swap))
+#$(eval $(call BuildPackage,zram-swap))
