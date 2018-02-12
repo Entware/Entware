@@ -40,4 +40,4 @@ define Package/6in4/install
 	$(INSTALL_BIN) ./files/6in4.sh $(1)/lib/netifd/proto/6in4.sh
 endef
 
-$(eval $(call BuildPackage,6in4))
+#$(eval $(call BuildPackage,6in4))
