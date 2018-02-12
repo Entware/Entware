@@ -51,8 +51,8 @@ define BuildTool
   endef
 
   define Package/thc-ipv6-$(subst _,-,$(1))/install
-	$(INSTALL_DIR) $$(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/$(1) $$(1)/usr/sbin/$(1)
+	$(INSTALL_DIR) $$(1)/opt/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/$(1) $$(1)/opt/sbin/$(1)
   endef
 
   $$(eval $$(call BuildPackage,thc-ipv6-$(subst _,-,$(1))))

@@ -1,0 +1,10 @@
+--- a/dnsrevenum6.c
++++ b/dnsrevenum6.c
+@@ -17,6 +17,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <strings.h>
++#include <stdint.h>
+ #include <unistd.h>
+ #include <fcntl.h>
+ #include <netinet/in.h>
