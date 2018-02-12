@@ -133,6 +133,7 @@ define Build/Compile
 		CFLAGS="" \
 		CPPFLAGS="" \
 		LDFLAGS="" \
+		V=$(if $(findstring c,$(OPENWRT_VERBOSE)),1,) \
 		subst
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
 		LDFLAGS="$(TARGET_LDFLAGS)" \
