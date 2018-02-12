@@ -5,25 +5,29 @@
 # See /LICENSE for more information.
 #
 include $(TOPDIR)/rules.mk
-include $(INCLUDE_DIR)/target.mk
 
 PKG_NAME:=glibc
 PKG_VERSION:=$(call qstrip,$(CONFIG_GLIBC_VERSION))
+
 PKG_SOURCE_URL:=@GNU/glibc
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 GLIBC_PATH:=
 
 ifeq ($(PKG_VERSION),2.23)
   PKG_HASH:=f39f068ce7d749608ff15182b7da28627dd129eaba2687e28bec876d26135629
 endif
+
 ifeq ($(PKG_VERSION),2.25)
   PKG_HASH:=94a7a5d7a0094de5b358b340e9b55806f2fe544bc556f3057b6c88a6460fe681
 endif
 
+ifeq ($(PKG_VERSION),2.27)
+  PKG_HASH:=e49c919c83579984f7c2442243861d04227e8dc831a08d7bf60cdacfdcd08797
+endif
 
 PATCH_DIR:=$(PATH_PREFIX)/patches/$(PKG_VERSION)
 
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 HOST_BUILD_DIR:=$(BUILD_DIR_TOOLCHAIN)/$(PKG_SOURCE_SUBDIR)
 CUR_BUILD_DIR:=$(HOST_BUILD_DIR)-$(VARIANT)
 
@@ -63,6 +67,7 @@ GLIBC_CONFIGURE:= \
 		--without-cvs \
 		--enable-add-ons \
 		--enable-obsolete-rpc \
+		$(if $(CONFIG_GLIBC_USE_VERSION_2_27),--enable-obsolete-nsl,) \
 		--$(if $(CONFIG_SOFT_FLOAT),without,with)-fp
 
 export libc_cv_ssp=no

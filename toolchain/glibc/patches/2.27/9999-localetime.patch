@@ -1,0 +1,11 @@
+--- a/Makeconfig
++++ b/Makeconfig
+@@ -255,7 +255,7 @@
+ # other than there, so the zoneinfo directory contains only universal data,
+ # localizing the configuration data elsewhere.
+ ifndef localtime-file
+-localtime-file = $(sysconfdir)/localtime
++localtime-file = /opt/etc/localtime
+ endif
+ 
+ # What to use for leap second specifications in compiling the default
