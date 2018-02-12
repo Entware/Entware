@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=busybox
 PKG_VERSION:=1.27.2
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 PKG_FLAGS:=essential
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -86,7 +86,7 @@ ifdef CONFIG_BUSYBOX_CONFIG_PAM
   LDLIBS += pam pam_misc pthread
 endif
 
-ifdef CONFIG_BUSYBOX_DEFAULT_NSLOOKUP_LEDE
+ifdef CONFIG_BUSYBOX_DEFAULT_NSLOOKUP_OPENWRT
   ifeq ($(CONFIG_USE_GLIBC),y)
 	LDLIBS += resolv
   endif
