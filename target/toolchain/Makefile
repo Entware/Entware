@@ -9,12 +9,11 @@
 
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
-include $(INCLUDE_DIR)/host.mk
 include $(INCLUDE_DIR)/version.mk
 
 override MAKEFLAGS=
 
-TOOLCHAIN_NAME:=$(VERSION_DIST)-Toolchain-$(if $(CONFIG_VERSION_FILENAMES),$(VERSION_NUMBER)-)$(BOARD)$(if $(SUBTARGET),-$(SUBTARGET))_gcc-$(GCCV)$(DIR_SUFFIX).$(HOST_OS)-$(HOST_ARCH)
+TOOLCHAIN_NAME:=$(VERSION_DIST_SANITIZED)-toolchain-$(if $(CONFIG_VERSION_FILENAMES),$(VERSION_NUMBER)-)$(BOARD)$(if $(SUBTARGET),-$(SUBTARGET))_gcc-$(GCCV)$(DIR_SUFFIX).$(HOST_OS)-$(HOST_ARCH)
 TOOLCHAIN_BUILD_DIR:=$(BUILD_DIR)/$(TOOLCHAIN_NAME)
 EXCLUDE_DIRS:=*/ccache \
 	*/initial \
@@ -58,6 +57,7 @@ $(BIN_DIR)/$(TOOLCHAIN_NAME).tar.bz2: clean
 	find $(TOOLCHAIN_BUILD_DIR) -name .git | $(XARGS) rm -rf
 	find $(TOOLCHAIN_BUILD_DIR) -name .svn | $(XARGS) rm -rf
 	find $(TOOLCHAIN_BUILD_DIR) -name CVS | $(XARGS) rm -rf
+	mkdir -p $(BIN_DIR)
 	(cd $(BUILD_DIR); \
 		tar cfj $@ $(TOOLCHAIN_NAME); \
 	)
