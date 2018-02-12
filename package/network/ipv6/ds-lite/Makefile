@@ -40,4 +40,4 @@ define Package/ds-lite/install
 	$(INSTALL_BIN) ./files/dslite.sh $(1)/lib/netifd/proto/dslite.sh
 endef
 
-$(eval $(call BuildPackage,ds-lite))
+#$(eval $(call BuildPackage,ds-lite))
