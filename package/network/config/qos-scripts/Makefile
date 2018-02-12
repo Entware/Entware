@@ -50,4 +50,5 @@ define Package/qos-scripts/install
 	$(CP) ./files/* $(1)/
 endef
 
-$(eval $(call BuildPackage,qos-scripts))
+#disable iptables-mod...
+#$(eval $(call BuildPackage,qos-scripts))
