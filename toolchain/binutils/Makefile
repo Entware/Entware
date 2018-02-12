@@ -13,24 +13,28 @@ BIN_VERSION:=$(PKG_VERSION)
 PKG_SOURCE_URL:=@GNU/binutils/
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 
-ifeq ($(PKG_VERSION),2.27)
-  PKG_HASH:=369737ce51587f92466041a97ab7d2358c6d9e1b6490b3940eb09fb0a9a6ac88
-endif
-
-ifeq ($(PKG_VERSION),2.28)
-  PKG_HASH:=6297433ee120b11b4b0a1c8f3512d7d73501753142ab9e2daa13c5a3edd32a72
-endif
-
 ifeq ($(PKG_VERSION),2.26.1)
   PKG_HASH:=39c346c87aa4fb14b2f786560aec1d29411b6ec34dce3fe7309fe3dd56949fd8
 endif
 
+ifeq ($(PKG_VERSION),2.27)
+  PKG_HASH:=369737ce51587f92466041a97ab7d2358c6d9e1b6490b3940eb09fb0a9a6ac88
+endif
+
+ifeq ($(PKG_VERSION),2.29.1)
+  PKG_HASH:=1509dff41369fb70aed23682351b663b56db894034773e6dbf7d5d6071fc55cc
+endif
+
+ifeq ($(PKG_VERSION),2.30)
+  PKG_HASH:=efeade848067e9a03f1918b1da0d37aaffa0b0127a06b5e9236229851d9d0c09
+endif
 
 HOST_BUILD_PARALLEL:=1
 
 PATCH_DIR:=./patches/$(PKG_VERSION)
 
-REAL_STAGING_DIR_HOST:=$(STAGING_DIR_HOST)
+TAR_OPTIONS += --exclude=ld/*.rej
+
 
 include $(INCLUDE_DIR)/toolchain-build.mk
 
@@ -92,7 +96,13 @@ define Host/Install
 		install
 	$(call FixupLibdir,$(TOOLCHAIN_DIR)/initial)
 	$(RM) $(TOOLCHAIN_DIR)/initial/lib/libiberty.a
-	$(CP) $(TOOLCHAIN_DIR)/bin/$(REAL_GNU_TARGET_NAME)-readelf $(REAL_STAGING_DIR_HOST)/bin/readelf
+	$(CP) $(TOOLCHAIN_DIR)/bin/$(REAL_GNU_TARGET_NAME)-readelf $(HOST_BUILD_PREFIX)/bin/readelf
+	# ARC gcc requires extlib.
+	# If extlib is not available in "initial" folder
+	# initial gcc will fail to build libc.
+	if [ -d $(TOOLCHAIN_DIR)/extlib ]; then \
+		$(CP) -r $(TOOLCHAIN_DIR)/extlib $(TOOLCHAIN_DIR)/initial/; \
+	fi
 endef
 
 define Host/Clean
