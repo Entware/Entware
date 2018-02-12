@@ -75,6 +75,20 @@ define Package/locales/config
 	endmenu
 endef
 
+define Package/locales/preinst
+#!/bin/sh
+
+if [[ -x "/opt/bin/locale.new" ]]; then
+	/opt/bin/locale.new -V | grep 2.27 > /dev/null
+	if [ $$? -ne 0 ] ; then
+		echo "Deleting locale-archive. It needs upgrade."
+		rm -f /opt/usr/lib/locale/locale-archive
+	fi
+fi
+
+endef
+
+
 define Package/locales/postinst
 #!/bin/sh
 
@@ -90,7 +104,7 @@ then
 fi
 if [ -f '/opt/usr/lib/locale/locale-archive' ]
 then
-	echo "You can download locale sources from http://pkg.entware.net/sources/i18n_glib225.tar.gz"
+	echo "You can download locale sources from http://pkg.entware.net/sources/i18n_glib227.tar.gz"
 	echo "You can add new locales to Entware using /opt/bin/localedef.new"
 fi
 if ! [ -f '/opt/usr/lib/locale/locale-archive' ]
@@ -102,8 +116,8 @@ then
 		echo "BE detected"
 		be='.be'
 	fi
-	wget http://pkg.entware.net/binaries/other/locale-archive.2.23$$be -O /opt/usr/lib/locale/locale-archive
-	echo "You can download locale sources from http://pkg.entware.net/sources/i18n_glib223.tar.gz"
+	wget http://pkg.entware.net/binaries/other/locale-archive.2.27$$be -O /opt/usr/lib/locale/locale-archive
+	echo "You can download locale sources from http://pkg.entware.net/sources/i18n_glib227.tar.gz"
 	echo "You can add new locales to Entware using /opt/bin/localedef.new"
 fi
 
@@ -163,7 +177,7 @@ endef
 
 define Package/libssp
 $(call Package/gcc/Default)
-  DEPENDS+=@SSP_SUPPORT
+  DEPENDS+=@GCC_LIBSSP
   TITLE:=GCC support library
 endef
 
@@ -660,7 +674,12 @@ endif
 	$(CP) $(TOOLCHAIN_DIR)/sbin/ldconfig $(1)/opt/sbin/
   endef
 
-ilocales=de_DE en_US en_GB fr_FR it_IT ru_RU i18n iso14651_t1 iso14651_t1_common translit_circle translit_combining translit_font translit_narrow translit_small translit_cjk_compat translit_compat translit_fraction translit_neutral translit_wide
+ilocales=de_DE en_US en_GB fr_FR it_IT ru_RU i18n \
+	$(if $(CONFIG_GLIBC_USE_VERSION_2_27),i18n_ctype,) \
+	iso14651_t1 iso14651_t1_common \
+	translit_circle translit_combining translit_font translit_narrow translit_small \
+	translit_cjk_compat translit_compat translit_fraction translit_neutral translit_wide
+
 icharmaps=ANSI_X3.4-1968.gz UTF-8.gz
 
 
