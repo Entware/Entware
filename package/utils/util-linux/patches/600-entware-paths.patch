@@ -1,50 +1,55 @@
 --- a/include/pathnames.h
 +++ b/include/pathnames.h
-@@ -22,69 +22,67 @@
+@@ -22,69 +22,69 @@
  #undef _PATH_DEFPATH
  
  #ifdef USE_USRDIR_PATHS_ONLY
 -# define _PATH_DEFPATH	        "/usr/local/bin:/usr/bin"
-+# define _PATH_DEFPATH	        "/opt/usr/sbin:/opt/sbin:/opt/bin:/usr/sbin:/usr/bin:/sbin:/bin"
- #else
+-#else
 -# define _PATH_DEFPATH	        "/usr/local/bin:/bin:/usr/bin"
-+# define _PATH_DEFPATH	        "/opt/usr/sbin:/opt/sbin:/opt/bin:/usr/sbin:/usr/bin:/sbin:/bin"
++# define _PATH_DEFPATH	        "/opt/usr/sbin:/opt/usr/bin:/usr/sbin:/usr/bin"
++#else
++# define _PATH_DEFPATH	        "/opt/usr/sbin:/opt/bin:/opt/usr/bin:/usr/sbin:/bin:/usr/bin"
  #endif
  
  #undef _PATH_DEFPATH_ROOT
  
  #ifdef USE_USRDIR_PATHS_ONLY
 -# define _PATH_DEFPATH_ROOT	"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
-+# define _PATH_DEFPATH_ROOT	"/opt/usr/sbin:/opt/sbin:/opt/bin:/usr/sbin:/usr/bin:/sbin:/bin"
- #else
+-#else
 -# define _PATH_DEFPATH_ROOT	"/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
-+# define _PATH_DEFPATH_ROOT	"/opt/usr/sbin:/opt/sbin:/opt/bin:/usr/sbin:/usr/bin:/sbin:/bin"
++# define _PATH_DEFPATH_ROOT	"/opt/usr/sbin:/opt/usr/bin:/usr/sbin:/usr/bin"
++#else
++# define _PATH_DEFPATH_ROOT	"/opt/usr/sbin:/opt/usr/bin:/opt/sbin:/opt/bin:/sbin:/bin:/usr/sbin:/usr/bin"
  #endif
  
  #define	_PATH_HUSHLOGIN		".hushlogin"
 -#define	_PATH_HUSHLOGINS	"/etc/hushlogins"
-+#define	_PATH_HUSHLOGINS	"/opt/etc/hushlogins"
- 
+-
 -#define _PATH_NOLOGIN_TXT	"/etc/nologin.txt"
++#define	_PATH_HUSHLOGINS	"/opt/etc/hushlogins"
++
 +#define _PATH_NOLOGIN_TXT	"/opt/etc/nologin.txt"
  
  #ifndef _PATH_MAILDIR
 -#define	_PATH_MAILDIR		"/var/spool/mail"
-+#define	_PATH_MAILDIR		"/opt/var/spool/mail"
- #endif
--#define	_PATH_MOTDFILE		"/etc/motd"
--#ifndef _PATH_NOLOGIN
-+#define	_PATH_MOTDFILE		"/opt/etc/motd"
- #define	_PATH_NOLOGIN		"/etc/nologin"
 -#endif
+-#define	_PATH_MOTDFILE		"/etc/motd"
++#define	_PATH_MAILDIR		"/opt/var/spool/mail"
++#endif
++#define	_PATH_MOTDFILE		"/opt/etc/motd"
+ #ifndef _PATH_NOLOGIN
+ #define	_PATH_NOLOGIN		"/etc/nologin"
+ #endif
 -#define	_PATH_VAR_NOLOGIN	"/var/run/nologin"
 +#define	_PATH_VAR_NOLOGIN	"/opt/var/run/nologin"
  
  #ifndef _PATH_LOGIN
 -#define _PATH_LOGIN		"/bin/login"
-+#define _PATH_LOGIN		"/opt/bin/login"
- #endif
+-#endif
 -#define _PATH_SHUTDOWN		"/sbin/shutdown"
++#define _PATH_LOGIN		"/opt/bin/login"
++#endif
 +#define _PATH_SHUTDOWN		"/opt/sbin/shutdown"
  
  #define _PATH_TERMCOLORS_DIRNAME "terminal-colors.d"
@@ -72,9 +77,10 @@
  /* used in term-utils/agetty.c */
 -#define _PATH_ISSUE		"/etc/issue"
 -#define _PATH_OS_RELEASE_ETC	"/etc/os-release"
+-#define _PATH_OS_RELEASE_USR	"/usr/lib/os-release"
 +#define _PATH_ISSUE		"/opt/etc/issue"
 +#define _PATH_OS_RELEASE_ETC	"/opt/etc/os-release"
- #define _PATH_OS_RELEASE_USR	"/usr/lib/os-release"
++#define _PATH_OS_RELEASE_USR	"/opt/lib/os-release"
  
  #define _PATH_NUMLOCK_ON	_PATH_LOCALSTATEDIR "/numlock-on"
  
@@ -93,20 +99,22 @@
  #define _PATH_PROC_SWAPS	"/proc/swaps"
  #define _PATH_PROC_FILESYSTEMS	"/proc/filesystems"
  #define _PATH_PROC_MOUNTS	"/proc/mounts"
-@@ -151,10 +149,10 @@
+@@ -151,10 +151,10 @@
  #ifdef CONFIG_ADJTIME_PATH
  # define _PATH_ADJTIME		CONFIG_ADJTIME_PATH
  #else
 -# define _PATH_ADJTIME		"/etc/adjtime"
-+# define _PATH_ADJTIME		"/opt/etc/adjtime"
- #endif
- 
+-#endif
+-
 -#define _PATH_LASTDATE		"/var/lib/lastdate"
++# define _PATH_ADJTIME		"/opt/etc/adjtime"
++#endif
++
 +#define _PATH_LASTDATE		"/opt/var/lib/lastdate"
  #ifdef __ia64__
  # define _PATH_RTC_DEV		"/dev/efirtc"
  #else
-@@ -162,7 +160,7 @@
+@@ -162,7 +162,7 @@
  #endif
  
  #ifndef _PATH_BTMP

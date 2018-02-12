@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2007-2015 OpenWrt.org
+# Copyright (C) 2007-2018 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=util-linux
 PKG_VERSION:=2.30.2
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.30
@@ -216,6 +216,19 @@ endef
 
 define Package/flock/description
   manages flock locks from within shell scripts or the command line
+endef
+
+define Package/fstrim
+$(call Package/util-linux/Default)
+  TITLE:=discard unused blocks on a mounted filesystem
+  DEPENDS:= +libblkid +libuuid +libsmartcols +libmount
+  SUBMENU=Filesystem
+endef
+
+define Package/fstrim/description
+  fstrim is used on a mounted filesystem to discard (or "trim") blocks
+  which are not in use by the filesystem.  This is useful for solid-
+  state drives (SSDs) and thinly-provisioned storage.
 endef
 
 define Package/getopt
@@ -596,6 +609,11 @@ define Package/fsfreeze/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/fsfreeze $(1)/opt/sbin/
 endef
 
+define Package/fstrim/install
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/fstrim $(1)/opt/sbin/
+endef
+
 define Package/getopt/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/getopt $(1)/opt/bin/
@@ -729,6 +747,7 @@ $(eval $(call BuildPackage,fdisk))
 $(eval $(call BuildPackage,findfs))
 $(eval $(call BuildPackage,flock))
 $(eval $(call BuildPackage,fsfreeze))
+$(eval $(call BuildPackage,fstrim))
 $(eval $(call BuildPackage,getopt))
 $(eval $(call BuildPackage,ionice))
 $(eval $(call BuildPackage,hwclock))
