@@ -63,6 +63,7 @@ ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)
 	$(call Kernel/SetInitramfs/PreConfigure)
 	echo 'CONFIG_INITRAMFS_ROOT_UID=$(shell id -u)' >> $(LINUX_DIR)/.config
 	echo 'CONFIG_INITRAMFS_ROOT_GID=$(shell id -g)' >> $(LINUX_DIR)/.config
+	echo "$(if $(CONFIG_TARGET_INITRAMFS_FORCE),CONFIG_INITRAMFS_FORCE=y,# CONFIG_INITRAMFS_FORCE is not set)" >> $(LINUX_DIR)/.config
 	echo "$(if $(CONFIG_TARGET_INITRAMFS_COMPRESSION_NONE),CONFIG_INITRAMFS_COMPRESSION_NONE=y,# CONFIG_INITRAMFS_COMPRESSION_NONE is not set)" >> $(LINUX_DIR)/.config
 	echo -e "$(if $(CONFIG_TARGET_INITRAMFS_COMPRESSION_GZIP),CONFIG_INITRAMFS_COMPRESSION_GZIP=y\nCONFIG_RD_GZIP=y,# CONFIG_INITRAMFS_COMPRESSION_GZIP is not set\n# CONFIG_RD_GZIP is not set)" >> $(LINUX_DIR)/.config
 	echo -e "$(if $(CONFIG_TARGET_INITRAMFS_COMPRESSION_BZIP2),CONFIG_INITRAMFS_COMPRESSION_BZIP2=y\nCONFIG_RD_BZIP2=y,# CONFIG_INITRAMFS_COMPRESSION_BZIP2 is not set\n# CONFIG_RD_BZIP2 is not set)" >> $(LINUX_DIR)/.config
@@ -78,6 +79,7 @@ define Kernel/SetNoInitramfs
 	mv $(LINUX_DIR)/.config.set $(LINUX_DIR)/.config.old
 	grep -v INITRAMFS $(LINUX_DIR)/.config.old > $(LINUX_DIR)/.config.set
 	echo 'CONFIG_INITRAMFS_SOURCE=""' >> $(LINUX_DIR)/.config.set
+	echo '# CONFIG_INITRAMFS_FORCE is not set' >> $(LINUX_DIR)/.config.set
 endef
 
 define Kernel/Configure/Default
@@ -107,7 +109,7 @@ endef
 # One more place to disable kernel modules building
 define Kernel/CompileModules/Default
 	rm -f $(LINUX_DIR)/vmlinux $(LINUX_DIR)/System.map
-#	+$(MAKE) $(KERNEL_MAKEOPTS) modules
+#	+$(KERNEL_MAKE) modules
 endef
 
 OBJCOPY_STRIP = -R .reginfo -R .notes -R .note -R .comment -R .mdebug -R .note.gnu.build-id
