@@ -68,6 +68,6 @@ define Package/vtiv6/install
 	:
 endef
 
-$(eval $(call BuildPackage,vti))
-$(eval $(call BuildPackage,vtiv4))
-$(eval $(call BuildPackage,vtiv6))
+#$(eval $(call BuildPackage,vti))
+#$(eval $(call BuildPackage,vtiv4))
+#$(eval $(call BuildPackage,vtiv6))
