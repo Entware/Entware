@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=6rd
 PKG_VERSION:=9
-PKG_RELEASE:=3
+PKG_RELEASE:=4
 PKG_LICENSE:=GPL-2.0
 
 include $(INCLUDE_DIR)/package.mk
@@ -46,4 +46,4 @@ define Package/6rd/install
 	$(INSTALL_BIN) ./files/6rd.sh $(1)/lib/netifd/proto/6rd.sh
 endef
 
-$(eval $(call BuildPackage,6rd))
+#$(eval $(call BuildPackage,6rd))
