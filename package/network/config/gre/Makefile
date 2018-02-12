@@ -68,6 +68,6 @@ define Package/grev6/install
 	:
 endef
 
-$(eval $(call BuildPackage,gre))
-$(eval $(call BuildPackage,grev4))
-$(eval $(call BuildPackage,grev6))
+#$(eval $(call BuildPackage,gre))
+#$(eval $(call BuildPackage,grev4))
+#$(eval $(call BuildPackage,grev6))
