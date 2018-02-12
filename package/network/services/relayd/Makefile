@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=relayd
 PKG_RELEASE:=2
 
-PKG_SOURCE_URL=$(LEDE_GIT)/project/relayd.git
+PKG_SOURCE_URL=$(PROJECT_GIT)/project/relayd.git
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_DATE:=2016-02-07
 PKG_SOURCE_VERSION:=ad0b25ad74345d367c62311e14b279f5ccb8ef13
@@ -30,13 +30,13 @@ define Package/relayd
   DEPENDS:=+libubox
 endef
 
-TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include
+TARGET_CFLAGS += -I$(STAGING_DIR)/opt/include
 
 define Package/relayd/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/relayd $(1)/usr/sbin/relayd
-	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/relay.init $(1)/etc/init.d/relayd
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/relayd $(1)/opt/sbin/relayd
+	$(INSTALL_DIR) $(1)/opt/etc/init.d
+#	$(INSTALL_BIN) ./files/relay.init $(1)/etc/init.d/relayd
 endef
 
 $(eval $(call BuildPackage,relayd))
