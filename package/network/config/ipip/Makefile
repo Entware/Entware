@@ -37,4 +37,4 @@ define Package/ipip/install
 	$(INSTALL_BIN) ./files/ipip.sh $(1)/lib/netifd/proto/ipip.sh
 endef
 
-$(eval $(call BuildPackage,ipip))
+#$(eval $(call BuildPackage,ipip))
