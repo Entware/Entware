@@ -56,6 +56,10 @@ ifeq ($(CONFIG_BUILD_NLS),y)
 TARGET_LDFLAGS += "-lintl"
 endif
 
+#ifdef CONFIG_USE_UCLIBC
+#CONFIGURE_VARS += \
+#	LIBS="-largp"
+#endif
 
 ifdef CONFIG_USE_MUSL
 CONFIGURE_VARS += \
@@ -65,7 +69,7 @@ endif
 CONFIGURE_ARGS += \
 	--without-lzma
 
-TARGET_CFLAGS += -D_GNU_SOURCE -Wno-unused-result
+TARGET_CFLAGS += -D_GNU_SOURCE -Wno-unused-result -Wno-format-nonliteral
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/include
