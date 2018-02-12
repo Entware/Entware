@@ -9,10 +9,10 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=firewall
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(LEDE_GIT)/project/firewall3.git
+PKG_SOURCE_URL=$(PROJECT_GIT)/project/firewall3.git
 PKG_SOURCE_DATE:=2017-11-07
 PKG_SOURCE_VERSION:=c4309372acc7e1bef8aa230269f7da1dec790e68
 PKG_MIRROR_HASH:=1699884d8499d01e433959185f79ff9eb69704de47885b996123374b8015b422
@@ -28,7 +28,7 @@ define Package/firewall
   SECTION:=net
   CATEGORY:=Base system
   TITLE:=OpenWrt C Firewall
-  DEPENDS:=+libubox +libubus +libuci +libip4tc +IPV6:libip6tc +libxtables +kmod-ipt-core +kmod-ipt-conntrack +kmod-ipt-nat
+  DEPENDS:=+libubox +libubus +libuci +libip4tc +IPV6:libip6tc +libxtables +kmod-ipt-core +kmod-ipt-conntrack +IPV6:kmod-nf-conntrack6 +kmod-ipt-nat
 endef
 
 define Package/firewall/description
@@ -57,4 +57,4 @@ define Package/firewall/install
 	$(INSTALL_DATA) ./files/firewall.user $(1)/etc/firewall.user
 endef
 
-$(eval $(call BuildPackage,firewall))
+#$(eval $(call BuildPackage,firewall))
