@@ -229,7 +229,6 @@ define Package/ppp-mod-pppoe/install
 	$(INSTALL_DIR) $(1)/opt/lib/pppd/$(PKG_VERSION)
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/lib/pppd/$(PKG_VERSION)/rp-pppoe.so \
 		$(1)/opt/lib/pppd/$(PKG_VERSION)/
-
 endef
 
 define Package/ppp-mod-radius/install
