@@ -42,4 +42,4 @@ define Package/soloscli/install
 	$(INSTALL_DATA) ./files/etc/hotplug.d/atm/15-solos-init $(1)/etc/hotplug.d/atm/
 endef
 
-$(eval $(call BuildPackage,soloscli))
+#$(eval $(call BuildPackage,soloscli))
