@@ -18,5 +18,5 @@ KERNEL=$(call merge_version,$(wordlist 1,2,$(call split_version,$(KERNEL_BASE)))
 KERNEL_PATCHVER ?= $(KERNEL)
 
 # disable the md5sum check for unknown kernel versions
-LINUX_KERNEL_MD5SUM:=$(LINUX_KERNEL_MD5SUM-$(strip $(LINUX_VERSION)))
-LINUX_KERNEL_MD5SUM?=x
+LINUX_KERNEL_HASH:=$(LINUX_KERNEL_HASH-$(strip $(LINUX_VERSION)))
+LINUX_KERNEL_HASH?=x

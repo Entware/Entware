@@ -31,8 +31,6 @@ define Kernel/CompileModules
 endef
 
 define Kernel/CompileImage
-	$(call Kernel/CompileImage/Default)
-	$(call Kernel/CompileImage/Initramfs)
 endef
 
 define Kernel/Clean

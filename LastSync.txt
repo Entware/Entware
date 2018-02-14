@@ -1,6 +1,7 @@
-commit 9f8d28285d569f28ad3db9b2cbb61814b2c90fdc
-Author: John Crispin <john@phrozen.org>
-Date:   Thu Dec 14 10:58:15 2017 +0100
+commit 30d34358a984603fd5bfea41630501303c840e2c
+Author: Hans Dedecker <dedeckeh@gmail.com>
+Date:   Thu Feb 8 13:12:22 2018 +0100
 
-    Revert "ar71xx: TL-WR1043N v4/v5: add orange WAN LED support"
+    libubox: bump to git HEAD version
     
+
