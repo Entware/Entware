@@ -16,7 +16,7 @@ choice
 
 	config BINUTILS_USE_VERSION_2_29_1
 		bool "Binutils 2.29.1"
-		select BINUTILS_VERSION_2_29
+		select BINUTILS_VERSION_2_29_1
 
 	config BINUTILS_USE_VERSION_2_30
 		bool "Binutils 2.30"

@@ -1,5 +1,13 @@
+config BINUTILS_VERSION_2_26_1
+	bool
+
+config BINUTILS_VERSION_2_27
+	bool
+
+config BINUTILS_VERSION_2_29_1
+	bool
+
 config BINUTILS_VERSION_2_30
-	default y if !TOOLCHAINOPTS
 	bool
 
 config BINUTILS_VERSION
