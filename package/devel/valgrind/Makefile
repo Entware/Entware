@@ -114,12 +114,17 @@ define Package/valgrind/install
 		./files/default.supp \
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/none-* \
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/vgpreload_core*.so \
-		$(PKG_INSTALL_DIR)/opt/lib/valgrind/$(CPU)-*.xml \
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/$(BITS)-core*.xml \
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/$(BITS)-linux*.xml \
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/memcheck-* \
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/vgpreload_memcheck*.so \
 		$(1)/opt/lib/valgrind/
+
+ifneq ($(ARCH),aarch64)
+	$(CP) \
+		$(PKG_INSTALL_DIR)/opt/lib/valgrind/$(CPU)-*.xml \
+		$(1)/opt/lib/valgrind/
+endif
 endef
 
 define Package/valgrind-cachegrind/install
