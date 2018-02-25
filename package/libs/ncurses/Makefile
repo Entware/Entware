@@ -177,11 +177,11 @@ endef
 
 define Package/libncurses/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	ln -s libncurses.so.6.0 $(1)/opt/lib/libcurses.so
+	ln -s libncurses.so.6.1 $(1)/opt/lib/libcurses.so
 	for lib in ncurses panel menu form; do \
 		ln -s lib$$$${lib}w.so $(1)/opt/lib/lib$$$${lib}.so; \
 		ln -s lib$$$${lib}w.so.6 $(1)/opt/lib/lib$$$${lib}.so.6; \
-		ln -s lib$$$${lib}w.so.6.0 $(1)/opt/lib/lib$$$${lib}.so.6.0; \
+		ln -s lib$$$${lib}w.so.6.1 $(1)/opt/lib/lib$$$${lib}.so.6.1; \
 	done
 endef
 
