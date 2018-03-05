@@ -8,8 +8,8 @@
 include $(TOPDIR)/rules.mk
 
 ARCH:=aarch64
-BOARD:=armv8-3x
-BOARDNAME:=Entware-3x (aarch64,kernel-3.x)
+BOARD:=aarch64-3.10
+BOARDNAME:=Entware (aarch64,kernel-3.10)
 FEATURES:=usb audio pci
 KERNEL_PATCHVER:=3.10.108
 CPU_TYPE:=cortex-a53
