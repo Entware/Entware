@@ -8,8 +8,8 @@
 include $(TOPDIR)/rules.mk
 
 ARCH:=x86_64
-BOARD:=x64-3x
-BOARDNAME:=Entware-3x (intel-x64,kernel-3.2.40)
+BOARD:=x64-3.2
+BOARDNAME:=Entware (intel x64,kernel-3.2)
 FEATURES:=usb audio pci
 KERNEL_PATCHVER:=3.2.40
 DEFAULT_PACKAGES := toolchain

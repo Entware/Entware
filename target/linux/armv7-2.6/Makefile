@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011-2015 Entware
+# Copyright (C) 2011-2017 Entware
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -8,10 +8,10 @@
 include $(TOPDIR)/rules.mk
 
 ARCH:=arm
-BOARD:=armv7-3x
-BOARDNAME:=Entware-3x (armv7, soft float, kernel-3.2.40)
+BOARD:=armv7-2.6
+BOARDNAME:=Entware (armv7, soft float, kernel-2.6.36)
 FEATURES:=usb audio pci
-KERNEL_PATCHVER:=3.2.40
+KERNEL_PATCHVER:=2.6.36
 CPU_TYPE:=cortex-a9
 DEFAULT_PACKAGES := toolchain
 
