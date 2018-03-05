@@ -9,10 +9,10 @@ include $(TOPDIR)/rules.mk
 
 ARCH:=mipsel
 CPU_TYPE:=mips32r2
-BOARD:=mipsel-3x
-BOARDNAME:=Entware-3x (mipsel, soft float, kernel-3.4.112)
-FEATURES:=usb audio pci
-KERNEL_PATCHVER:=3.4.112
+BOARD:=mipsel-3.4
+BOARDNAME:=Entware (mipsel, soft float, kernel-3.4)
+FEATURES:=audio gpio pci usb
+KERNEL_PATCHVER:=3.4
 DEFAULT_PACKAGES := toolchain
 
 include $(INCLUDE_DIR)/target.mk
