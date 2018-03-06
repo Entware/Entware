@@ -113,7 +113,7 @@ fi
 if ! [ -f '/opt/usr/lib/locale/locale-archive' ]
 then
 	echo "locale-archive file was not created, not enough memory? Downloading..."
-	echo "checking endianess....
+	echo "checking endianess...."
 	/opt/bin/islebe
 	if [ $$? == 0 ]; then
 		echo "BE detected"
