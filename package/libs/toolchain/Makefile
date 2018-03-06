@@ -37,7 +37,7 @@ define Package/locales
 $(call Package/gcc/Default)
   TITLE:=Locales support (independent of system lib)
   VERSION:=$(LIBC_VERSION)-$(PKG_RELEASE)
-  DEPENDS:=@USE_GLIBC
+  DEPENDS:=+grep @USE_GLIBC
 endef
 
 define Package/gconv-modules
@@ -113,8 +113,8 @@ fi
 if ! [ -f '/opt/usr/lib/locale/locale-archive' ]
 then
 	echo "locale-archive file was not created, not enough memory? Downloading..."
-	echo "checking endianess.... (opkg ELF header)"
-	hexdump -s 5 -n 1 /opt/bin/opkg | grep 0002 &> /dev/null
+	echo "checking endianess....
+	/opt/bin/islebe
 	if [ $$? == 0 ]; then
 		echo "BE detected"
 		be='.be'
@@ -439,6 +439,7 @@ endef
 
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
+	cp ./src/* $(PKG_BUILD_DIR)
 endef
 
 LIBGCC_A=$(lastword $(wildcard $(TOOLCHAIN_DIR)/lib/gcc/*/*/libgcc_pic.a))
@@ -516,7 +517,11 @@ endif
 define Build/Compile/Default
 	$(call Build/Compile/libgcc)
 	$(call Build/Compile/$(LIBC))
+	$(TARGET_CC) $(TARGET_CFLAGS) -I$(STAGING_DIR)/opt/include \
+		$(TARGET_LDFLAGS) -L$(STAGING_DIR)/opt/lib -o $(PKG_BUILD_DIR)/islebe \
+		$(PKG_BUILD_DIR)/test_le_be.c
 endef
+
 Build/Compile = $(Build/Compile/Default)
 
 ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
@@ -694,6 +699,7 @@ icharmaps=ANSI_X3.4-1968.gz UTF-8.gz
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(CP) $(TOOLCHAIN_DIR)/bin/locale $(1)/opt/bin/locale.new
 	$(CP) $(TOOLCHAIN_DIR)/bin/localedef $(1)/opt/bin/localedef.new
+	$(CP) $(PKG_BUILD_DIR)/islebe $(1)/opt/bin
 	for file in $(ilocales); do \
 		$(CP) $(TOOLCHAIN_DIR)/share/i18n/locales/$$$$file $(1)/opt/usr/share/i18n/locales ; \
 	done ; \
