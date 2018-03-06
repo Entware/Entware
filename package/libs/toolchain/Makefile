@@ -4,7 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-# locales package added.
+# locales package moved to rtndev
 
 include $(TOPDIR)/rules.mk
 PKG_NAME:=toolchain
@@ -33,99 +33,12 @@ define Package/gcc/Default
   VERSION:=$(LIBGCC_VERSION)-$(PKG_RELEASE)
 endef
 
-define Package/locales
-$(call Package/gcc/Default)
-  TITLE:=Locales support (independent of system lib)
-  VERSION:=$(LIBC_VERSION)-$(PKG_RELEASE)
-  DEPENDS:=+grep @USE_GLIBC
-endef
-
 define Package/gconv-modules
 $(call Package/gcc/Default)
   TITLE:=Glibc gconv modules
   VERSION:=$(LIBC_VERSION)-$(PKG_RELEASE)
   DEPENDS:=@USE_GLIBC
 endef
-
-define Package/locales/config
-	menu "Configuration"
-		depends on EXTERNAL_TOOLCHAIN && PACKAGE_locales
-
-	config TOOLCHAIN_USR_DIR
-		string
-		prompt "External toolchain usr directory"
-		depends on EXTERNAL_TOOLCHAIN && PACKAGE_locales
-
-	config LOCALE_PROGS_SPEC
-		string
-		prompt "programs to work with locales"
-		depends on EXTERNAL_TOOLCHAIN && PACKAGE_locales
-		default "./bin/locale ./bin/localedef"
-
-	config i18N_LOCALES
-		string
-		prompt "locale sources to install"
-		depends on EXTERNAL_TOOLCHAIN && PACKAGE_locales
-
-	config i18N_CHARMAPS
-		string
-		prompt "charmaps to install"
-		depends on EXTERNAL_TOOLCHAIN && PACKAGE_locales
-
-	endmenu
-endef
-
-LVERSION1:=$(call qstrip,$(CONFIG_GLIBC_VERSION))
-LVERSION2:=$(subst .,,$(LVERSION1))
-
-define Package/locales/preinst
-#!/bin/sh
-
-if [[ -x "/opt/bin/locale.new" ]]; then
-	/opt/bin/locale.new -V | grep $(LVERSION1) > /dev/null
-	if [ $$? -ne 0 ] ; then
-		echo "Deleting locale-archive. It needs upgrade."
-		rm -f /opt/usr/lib/locale/locale-archive
-	fi
-fi
-
-endef
-
-
-define Package/locales/postinst
-#!/bin/sh
-
-echo "Entware uses separate locale-archive file independent from main system"
-if ! [ -f '/opt/usr/lib/locale/locale-archive' ]
-then
-	mkdir -p /opt/usr/lib/locale
-	echo "Creating locale archive - /opt/usr/lib/locale/locale-archive"
-	echo "Adding en_EN.UTF-8"
-	/opt/bin/localedef.new -c -f UTF-8 -i en_US en_US.UTF-8
-	echo "Adding ru_RU.UTF-8"
-	/opt/bin/localedef.new -c -f UTF-8 -i ru_RU ru_RU.UTF-8
-fi
-if [ -f '/opt/usr/lib/locale/locale-archive' ]
-then
-	echo "You can download locale sources from http://pkg.entware.net/sources/i18n_glib$(LVERSION2).tar.gz"
-	echo "You can add new locales to Entware using /opt/bin/localedef.new"
-fi
-if ! [ -f '/opt/usr/lib/locale/locale-archive' ]
-then
-	echo "locale-archive file was not created, not enough memory? Downloading..."
-	echo "checking endianess...."
-	/opt/bin/islebe
-	if [ $$? == 0 ]; then
-		echo "BE detected"
-		be='.be'
-	fi
-	wget http://pkg.entware.net/binaries/other/locale-archive.$(LVERSION1)$$be -O /opt/usr/lib/locale/locale-archive
-	echo "You can download locale sources from http://pkg.entware.net/sources/i18n_glib$(LVERSION2).tar.gz"
-	echo "You can add new locales to Entware using /opt/bin/localedef.new"
-fi
-
-endef
-
 
 define Package/libgcc
 $(call Package/gcc/Default)
@@ -439,7 +352,6 @@ endef
 
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
-	cp ./src/* $(PKG_BUILD_DIR)
 endef
 
 LIBGCC_A=$(lastword $(wildcard $(TOOLCHAIN_DIR)/lib/gcc/*/*/libgcc_pic.a))
@@ -517,9 +429,6 @@ endif
 define Build/Compile/Default
 	$(call Build/Compile/libgcc)
 	$(call Build/Compile/$(LIBC))
-	$(TARGET_CC) $(TARGET_CFLAGS) -I$(STAGING_DIR)/opt/include \
-		$(TARGET_LDFLAGS) -L$(STAGING_DIR)/opt/lib -o $(PKG_BUILD_DIR)/islebe \
-		$(PKG_BUILD_DIR)/test_le_be.c
 endef
 
 Build/Compile = $(Build/Compile/Default)
@@ -682,33 +591,6 @@ endif
 	$(CP) $(TOOLCHAIN_DIR)/sbin/ldconfig $(1)/opt/sbin/
   endef
 
-ilocales=de_DE en_US en_GB fr_FR it_IT ru_RU i18n \
-	$(if $(CONFIG_GLIBC_USE_VERSION_2_27),i18n_ctype,) \
-	iso14651_t1 iso14651_t1_common \
-	translit_circle translit_combining translit_font translit_narrow translit_small \
-	translit_cjk_compat translit_compat translit_fraction translit_neutral translit_wide
-
-icharmaps=ANSI_X3.4-1968.gz UTF-8.gz
-
-
-
-  define Package/locales/install
-	$(INSTALL_DIR) $(1)/opt/usr/lib/locale
-	$(INSTALL_DIR) $(1)/opt/usr/share/i18n/locales
-	$(INSTALL_DIR) $(1)/opt/usr/share/i18n/charmaps
-	$(INSTALL_DIR) $(1)/opt/bin
-	$(CP) $(TOOLCHAIN_DIR)/bin/locale $(1)/opt/bin/locale.new
-	$(CP) $(TOOLCHAIN_DIR)/bin/localedef $(1)/opt/bin/localedef.new
-	$(CP) $(PKG_BUILD_DIR)/islebe $(1)/opt/bin
-	for file in $(ilocales); do \
-		$(CP) $(TOOLCHAIN_DIR)/share/i18n/locales/$$$$file $(1)/opt/usr/share/i18n/locales ; \
-	done ; \
-	for file in $(icharmaps); do \
-		$(CP) $(TOOLCHAIN_DIR)/share/i18n/charmaps/$$$$file $(1)/opt/usr/share/i18n/charmaps ; \
-	done ; \
-	exit 0
-  endef
-
   define Package/gconv-modules/install
 	$(INSTALL_DIR) $(1)/opt/lib/gconv
 	$(CP) $(TOOLCHAIN_DIR)/lib/gconv/* $(1)/opt/lib/gconv/
@@ -824,28 +706,6 @@ else
 	exit 0
   endef
 
-  define Package/locales/install
-	$(INSTALL_DIR) $(1)/opt/usr/lib/locale; \
-	for file in $(call qstrip,$(CONFIG_LOCALE_PROGS_SPEC)); do \
-		dir=`dirname $$$$file` ; \
-		$(INSTALL_DIR) $(1)/opt/bin ; \
-		$(CP) $(call qstrip,$(CONFIG_TOOLCHAIN_USR_DIR))/$$$$file $(1)/opt/bin/ ; \
-	done ; \
-	mv $(1)/opt/bin/locale $(1)/opt/bin/locale.new; \
-	mv $(1)/opt/bin/localedef $(1)/opt/bin/localedef.new; \
-	for file in $(call qstrip,$(CONFIG_i18N_LOCALES)); do \
-		dir=`dirname $$$$file` ; \
-		$(INSTALL_DIR) $(1)/opt/usr/share/i18n/locales; \
-		$(CP) $(call qstrip,$(CONFIG_TOOLCHAIN_USR_DIR))/$$$$file $(1)/opt/usr/share/i18n/locales ; \
-	done ; \
-	for file in $(call qstrip,$(CONFIG_i18N_CHARMAPS)); do \
-		dir=`dirname $$$$file` ; \
-		$(INSTALL_DIR) $(1)/opt/usr/share/i18n/charmaps; \
-		$(CP) $(call qstrip,$(CONFIG_TOOLCHAIN_USR_DIR))/$$$$file $(1)/opt/usr/share/i18n/charmaps ; \
-	done ; \
-	exit 0
-  endef
-
 endif
 
 $(eval $(call BuildPackage,libc))
@@ -860,5 +720,4 @@ $(eval $(call BuildPackage,libgfortran))
 $(eval $(call BuildPackage,libgo))
 $(eval $(call BuildPackage,ldd))
 $(eval $(call BuildPackage,ldconfig))
-$(eval $(call BuildPackage,locales))
 $(eval $(call BuildPackage,gconv-modules))
