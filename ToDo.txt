@@ -2,4 +2,7 @@
 2) ??? Добавить патч в glibc (Makeconfig) - поменять gconvdir -> = /opt/lib/gconv
 (в случае добавления пакета gconv-modules)
 3) urbackup (1) пишет логи в /var/logs - исправить; (2) Добавить в скрипт запуска юзера: ARGS="run -u root --daemon"
+4) Исправить python-dev (check_data_file_clashes: Package python-base wants to install file /opt/lib/libpython2.7.so
+But that file is already provided by package * python-dev)
+5) Исправить check_data_file_clashes: Package entware-opt wants to install file /opt/etc/screenrc But that file is already provided by package  * screen
 
