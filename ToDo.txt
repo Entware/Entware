@@ -1,8 +1,11 @@
 1) Добавить в установщик пакета gcc echo сообщение о wiki и headers
+*** done *** https://github.com/Entware/entware-packages/commit/bf84e499dcf7a12b51f08afdf0577a8d90df59a7
 2) ??? Добавить патч в glibc (Makeconfig) - поменять gconvdir -> = /opt/lib/gconv
 (в случае добавления пакета gconv-modules)
 3) urbackup (1) пишет логи в /var/logs - исправить; (2) Добавить в скрипт запуска юзера: ARGS="run -u root --daemon"
 4) Исправить python-dev (check_data_file_clashes: Package python-base wants to install file /opt/lib/libpython2.7.so
 But that file is already provided by package * python-dev)
+*** done *** https://github.com/Entware/entware-packages/commit/4f496b49164f84f5f23e9d8127201c65c6c7bb4d
 5) Исправить check_data_file_clashes: Package entware-opt wants to install file /opt/etc/screenrc But that file is already provided by package  * screen
+*** done *** https://github.com/Entware/rtndev/commit/9debfda3f184b845ebe129d85cb4960af2b7bf17
 
