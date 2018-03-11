@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=busybox
 PKG_VERSION:=1.27.2
-PKG_RELEASE:=3a
+PKG_RELEASE:=3b
 PKG_FLAGS:=essential
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -136,27 +136,27 @@ endef
 # /opt/share/busybox_applets.lst is not needed any more
 
 define Package/busybox/postinst
-#!/bin/sh
+#!/opt/bin/busybox sh
 
 bb_fc=`/opt/bin/busybox readlink -f /opt/bin/busybox`
 for file in /opt/bin/*; do
     if [ -L $$file  -a `/opt/bin/busybox readlink -f $$file` = $$bb_fc ]; then
-       rm -f $$file
+       /opt/bin/busybox rm -f $$file
     fi
 done
 
 for file in /opt/sbin/*; do
     if [ -L $$file  -a `/opt/bin/busybox readlink -f $$file` = $$bb_fc ]; then
-       rm -f $$file
+       /opt/bin/busybox rm -f $$file
     fi
 done
 
 cd /opt
-for applet in $$(cat share/busybox_applets.lst.dist)
+for applet in $$(/opt/bin/busybox cat share/busybox_applets.lst.dist)
 do
     if [ ! -e $$applet ]
     then
-       ln -s /opt/bin/busybox $$applet
+       /opt/bin/busybox ln -s /opt/bin/busybox $$applet
     else
        echo "Warning: '/opt/$$applet' is already exists, skipping."
     fi
@@ -164,18 +164,18 @@ done
 endef
 
 define Package/busybox/prerm
-#!/bin/sh
+#!/opt/bin/busybox sh
 
 bb_fc=`/opt/bin/busybox readlink -f /opt/bin/busybox`
 for file in /opt/bin/*; do
     if [ -L $$file  -a `/opt/bin/busybox readlink -f $$file` = $$bb_fc ]; then
-       rm -f $$file
+       /opt/bin/busybox rm -f $$file
     fi
 done
 
 for file in /opt/sbin/*; do
     if [ -L $$file  -a `/opt/bin/busybox readlink -f $$file` = $$bb_fc ]; then
-       rm -f $$file
+       /opt/bin/busybox rm -f $$file
     fi
 done
 endef
