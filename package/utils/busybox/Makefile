@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=busybox
 PKG_VERSION:=1.27.2
-PKG_RELEASE:=3
+PKG_RELEASE:=3a
 PKG_FLAGS:=essential
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -127,37 +127,57 @@ define Package/busybox/install
 	    find ./opt -lname "*" | sed "s|^./opt/||g" > $(1)/opt/share/busybox_applets.lst.dist)
 endef
 
+
+# The postinst & prerm scripts will work only when busybox has readlink applet.
+# We cannot use readlink directly, it is not yet installed and use 'busybox readlink' instead.
+# We convert /opt/bin/busybox to canonical form because /opt is a simpink in some Entware installs
+# We remove all symlinks to /opt/bin/busybox in /opt/bin and /opt/sbin before installation and removal.
+# It alows to handle applets list change and busybox reinstall in a correct way.
+# /opt/share/busybox_applets.lst is not needed any more
+
 define Package/busybox/postinst
 #!/bin/sh
 
+bb_fc=`/opt/bin/busybox readlink -f /opt/bin/busybox`
+for file in /opt/bin/*; do
+    if [ -L $$file  -a `/opt/bin/busybox readlink -f $$file` = $$bb_fc ]; then
+       rm -f $$file
+    fi
+done
+
+for file in /opt/sbin/*; do
+    if [ -L $$file  -a `/opt/bin/busybox readlink -f $$file` = $$bb_fc ]; then
+       rm -f $$file
+    fi
+done
+
 cd /opt
-rm -f share/busybox_applets.lst
 for applet in $$(cat share/busybox_applets.lst.dist)
 do
     if [ ! -e $$applet ]
     then
        ln -s /opt/bin/busybox $$applet
-       echo "$$applet" >> share/busybox_applets.lst
     else
        echo "Warning: '/opt/$$applet' is already exists, skipping."
     fi
 done
 endef
 
-define Package/busybox/postrm
+define Package/busybox/prerm
 #!/bin/sh
 
-cd /opt
-for applet in $$(cat share/busybox_applets.lst)
-do
-    if [ -L $$applet ]
-    then
-       rm -f $$applet
-    else
-       echo "Warning: '/opt/$$applet' has been deleted\modified before, skipping."
+bb_fc=`/opt/bin/busybox readlink -f /opt/bin/busybox`
+for file in /opt/bin/*; do
+    if [ -L $$file  -a `/opt/bin/busybox readlink -f $$file` = $$bb_fc ]; then
+       rm -f $$file
     fi
 done
-rm -f share/busybox_applets.lst
+
+for file in /opt/sbin/*; do
+    if [ -L $$file  -a `/opt/bin/busybox readlink -f $$file` = $$bb_fc ]; then
+       rm -f $$file
+    fi
+done
 endef
 
 $(eval $(call BuildPackage,busybox))
