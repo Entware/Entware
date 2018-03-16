@@ -261,7 +261,7 @@ foreach my $mirror (@ARGV) {
 push @mirrors, 'http://sources.lede-project.org';
 push @mirrors, 'http://mirror2.openwrt.org/sources';
 push @mirrors, 'http://downloads.openwrt.org/sources';
-push @mirrors, 'http://pkg.entware.net/sources';
+push @mirrors, 'http://src.entware.net';
 
 while (!-f "$target/$filename") {
 	my $mirror = shift @mirrors;
