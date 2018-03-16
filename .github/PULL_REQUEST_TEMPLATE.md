@@ -1,10 +1,10 @@
 Please double check that your PR is for Buildroot or existing packages in /package folder only.
 
 Please, add new packages to appropriate feeds:
-- [rtndev](https://github.com/Entware-for-kernel-3x/rtndev-3x) for packages which was never existed in OpenWrt before.
-- [go](https://github.com/Entware-for-kernel-3x/entware-go-3x) for packages, written in Golang.
-- [oldports](https://github.com/Entware-for-kernel-3x/entware-oldpackages-ports-3x) for packages which is abandoned form OpenWrt for some reason.
-- [packages](https://github.com/Entware-for-kernel-3x/entware-packages-3x), [routing](https://github.com/Entware-for-kernel-3x/entware-routing-3x), [telephony](https://github.com/Entware-for-kernel-3x/entware-telephony-3x) for packages, maintained by OpenWrt team.
+- [rtndev](https://github.com/Entware/rtndev) for packages which was never existed in OpenWrt before.
+- [go](https://github.com/Entware/entware) for packages, written in Golang.
+- [oldports](https://github.com/Entware/entware-oldpackages-ports) for packages which is abandoned form OpenWrt for some reason.
+- [packages](https://github.com/Entware/entware-packages), [routing](https://github.com/Entware/entware-routing), [telephony](https://github.com/Entware/entware-telephony) for packages, maintained by OpenWrt team.
 
 Thanks for your contribution
 Please remove this text (before ---) and fill the following template
