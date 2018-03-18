@@ -233,6 +233,7 @@ foreach my $mirror (@ARGV) {
 			push @extra, "$extra[0]/longterm/v$1";
 		}		
 		foreach my $dir (@extra) {
+			push @mirrors, "https://cdn.kernel.org/pub/linux/kernel/v2.6";
 			push @mirrors, "https://cdn.kernel.org/pub/$dir";
 			push @mirrors, "https://mirror.rackspace.com/kernel.org/$dir";
 			push @mirrors, "http://download.xs4all.nl/ftp.kernel.org/pub/$dir";
