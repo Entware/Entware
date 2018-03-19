@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=busybox
 PKG_VERSION:=1.27.2
-PKG_RELEASE:=3b
+PKG_RELEASE:=3c
 PKG_FLAGS:=essential
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -140,13 +140,13 @@ define Package/busybox/postinst
 
 bb_fc=`/opt/bin/busybox readlink -f /opt/bin/busybox`
 for file in /opt/bin/*; do
-    if [ -L $$file  -a `/opt/bin/busybox readlink -f $$file` = $$bb_fc ]; then
+    if [ -L $$file  -a "`/opt/bin/busybox readlink -f $$file`" = $$bb_fc ]; then
        /opt/bin/busybox rm -f $$file
     fi
 done
 
 for file in /opt/sbin/*; do
-    if [ -L $$file  -a `/opt/bin/busybox readlink -f $$file` = $$bb_fc ]; then
+    if [ -L $$file  -a "`/opt/bin/busybox readlink -f $$file`" = $$bb_fc ]; then
        /opt/bin/busybox rm -f $$file
     fi
 done
@@ -168,13 +168,13 @@ define Package/busybox/prerm
 
 bb_fc=`/opt/bin/busybox readlink -f /opt/bin/busybox`
 for file in /opt/bin/*; do
-    if [ -L $$file  -a `/opt/bin/busybox readlink -f $$file` = $$bb_fc ]; then
+    if [ -L $$file  -a "`/opt/bin/busybox readlink -f $$file`" = $$bb_fc ]; then
        /opt/bin/busybox rm -f $$file
     fi
 done
 
 for file in /opt/sbin/*; do
-    if [ -L $$file  -a `/opt/bin/busybox readlink -f $$file` = $$bb_fc ]; then
+    if [ -L $$file  -a "`/opt/bin/busybox readlink -f $$file`" = $$bb_fc ]; then
        /opt/bin/busybox rm -f $$file
     fi
 done
