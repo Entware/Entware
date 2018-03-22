@@ -282,9 +282,11 @@ export GOROOT:=$(STAGING_DIR_HOST)/go
 
 ifeq ($(ARCH),mips)
     GOARCH=mips
+    GOMIPS=GOMIPS=softfloat
 endif
 ifeq ($(ARCH),mipsel)
     GOARCH=mipsle
+    GOMIPS=GOMIPS=softfloat
 endif
 ifeq ($(ARCH),aarch64)
     GOARCH=arm64
