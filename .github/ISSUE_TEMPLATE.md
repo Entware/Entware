@@ -1,20 +1,10 @@
-### Package: <name>
+Package request
+---
+{Describe killer feature of package}
 
-For existing package:
+- [ ] No similar package already added and/or this one got some new killer feature,
+- [ ] It's not abandoned (at least for last 5 years or so),
+- [ ] I successfully tested added package on my {platform}.
 
-- expected behavior: ...
-- actual behavior: ...
-
-
-For new package to be added:
-
-- make sure there's no similar package already added,
-- describe killer features of new package,
-- make sure it's open source and not abandoned (at least for last 5 years or so),
-- please, use native compilation for additional PHP, Perl, Ruby, Python modules for non-MIPS platforms.
-
-
-### Platform:
-
-- please, tell us what feed and\or devices are you using.
-- be ready to check issue-related  changes or it will be closed after 30 days with "no response" status.
+---
+Please, fill `{}` fields when asking for new package or delete this template in any other case.
