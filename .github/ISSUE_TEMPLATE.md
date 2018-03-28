@@ -2,8 +2,8 @@ Package request
 ---
 {Describe killer feature of package}
 
-- [ ] No similar package already added and/or this one got some new killer feature,
-- [ ] It's not abandoned (at least for last 5 years or so),
+- [ ] No similar package already added and/or this one got some new killer feature(s),
+- [ ] Package is in active development (at least, not abandoned for 5 years or more),
 - [ ] I successfully tested added package on my {platform}.
 
 ---
