@@ -1,5 +1,5 @@
 # Strip is not recommended for go binaries. It may make binaries unusable
-STRIP:=:
+RSTRIP:="/bin/true"
 
 # Template for GO package 
 define Package/gopackage/Default
