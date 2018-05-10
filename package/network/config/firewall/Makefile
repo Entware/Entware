@@ -13,9 +13,9 @@ PKG_RELEASE:=2
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/firewall3.git
-PKG_SOURCE_DATE:=2017-11-07
-PKG_SOURCE_VERSION:=c4309372acc7e1bef8aa230269f7da1dec790e68
-PKG_MIRROR_HASH:=1699884d8499d01e433959185f79ff9eb69704de47885b996123374b8015b422
+PKG_SOURCE_DATE:=2018-04-05
+PKG_SOURCE_VERSION:=35b3e74a184b709b8ddfaaa094919a656a6ec059
+PKG_MIRROR_HASH:=b45da27ef219d0ec17ad3426b99e83781d079996fef553e5c47b98473f33b3cc
 PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 PKG_LICENSE:=ISC
 
@@ -55,6 +55,8 @@ define Package/firewall/install
 	$(INSTALL_DATA) ./files/firewall.config $(1)/etc/config/firewall
 	$(INSTALL_DIR) $(1)/etc/
 	$(INSTALL_DATA) ./files/firewall.user $(1)/etc/firewall.user
+	$(INSTALL_DIR) $(1)/usr/share/fw3
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/helpers.conf $(1)/usr/share/fw3
 endef
 
 #$(eval $(call BuildPackage,firewall))
