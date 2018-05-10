@@ -32,7 +32,7 @@ Signed-off-by: Jo-Philipp Wich <jo@mein.io>
 +HEADERS  += pcap_pcc.h
 +PPPDOBJS += pcap_pcc.o
 +LIBS	+= $(STAGING_DIR)/opt/lib/libpcap.a
-+CFLAGS	+= -DPPP_FILTER -DPPP_PRECOMPILED_FILTER -I$(STAGING_DIR)/usr/include
++CFLAGS	+= -DPPP_FILTER -DPPP_PRECOMPILED_FILTER -I$(STAGING_DIR)/opt/include
 +endif
 +
  ifdef HAVE_INET6

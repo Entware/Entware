@@ -108,7 +108,7 @@ endef
 
 define Package/ppp-mod-pptp
 $(call Package/ppp/Default)
-  DEPENDS:=@(PACKAGE_ppp||PACKAGE_ppp-multilink)
+  DEPENDS:=@(PACKAGE_ppp||PACKAGE_ppp-multilink) +resolveip
   TITLE:=PPtP plugin
 endef
 
@@ -181,9 +181,14 @@ $(call Build/Configure/Default,, \
 	UNAME_M="$(ARCH)" \
 )
 	mkdir -p $(PKG_BUILD_DIR)/pppd/plugins/pppoatm/linux
-	cp \
+	$(CP) \
 		$(LINUX_DIR)/include/linux/compiler.h \
 		$(LINUX_DIR)/include/$(LINUX_UAPI_DIR)linux/atm*.h \
+		$(PKG_BUILD_DIR)/pppd/plugins/pppoatm/linux/
+
+	# Kernel 4.14.9+ only, ignore the exit status of cp in case the file
+	# doesn't exits
+	-$(CP) $(LINUX_DIR)/include/linux/compiler_types.h \
 		$(PKG_BUILD_DIR)/pppd/plugins/pppoatm/linux/
 endef
 
