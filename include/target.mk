@@ -188,6 +188,7 @@ ifeq ($(DUMP),1)
     CPU_CFLAGS_cortex-a9 = -mcpu=cortex-a9
     CPU_CFLAGS_cortex-a15 = -mcpu=cortex-a15
     CPU_CFLAGS_cortex-a53 = -mcpu=cortex-a53
+    CPU_CFLAGS_cortex-a72 = -mcpu=cortex-a72
     CPU_CFLAGS_fa526 = -mcpu=fa526
     CPU_CFLAGS_mpcore = -mcpu=mpcore
     CPU_CFLAGS_xscale = -mcpu=xscale
@@ -269,9 +270,7 @@ ifeq ($(DUMP),1)
       FEATURES += virtio
     endif
     ifneq ($(CONFIG_CPU_MIPS32_R2),)
-      ifneq ($(CPU_SUBTYPE),nomips16)
-        FEATURES += mips16
-      endif
+      FEATURES += mips16
     endif
     FEATURES += $(foreach v,6 7,$(if $(CONFIG_CPU_V$(v)),arm_v$(v)))
 
@@ -285,6 +284,7 @@ ifeq ($(SUBTARGETS),)
   CUR_SUBTARGET := default
 endif
 
+# Entware specific! Target-Arch-Packages contains the board, not cpu 
 define BuildTargets/DumpCurrent
   .PHONY: dumpinfo
   dumpinfo : export DESCRIPTION=$$(Target/Description)
