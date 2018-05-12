@@ -1,7 +1,7 @@
-commit 30d34358a984603fd5bfea41630501303c840e2c
-Author: Hans Dedecker <dedeckeh@gmail.com>
-Date:   Thu Feb 8 13:12:22 2018 +0100
+commit dc629d9cf5afc03f67a294078ca1001e831c66c9
+Author: John Crispin <john@phrozen.org>
+Date:   Thu May 10 10:22:19 2018 +0200
 
-    libubox: bump to git HEAD version
+    kernel: fix kmod-switch-rtl8366-smi dependency
     
-
+    Signed-off-by: John Crispin <john@phrozen.org>
