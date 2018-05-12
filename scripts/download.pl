@@ -191,7 +191,7 @@ foreach my $mirror (@ARGV) {
 	if ($mirror =~ /^\@SF\/(.+)$/) {
 		# give sourceforge a few more tries, because it redirects to different mirrors
 		for (1 .. 5) {
-			push @mirrors, "http://downloads.sourceforge.net/$1";
+			push @mirrors, "https://downloads.sourceforge.net/$1";
 		}
 	} elsif ($mirror =~ /^\@APACHE\/(.+)$/) {
 		push @mirrors, "https://mirror.netcologne.de/apache.org/$1";
@@ -258,10 +258,10 @@ foreach my $mirror (@ARGV) {
 	}
 }
 
-#push @mirrors, 'http://mirror1.openwrt.org';
-push @mirrors, 'http://sources.lede-project.org';
-push @mirrors, 'http://mirror2.openwrt.org/sources';
-push @mirrors, 'http://downloads.openwrt.org/sources';
+#push @mirrors, 'https://mirror1.openwrt.org';
+push @mirrors, 'https://sources.lede-project.org';
+push @mirrors, 'https://mirror2.openwrt.org/sources';
+push @mirrors, 'https://downloads.openwrt.org/sources';
 push @mirrors, 'http://src.entware.net';
 
 while (!-f "$target/$filename") {
