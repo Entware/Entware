@@ -13,7 +13,7 @@ include $(INCLUDE_DIR)/version.mk
 include $(INCLUDE_DIR)/feeds.mk
 
 PKG_NAME:=opkg
-PKG_RELEASE:=17b
+PKG_RELEASE:=17c
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=http://git.yoctoproject.org/git/opkg
