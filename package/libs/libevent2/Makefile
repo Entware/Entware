@@ -122,34 +122,34 @@ define Build/InstallDev
 	$(CP) $(PKG_INSTALL_DIR)/opt/include/* $(1)/opt/include/
 	$(INSTALL_DIR) $(1)/opt/lib
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libevent*.{la,a,so} $(1)/opt/lib/
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libevent*-2.0.so* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libevent*-2.1.so* $(1)/opt/lib/
 	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/libevent*.pc $(1)/opt/lib/pkgconfig/
 endef
 
 define Package/libevent2/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libevent-2.0.so.* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libevent-2.1.so.* $(1)/opt/lib/
 endef
 
 define Package/libevent2-core/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libevent_core-2.0.so.* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libevent_core-2.1.so.* $(1)/opt/lib/
 endef
 
 define Package/libevent2-extra/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libevent_extra-2.0.so.* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libevent_extra-2.1.so.* $(1)/opt/lib/
 endef
 
 define Package/libevent2-openssl/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libevent_openssl-2.0.so.* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libevent_openssl-2.1.so.* $(1)/opt/lib/
 endef
 
 define Package/libevent2-pthreads/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libevent_pthreads-2.0.so.* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libevent_pthreads-2.1.so.* $(1)/opt/lib/
 endef
 
 $(eval $(call BuildPackage,libevent2))
