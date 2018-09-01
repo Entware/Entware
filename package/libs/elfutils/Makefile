@@ -8,16 +8,17 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=elfutils
-PKG_VERSION:=0.169
+PKG_VERSION:=0.173
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=https://sourceware.org/$(PKG_NAME)/ftp/$(PKG_VERSION)
-PKG_HASH:=9412fac7b30872b738bc1ed1ebcaed54493c26ef9a67887913498c17b10f3bc2
+PKG_HASH:=b76d8c133f68dad46250f5c223482c8299d454a69430d9aa5c19123345a000ff
 PKG_MAINTAINER:=Luiz Angelo Daros de Luca <luizluca@gmail.com>
 PKG_LICENSE:=GPL-3.0+
 PKG_LICENSE_FILES:=COPYING COPYING-GPLV2 COPYING-LGPLV3
 PKG_CPE_ID:=cpe:/a:elfutils_project:elfutils
+PKG_FIXUP:=autoreconf
 
 PKG_INSTALL:=1
 PKG_USE_MIPS16:=0
@@ -67,6 +68,8 @@ CONFIGURE_VARS += \
 endif
 
 CONFIGURE_ARGS += \
+	--program-prefix=eu- \
+	--disable-nls \
 	--without-lzma
 
 TARGET_CFLAGS += -D_GNU_SOURCE -Wno-unused-result -Wno-format-nonliteral
