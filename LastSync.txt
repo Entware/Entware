@@ -1,7 +1,8 @@
-commit dc629d9cf5afc03f67a294078ca1001e831c66c9
-Author: John Crispin <john@phrozen.org>
-Date:   Thu May 10 10:22:19 2018 +0200
+commit dc9388ac5506f2d0ea0fee6967c003b9129c8ca5
+Author: Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
+Date:   Mon Aug 27 15:52:55 2018 +0700
 
-    kernel: fix kmod-switch-rtl8366-smi dependency
+    iproute2: update cake man page
     
-    Signed-off-by: John Crispin <john@phrozen.org>
+    CAKE supports overriding of its internal classification of
+    packets through the tc filter mechanism.
