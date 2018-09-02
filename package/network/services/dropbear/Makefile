@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dropbear
 PKG_VERSION:=2017.75
-PKG_RELEASE:=5
+PKG_RELEASE:=7
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:= \
@@ -82,8 +82,8 @@ CONFIGURE_ARGS += \
 	$(if $(CONFIG_DROPBEAR_ZLIB),,--disable-zlib) \
 	--enable-bundled-libtom
 
-TARGET_CFLAGS += -DARGTYPE=3 -ffunction-sections -fdata-sections
-TARGET_LDFLAGS += -Wl,--gc-sections
+TARGET_CFLAGS += -DARGTYPE=3 -ffunction-sections -fdata-sections -flto
+TARGET_LDFLAGS += -Wl,--gc-sections -flto=jobserver
 
 define Build/Configure
 	$(Build/Configure/Default)

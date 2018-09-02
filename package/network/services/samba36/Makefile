@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=samba
 PKG_VERSION:=3.6.25
-PKG_RELEASE:=10
+PKG_RELEASE:=12
 
 PKG_SOURCE_URL:=https://download.samba.org/pub/samba \
 		https://download.samba.org/pub/samba/stable
