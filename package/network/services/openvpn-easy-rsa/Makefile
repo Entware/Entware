@@ -32,6 +32,7 @@ endef
 define Package/openvpn-easy-rsa/conffiles
 /opt/etc/easy-rsa/vars
 /opt/etc/easy-rsa/openssl-1.0.cnf
+/opt/etc/easy-rsa/openssl-easyrsa.cnf
 endef
 
 define Build/Configure
@@ -47,7 +48,8 @@ define Package/openvpn-easy-rsa/install
 
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/easyrsa $(1)/opt/sbin/
 	$(INSTALL_DIR) $(1)/opt/etc/easy-rsa
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/openssl-1.0.cnf $(1)/opt/etc/easy-rsa/openssl-1.0.cnf
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/openssl-easyrsa.cnf $(1)/opt/etc/easy-rsa/openssl-1.0.cnf
+	$(LN) /opt/etc/easy-rsa/openssl-1.0.cnf $(1)/opt/etc/easy-rsa/openssl-easyrsa.cnf
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/vars.example $(1)/opt/etc/easy-rsa/vars
 
 	$(INSTALL_DIR) $(1)/opt/etc/easy-rsa/pki
