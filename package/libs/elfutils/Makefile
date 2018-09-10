@@ -57,16 +57,6 @@ ifeq ($(CONFIG_BUILD_NLS),y)
 TARGET_LDFLAGS += "-lintl"
 endif
 
-#ifdef CONFIG_USE_UCLIBC
-#CONFIGURE_VARS += \
-#	LIBS="-largp"
-#endif
-
-ifdef CONFIG_USE_MUSL
-CONFIGURE_VARS += \
-	LIBS="-largp"
-endif
-
 CONFIGURE_ARGS += \
 	--program-prefix=eu- \
 	--disable-nls \
@@ -78,24 +68,24 @@ define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/include
 	$(CP) $(PKG_INSTALL_DIR)/opt/include/* $(1)/opt/include/
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_BUILD_DIR)/libasm/libasm.{a,so*} $(1)/opt/lib/
-	$(CP) $(PKG_BUILD_DIR)/libdw/libdw.{a,so*} $(1)/opt/lib/
-	$(CP) $(PKG_BUILD_DIR)/libelf/libelf.{a,so*} $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libasm*.{a,so*} $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libdw*.{a,so*} $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libelf*.{a,so*} $(1)/opt/lib/
 endef
 
 define Package/libasm/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_BUILD_DIR)/libasm/libasm.so* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libasm*.so* $(1)/opt/lib/
 endef
 
 define Package/libdw/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_BUILD_DIR)/libdw/libdw.so* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libdw*.so* $(1)/opt/lib/
 endef
 
 define Package/libelf1/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_BUILD_DIR)/libelf/libelf.so* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libelf*.so* $(1)/opt/lib/
 endef
 
 $(eval $(call BuildPackage,libasm))
