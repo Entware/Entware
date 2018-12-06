@@ -1,8 +1,15 @@
-commit dc9388ac5506f2d0ea0fee6967c003b9129c8ca5
-Author: Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
-Date:   Mon Aug 27 15:52:55 2018 +0700
+commit 8ad45992acab9a2dead144d5b387fbe132ce59c1
+Author: Marek Lindner <mareklindner@neomailbox.ch>
+Date:   Sun Dec 2 22:02:04 2018 +0800
 
-    iproute2: update cake man page
+    ipq40xx: fix openmesh sysupgrade with tar content out of order
     
-    CAKE supports overriding of its internal classification of
-    packets through the tc filter mechanism.
+    The tar extraction depends on the order in which the files
+    are added to the tar file. Since the order is not guaranteed
+    and depends on the host system, the combined mtd write fails
+    with sysupgrade images built on some systems.
+    Fix by changing to tar file order independent mtd write.
+    
+    Fixes: 86e18f6706e1 ("ipq806x: add support for OpenMesh A42")
+    Signed-off-by: Marek Lindner <mareklindner@neomailbox.ch>
+    Signed-off-by: Sven Eckelmann <sven@narfation.org>
