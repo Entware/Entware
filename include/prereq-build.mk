@@ -27,7 +27,7 @@ $(eval $(call TestHostCommand,proper-umask, \
 	umask | grep -xE 00[012][012]))
 
 $(eval $(call SetupHostCommand,gcc, \
-	Please install the GNU C Compiler (gcc) 4.8 or later \
+	Please install the GNU C Compiler (gcc) 4.8 or later, \
 	$(CC) -dumpversion | grep -E '^(4\.[8-9]|[5-9]\.?)', \
 	gcc -dumpversion | grep -E '^(4\.[8-9]|[5-9]\.?)', \
 	gcc48 --version | grep gcc, \
