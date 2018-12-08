@@ -37,11 +37,38 @@ hostapd_append_wep_key() {
 }
 
 hostapd_append_wpa_key_mgmt() {
-	local auth_type="$(echo $auth_type | tr 'a-z' 'A-Z')"
+	local auth_type_l="$(echo $auth_type | tr 'a-z' 'A-Z')"
 
-	append wpa_key_mgmt "WPA-$auth_type"
-	[ "${ieee80211r:-0}" -gt 0 ] && append wpa_key_mgmt "FT-${auth_type}"
-	[ "${ieee80211w:-0}" -gt 0 ] && append wpa_key_mgmt "WPA-${auth_type}-SHA256"
+	case "$auth_type" in
+		psk|eap)
+			append wpa_key_mgmt "WPA-$auth_type_l"
+			[ "${ieee80211r:-0}" -gt 0 ] && append wpa_key_mgmt "FT-${auth_type_l}"
+			[ "${ieee80211w:-0}" -gt 0 ] && append wpa_key_mgmt "WPA-${auth_type_l}-SHA256"
+		;;
+		eap192)
+			append wpa_key_mgmt "WPA-EAP-SUITE-B-192"
+		;;
+		eap-eap192)
+			append wpa_key_mgmt "WPA-EAP-SUITE-B-192"
+			append wpa_key_mgmt "WPA-EAP"
+			[ "${ieee80211r:-0}" -gt 0 ] && append wpa_key_mgmt "FT-EAP"
+			[ "${ieee80211w:-0}" -gt 0 ] && append wpa_key_mgmt "WPA-EAP-SHA256"
+		;;
+		sae)
+			append wpa_key_mgmt "SAE"
+			[ "${ieee80211r:-0}" -gt 0 ] && append wpa_key_mgmt "FT-SAE"
+		;;
+		psk-sae)
+			append wpa_key_mgmt "WPA-PSK"
+			[ "${ieee80211r:-0}" -gt 0 ] && append wpa_key_mgmt "FT-PSK"
+			[ "${ieee80211w:-0}" -gt 0 ] && append wpa_key_mgmt "WPA-PSK-SHA256"
+			append wpa_key_mgmt "SAE"
+			[ "${ieee80211r:-0}" -gt 0 ] && append wpa_key_mgmt "FT-SAE"
+		;;
+		owe)
+			append wpa_key_mgmt "OWE"
+		;;
+	esac
 }
 
 hostapd_add_log_config() {
@@ -141,7 +168,7 @@ EOF
 
 hostapd_common_add_bss_config() {
 	config_add_string 'bssid:macaddr' 'ssid:string'
-	config_add_boolean wds wmm uapsd hidden
+	config_add_boolean wds wmm uapsd hidden utf8_ssid
 
 	config_add_int maxassoc max_inactivity
 	config_add_boolean disassoc_low_ack isolate short_preamble
@@ -209,6 +236,10 @@ hostapd_common_add_bss_config() {
 	config_add_int mcast_rate
 	config_add_array basic_rate
 	config_add_array supported_rates
+	
+	config_add_boolean sae_require_mfp
+	
+	config_add_string 'owe_transition_bssid:macaddr' 'owe_transition_ssid:string'
 }
 
 hostapd_set_bss_options() {
@@ -227,10 +258,10 @@ hostapd_set_bss_options() {
 		maxassoc max_inactivity disassoc_low_ack isolate auth_cache \
 		wps_pushbutton wps_label ext_registrar wps_pbc_in_m1 wps_ap_setup_locked \
 		wps_independent wps_device_type wps_device_name wps_manufacturer wps_pin \
-		macfilter ssid wmm uapsd hidden short_preamble rsn_preauth \
+		macfilter ssid utf8_ssid wmm uapsd hidden short_preamble rsn_preauth \
 		iapp_interface eapol_version dynamic_vlan ieee80211w nasid \
 		acct_server acct_secret acct_port acct_interval \
-		bss_load_update_period chan_util_avg_period
+		bss_load_update_period chan_util_avg_period sae_require_mfp
 
 	set_default isolate 0
 	set_default maxassoc 0
@@ -246,6 +277,7 @@ hostapd_set_bss_options() {
 	set_default acct_port 1813
 	set_default bss_load_update_period 60
 	set_default chan_util_avg_period 600
+	set_default utf8_ssid 1
 	
 	append bss_conf "ctrl_interface=/var/run/hostapd"
 	if [ "$isolate" -gt 0 ]; then
@@ -265,6 +297,7 @@ hostapd_set_bss_options() {
 	append bss_conf "wmm_enabled=$wmm" "$N"
 	append bss_conf "ignore_broadcast_ssid=$hidden" "$N"
 	append bss_conf "uapsd_advertisement_enabled=$uapsd" "$N"
+	append bss_conf "utf8_ssid=$utf8_ssid" "$N"
 
 	[ "$tdls_prohibit" -gt 0 ] && append bss_conf "tdls_prohibit=$tdls_prohibit" "$N"
 
@@ -284,16 +317,33 @@ hostapd_set_bss_options() {
 			append bss_conf "radius_acct_interim_interval=$acct_interval" "$N"
 	}
 
+	case "$auth_type" in
+		sae|owe|eap192|eap-eap192)
+			set_default ieee80211w 2
+			set_default sae_require_mfp 1
+		;;
+		psk-sae)
+			set_default ieee80211w 1
+			set_default sae_require_mfp 1
+		;;
+	esac
+	[ -n "$sae_require_mfp" ] && append bss_conf "sae_require_mfp=$sae_require_mfp" "$N"
+
 	local vlan_possible=""
 
 	case "$auth_type" in
-		none)
+		none|owe)
+			json_get_vars owe_transition_bssid owe_transition_ssid
+
+			[ -n "$owe_transition_ssid" ] && append bss_conf "owe_transition_ssid=\"$owe_transition_ssid\"" "$N"
+			[ -n "$owe_transition_bssid" ] && append bss_conf "owe_transition_bssid=$owe_transition_bssid" "$N"
+
 			wps_possible=1
 			# Here we make the assumption that if we're in open mode
 			# with WPS enabled, we got to be in unconfigured state.
 			wps_not_configured=1
 		;;
-		psk)
+		psk|sae|psk-sae)
 			json_get_vars key wpa_psk_file
 			if [ ${#key} -lt 8 ]; then
 				wireless_setup_vif_failed INVALID_WPA_PSK
@@ -311,7 +361,7 @@ hostapd_set_bss_options() {
 
 			wps_possible=1
 		;;
-		eap)
+		eap|eap192|eap-eap192)
 			json_get_vars \
 				auth_server auth_secret auth_port \
 				dae_client dae_secret dae_port \
@@ -704,12 +754,15 @@ wpa_supplicant_add_network() {
 
 	case "$auth_type" in
 		none) ;;
+		owe)
+			hostapd_append_wpa_key_mgmt
+		;;
 		wep)
 			local wep_keyidx=0
 			hostapd_append_wep_key network_data
 			append network_data "wep_tx_keyidx=$wep_keyidx" "$N$T"
 		;;
-		psk)
+		psk|sae|psk-sae)
 			local passphrase
 
 			if [ "$_w_mode" != "mesh" ]; then
@@ -729,7 +782,7 @@ wpa_supplicant_add_network() {
 			fi
 			append network_data "$passphrase" "$N$T"
 		;;
-		eap)
+		eap|eap192|eap-eap192)
 			hostapd_append_wpa_key_mgmt
 			key_mgmt="$wpa_key_mgmt"
 

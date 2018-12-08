@@ -9,10 +9,10 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lldpd
 PKG_VERSION:=1.0.1
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=http://media.luffy.cx/files/lldpd
+PKG_SOURCE_URL:=https://media.luffy.cx/files/lldpd
 PKG_HASH:=450b622aac7ae1758f1ef82f3b7b94ec47f2ff33abfb0e6ac82555b9ee55f151
 
 PKG_MAINTAINER:=Stijn Tintel <stijn@linux-ipv6.be>
@@ -30,7 +30,7 @@ define Package/lldpd
   CATEGORY:=Network
   SUBMENU:=Routing and Redirection
   TITLE:=Link Layer Discovery Protocol daemon
-  URL:=https://github.com/vincentbernat/lldpd/wiki
+  URL:=https://vincentbernat.github.io/lldpd/
   DEPENDS:=+libevent2 +LLDPD_WITH_JSON:libjson-c +LLDPD_WITH_SNMP:libnetsnmp
   USERID:=lldp=121:lldp=129
   MENU:=1
