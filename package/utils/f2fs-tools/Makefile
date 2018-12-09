@@ -21,6 +21,11 @@ PKG_FIXUP:=autoreconf
 PKG_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
 
+ifeq ($(CONFIG_TARGET_armv7_2_6),y)
+PATCH_DIR:=./patches-2.6
+endif
+
+
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
 include $(INCLUDE_DIR)/package.mk
