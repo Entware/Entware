@@ -28,7 +28,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/libnetfilter-log
   SECTION:=libs
   CATEGORY:=Libraries
-  DEPENDS:=+libnfnetlink +kmod-nfnetlink-log +libmnl
+  DEPENDS:=+libnfnetlink +libmnl
   TITLE:=API to receive to-be-logged packets from the kernel nfnetlink_log subsystem
   URL:=http://www.netfilter.org/projects/libnetfilter_log/
 endef
@@ -48,27 +48,27 @@ CONFIGURE_ARGS += \
 	--without-ipulog \
 
 define Build/InstallDev
-	$(INSTALL_DIR) $(1)/usr/include/libnetfilter_log
+	$(INSTALL_DIR) $(1)/opt/include/libnetfilter_log
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/include/libnetfilter_log/*.h \
-		$(1)/usr/include/libnetfilter_log/
+		$(PKG_INSTALL_DIR)/opt/include/libnetfilter_log/*.h \
+		$(1)/opt/include/libnetfilter_log/
 
-	$(INSTALL_DIR) $(1)/usr/lib
+	$(INSTALL_DIR) $(1)/opt/lib
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/lib/libnetfilter_log.{so*,a,la} \
-		$(1)/usr/lib/
+		$(PKG_INSTALL_DIR)/opt/lib/libnetfilter_log.{so*,a,la} \
+		$(1)/opt/lib/
 
-	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
+	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/lib/pkgconfig/libnetfilter_log.pc \
-		$(1)/usr/lib/pkgconfig/
+		$(PKG_INSTALL_DIR)/opt/lib/pkgconfig/libnetfilter_log.pc \
+		$(1)/opt/lib/pkgconfig/
 endef
 
 define Package/libnetfilter-log/install
-	$(INSTALL_DIR) $(1)/usr/lib
+	$(INSTALL_DIR) $(1)/opt/lib
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/lib/libnetfilter_log.so.* \
-		$(1)/usr/lib/
+		$(PKG_INSTALL_DIR)/opt/lib/libnetfilter_log.so.* \
+		$(1)/opt/lib/
 endef
 
-#$(eval $(call BuildPackage,libnetfilter-log))
+$(eval $(call BuildPackage,libnetfilter-log))
