@@ -104,8 +104,12 @@ CONFIGURE_ARGS += \
 	--disable-tui \
 	--disable-valgrindtk \
 	--without-included-gettext \
-	--with-pagesize=4 \
+	--with-pagesize=4
+
+ifeq (,$(filter mips mipsel,$(ARCH)))
+CONFIGURE_ARGS += \
 	--enable-lto
+endif
 
 define Package/valgrind/install	
 	$(INSTALL_DIR) $(1)/opt/bin
