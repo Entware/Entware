@@ -57,7 +57,7 @@ endef
 
 define Package/dropbear/conffiles
 /opt/etc/dropbear/dropbear_rsa_host_key
-/opt/etc/config/dropbear 
+/opt/etc/config/dropbear
 endef
 
 define Package/dropbearconvert
@@ -137,6 +137,8 @@ define Package/dropbear/install
 	$(LN) ../sbin/dropbear $(1)/opt/bin/dropbearkey
 	$(INSTALL_DIR) $(1)/opt/etc/{dropbear,init.d}
 	$(INSTALL_BIN) ./files/S51dropbear $(1)/opt/etc/init.d
+	$(INSTALL_DIR) $(1)/opt/etc/config
+	$(INSTALL_CONF) ./files/dropbear.conf $(1)/opt/etc/config/dropbear
 endef
 
 define Package/dropbearconvert/install
