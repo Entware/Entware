@@ -45,27 +45,27 @@ CONFIGURE_ARGS += \
 	--enable-shared \
 
 define Build/InstallDev
-	$(INSTALL_DIR) $(1)/usr/include/libnetfilter_cthelper
+	$(INSTALL_DIR) $(1)/opt/include/libnetfilter_cthelper
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/include/libnetfilter_cthelper/*.h \
-		$(1)/usr/include/libnetfilter_cthelper/
+		$(PKG_INSTALL_DIR)/opt/include/libnetfilter_cthelper/*.h \
+		$(1)/opt/include/libnetfilter_cthelper/
 
-	$(INSTALL_DIR) $(1)/usr/lib
+	$(INSTALL_DIR) $(1)/opt/lib
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/lib/libnetfilter_cthelper.{so*,a,la} \
-		$(1)/usr/lib/
+		$(PKG_INSTALL_DIR)/opt/lib/libnetfilter_cthelper.{so*,a,la} \
+		$(1)/opt/lib/
 
-	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
+	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/lib/pkgconfig/libnetfilter_cthelper.pc \
-		$(1)/usr/lib/pkgconfig/
+		$(PKG_INSTALL_DIR)/opt/lib/pkgconfig/libnetfilter_cthelper.pc \
+		$(1)/opt/lib/pkgconfig/
 endef
 
 define Package/libnetfilter-cthelper/install
-	$(INSTALL_DIR) $(1)/usr/lib
+	$(INSTALL_DIR) $(1)/opt/lib
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/lib/libnetfilter_cthelper.so.* \
-		$(1)/usr/lib/
+		$(PKG_INSTALL_DIR)/opt/lib/libnetfilter_cthelper.so.* \
+		$(1)/opt/lib/
 endef
 
 $(eval $(call BuildPackage,libnetfilter-cthelper))
