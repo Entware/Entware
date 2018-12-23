@@ -3,9 +3,9 @@
 PATH=/opt/bin:/opt/sbin:/sbin:/bin:/usr/sbin:/usr/bin
 
 PIDFILE="/opt/var/run/dropbear.pid"
-PORT=`awk '{print $3}' /opt/etc/config/dropbear`
 DROPBEAR="/opt/sbin/dropbear"
 
+. /opt/etc/config/dropbear.conf
 
 dropbear_status ()
 {
