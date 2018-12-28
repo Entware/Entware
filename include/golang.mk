@@ -6,7 +6,7 @@ define Package/gopackage/Default
 	SUBMENU:=Go
 	SECTION:=lang
 	CATEGORY:=Languages
-	MAINTAINER:=Entware team, http://entware.net
+	MAINTAINER:=Entware team, https://entware.net
 endef
 
 # use `go get -d` to retrieve  GO package sources when PKG_SOURCE is undefined, patch if patches dir present
@@ -33,11 +33,11 @@ ifeq ($(PKG_SOURCE),)
  endif
 endif
 
-# use standard procedure to download and unpack GO package sources (stored in http://pkg.entware.net/sources/go).
+# use standard procedure to download and unpack GO package sources (stored in https://src.entware.net).
 # Do not patch. This allows to fix version
 
 ifneq ($(PKG_SOURCE),)
-PKG_SOURCE_URL:=http://pkg.entware.net/sources/go
+PKG_SOURCE_URL:=https://src.entware.net
 PKG_UNPACK=$(TAR) -C $(PKG_BUILD_DIR) -xf $(DL_DIR)/$(PKG_SOURCE)
  define Build/Patch
  endef
@@ -47,7 +47,7 @@ PKG_UNPACK=$(TAR) -C $(PKG_BUILD_DIR) -xf $(DL_DIR)/$(PKG_SOURCE)
 endif
 
 # pack the GO package sources retrieved by go get when PKG_SOURCE is undefined.
-# Upload them to http://pkg.entware.net/sources/go manually!
+# Upload them to https://src.entware.net manually!
 
 ifeq ($(PKG_SOURCE),)
  define Build/Configure
