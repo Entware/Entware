@@ -28,3 +28,6 @@ ac_cv_sizeof_unsigned_long=4
 ac_cv_sizeof_unsigned_long_long=8
 ac_cv_sizeof_unsigned_short=2
 ac_cv_sizeof_void_p=4
+
+ac_cv_lbl_unaligned_fail=yes
+as_cv_unaligned_access=no
