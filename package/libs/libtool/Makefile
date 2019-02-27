@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libtool
 PKG_VERSION:=2.4.6
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/libtool
@@ -24,13 +24,14 @@ PKG_BUILD_PARALLEL:=0
 include $(INCLUDE_DIR)/package.mk
 
 CONFIGURE_PREFIX=$(STAGING_DIR_HOSTPKG)
-export GLOBAL_LIBDIR=$(STAGING_DIR)/usr/lib
+export GLOBAL_LIBDIR=$(STAGING_DIR)/opt/lib
 
 define Package/libltdl
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=A generic dynamic object loading library
   URL:=http://www.gnu.org/software/libtool/
+  ABI_VERSION:=7
 endef
 
 define Build/InstallDev
