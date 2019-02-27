@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=openvpn
 
 PKG_VERSION:=2.4.6
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_SOURCE_URL:=\
 	https://build.openvpn.net/downloads/releases/ \
@@ -73,8 +73,8 @@ CONFIGURE_VARS += \
 	IPROUTE=/opt/sbin/ip \
 	NETSTAT=/opt/bin/netstat
 
-#TARGET_CFLAGS += -ffunction-sections -fdata-sections
-#TARGET_LDFLAGS += -Wl,--gc-sections
+TARGET_CFLAGS += -ffunction-sections -fdata-sections
+TARGET_LDFLAGS += -Wl,--gc-sections
 
 define Build/Configure
 	$(call Build/Configure/Default, \
@@ -99,6 +99,10 @@ define Build/Configure
 		$(if $(CONFIG_OPENVPN_OPENSSL),--with-crypto-library=openssl) \
 		$(if $(CONFIG_OPENVPN_MBEDTLS),--with-crypto-library=mbedtls) \
 	)
+endef
+
+define Package/openvpn-$(BUILD_VARIANT)/conffiles
+/opt/etc/openvpn
 endef
 
 define Package/openvpn-$(BUILD_VARIANT)/install
