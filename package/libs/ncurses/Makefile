@@ -14,7 +14,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ncurses
 PKG_VERSION:=6.1
-PKG_RELEASE:=1
+PKG_RELEASE:=3
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
@@ -45,6 +45,7 @@ define Package/libncursesw
   TITLE:=Terminal handling library (Unicode)
   URL:=http://www.gnu.org/software/ncurses/
   DEPENDS:= +terminfo
+  ABI_VERSION:=6
 endef
 
 define Package/libncurses
@@ -53,6 +54,7 @@ define Package/libncurses
   TITLE:=Terminal handling library
   URL:=http://www.gnu.org/software/ncurses/
   DEPENDS:= +libncursesw
+  ABI_VERSION:=6
 endef
 
 define Package/libncurses-dev
@@ -96,6 +98,8 @@ CONFIGURE_ARGS += \
 	--enable-widec \
 	--with-build-cppflags=-D_GNU_SOURCE \
 	--disable-stripping
+
+HOST_CFLAGS += $(HOST_FPIC)
 
 HOST_CONFIGURE_ARGS += \
 	--without-cxx \
@@ -167,6 +171,8 @@ define Package/libncursesw/install
 endef
 
 define Package/libncurses-dev/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/* $(1)/opt/bin/
 	$(INSTALL_DIR) $(1)/opt/include
 	$(CP) $(PKG_INSTALL_DIR)/opt/include/*.h $(1)/opt/include/
 	$(INSTALL_DIR) $(1)/opt/lib
