@@ -6,6 +6,7 @@
 #define L_CRYPTODEV_H
 
 #include <linux/types.h>
+#include <linux/version.h>
 #ifndef __KERNEL__
 #define __user
 #endif
@@ -255,6 +256,18 @@ enum cryptodev_crk_op_t {
 	CRK_ALGORITHM_ALL
 };
 
+/* input of CIOCCPHASH
+ *  dst_ses : destination session identifier
+ *  src_ses : source session identifier
+ *  dst_ses must have been created with CIOGSESSION first
+ */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 29))
+struct cphash_op {
+	__u32	dst_ses;
+	__u32	src_ses;
+};
+#endif
+
 #define CRK_ALGORITHM_MAX	(CRK_ALGORITHM_ALL-1)
 
 /* features to be queried with CIOCASYMFEAT ioctl
@@ -289,4 +302,15 @@ enum cryptodev_crk_op_t {
 #define CIOCASYNCCRYPT    _IOW('c', 110, struct crypt_op)
 #define CIOCASYNCFETCH    _IOR('c', 111, struct crypt_op)
 
+/* additional ioctl for copying of hash/mac session state data
+ * between sessions.
+ * The cphash_op parameter should contain the session id of
+ * the source and destination sessions. Both sessions
+ * must have been created with CIOGSESSION.
+ */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 29))
+#define CIOCCPHASH	_IOW('c', 112, struct cphash_op)
+#endif
+
 #endif /* L_CRYPTODEV_H */
+
