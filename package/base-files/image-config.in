@@ -110,7 +110,7 @@ menuconfig INITOPT
 	config TARGET_INIT_PATH
 		string
 		prompt "PATH for regular boot" if INITOPT
-		default "/opt/usr/sbin:/opt/sbin:/opt/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+		default "/opt/usr/sbin:/opt/usr/bin:/opt/sbin:/opt/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 		help
 			Default PATH used during normal operation
 
