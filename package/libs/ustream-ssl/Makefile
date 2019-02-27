@@ -25,7 +25,7 @@ define Package/libustream/default
   CATEGORY:=Libraries
   TITLE:=ustream SSL Library
   DEPENDS:=+libubox
-  ABI_VERSION:=$(PKG_VERSION)
+  ABI_VERSION:=20150806
 endef
 
 define Package/libustream-openssl
@@ -38,7 +38,7 @@ endef
 define Package/libustream-wolfssl
   $(Package/libustream/default)
   TITLE += (wolfssl)
-  DEPENDS += +PACKAGE_libustream-wolfssl:libwolfssl +libopenssl
+  DEPENDS += +PACKAGE_libustream-wolfssl:libwolfssl
   VARIANT:=wolfssl
 endef
 
@@ -51,8 +51,8 @@ define Package/libustream-mbedtls
 endef
 
 ifeq ($(BUILD_VARIANT),wolfssl)
-  TARGET_CFLAGS += -I$(STAGING_DIR)/opt/include/wolfssl -DHAVE_SNI
-  CMAKE_OPTIONS += -DWOLFSSL=on
+  TARGET_CFLAGS += -I$(STAGING_DIR)/opt/include/cyassl -DHAVE_SNI
+  CMAKE_OPTIONS += -DCYASSL=on
 endif
 ifeq ($(BUILD_VARIANT),mbedtls)
   CMAKE_OPTIONS += -DMBEDTLS=on
