@@ -69,7 +69,7 @@ endef
 define Package/iputils-ping6
 $(call Package/iputils/Default)
   TITLE:=iputils - ping6
-  DEPENDS+= +libopenssl
+  DEPENDS+= @IPV6 +USE_GLIBC:libopenssl
 endef
 
 define Package/iputils-ping6/description
@@ -103,6 +103,7 @@ endef
 define Package/iputils-tracepath6
 $(call Package/iputils/Default)
   TITLE:=iputils - tracepath6
+  DEPENDS+= @IPV6
 endef
 
 define Package/iputils-tracepath6/description
@@ -114,6 +115,7 @@ endef
 define Package/iputils-traceroute6
 $(call Package/iputils/Default)
   TITLE:=iputils - traceroute6
+  DEPENDS+= @IPV6
 endef
 
 define Package/iputils-traceroute6/description
