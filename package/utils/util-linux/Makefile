@@ -9,12 +9,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=util-linux
-PKG_VERSION:=2.32.1
-PKG_RELEASE:=1
+PKG_VERSION:=2.33
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.32
-PKG_HASH:=86e6707a379c7ff5489c218cfaf1e3464b0b95acf7817db0bc5f179e356a67b2
+PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.33
+PKG_HASH:=f261b9d73c35bfeeea04d26941ac47ee1df937bd3b0583e748217c1ea423658a
 PKG_CPE_ID:=cpe:/a:kernel:util-linux
 
 PKG_LICENSE:=GPL-2.0
@@ -48,6 +48,7 @@ $(call Package/util-linux/Default)
   TITLE:=block device id library
   SECTION:=libs
   CATEGORY:=Libraries
+  ABI_VERSION:=1
 endef
 
 define Package/libblkid/description
@@ -63,6 +64,7 @@ $(call Package/util-linux/Default)
   TITLE:=partition manipulating library
   SECTION:=libs
   CATEGORY:=Libraries
+  ABI_VERSION:=1
 endef
 
 define Package/libfdisk/description
@@ -75,6 +77,7 @@ $(call Package/util-linux/Default)
   TITLE:=mount library
   SECTION:=libs
   CATEGORY:=Libraries
+  ABI_VERSION:=1
 endef
 
 define Package/libmount/description
@@ -87,6 +90,7 @@ $(call Package/util-linux/Default)
   TITLE:=DCE compatible Universally Unique Identifier library
   SECTION:=libs
   CATEGORY:=Libraries
+  ABI_VERSION:=1
 endef
 
 define Package/libuuid/description
@@ -101,6 +105,7 @@ $(call Package/util-linux/Default)
   TITLE:=table or tree library
   SECTION:=libs
   CATEGORY:=Libraries
+  ABI_VERSION:=1
 endef
 
 define Package/libsmartcols/description
@@ -194,6 +199,18 @@ define Package/dmesg/description
  dmesg  is used to examine or control the kernel ring buffer
 endef
 
+define Package/eject
+$(call Package/util-linux/Default)
+  TITLE:=eject removable media
+  DEPENDS:= +libblkid +libmount +libuuid
+  SUBMENU=Disc
+endef
+
+define Package/eject/description
+  eject allows removable media (typically a CD-ROM, floppy disk, tape, or JAZ
+  or ZIP disk) to be ejected under software control.
+endef
+
 define Package/fdisk
 $(call Package/util-linux/Default)
   TITLE:=manipulate disk partition table
@@ -225,6 +242,16 @@ endef
 
 define Package/flock/description
   manages flock locks from within shell scripts or the command line
+endef
+
+define Package/fsfreeze
+$(call Package/util-linux/Default)
+  TITLE:=fsfreeze - suspends and resumes access to an filesystem 
+endef
+
+define Package/fsfreeze/description
+ fsfreeze halts new access to the filesystem and creates a stable image on disk.
+ fsfreeze is intended to be used with hardware RAID devices that support the creation of snapshots.
 endef
 
 define Package/fstrim
@@ -266,16 +293,6 @@ endef
 
 define Package/ionice/description
  This program sets or gets the io scheduling class and priority for a program. If no arguments or just -p is given, ionice will query the current io scheduling class and priority for that process. 
-endef
-
-define Package/fsfreeze
-$(call Package/util-linux/Default)
-  TITLE:=fsfreeze - suspends and resumes access to an filesystem 
-endef
-
-define Package/fsfreeze/description
- fsfreeze halts new access to the filesystem and creates a stable image on disk.
- fsfreeze is intended to be used with hardware RAID devices that support the creation of snapshots.
 endef
 
 define Package/logger
@@ -564,32 +581,27 @@ endef
 
 define Package/libfdisk/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libfdisk.so* $(1)/opt/lib/
-	$(LN) libfdisk.so.1 $(1)/opt/lib/libfdisk.so
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libfdisk.so.* $(1)/opt/lib/
 endef
 
 define Package/libblkid/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libblkid.so* $(1)/opt/lib/
-	$(LN) libblkid.so.1 $(1)/opt/lib/libblkid.so
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libblkid.so.* $(1)/opt/lib/
 endef
 
 define Package/libmount/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libmount.so* $(1)/opt/lib/
-	$(LN) libmount.so.1 $(1)/opt/lib/libmount.so
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libmount.so.* $(1)/opt/lib/
 endef
 
 define Package/libsmartcols/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libsmartcols.so* $(1)/opt/lib/
-	$(LN) libsmartcols.so.1 $(1)/opt/lib/libsmartcols.so
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libsmartcols.so.* $(1)/opt/lib/
 endef
 
 define Package/libuuid/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libuuid.so* $(1)/opt/lib/
-	$(LN) libuuid.so.1 $(1)/opt/lib/libuuid.so
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libuuid.so.* $(1)/opt/lib/
 endef
 
 define Package/agetty/install
@@ -630,6 +642,11 @@ endef
 define Package/dmesg/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/dmesg $(1)/opt/bin/
+endef
+
+define Package/eject/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/eject $(1)/opt/bin/
 endef
 
 define Package/fdisk/install
@@ -802,6 +819,7 @@ $(eval $(call BuildPackage,cal))
 $(eval $(call BuildPackage,cfdisk))
 $(eval $(call BuildPackage,column))
 $(eval $(call BuildPackage,dmesg))
+$(eval $(call BuildPackage,eject))
 $(eval $(call BuildPackage,fdisk))
 $(eval $(call BuildPackage,findfs))
 $(eval $(call BuildPackage,flock))
