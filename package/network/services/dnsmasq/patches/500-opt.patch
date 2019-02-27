@@ -1,6 +1,6 @@
 --- a/src/option.c
 +++ b/src/option.c
-@@ -350,7 +350,7 @@
+@@ -362,7 +362,7 @@ static struct {
    { 'd', OPT_DEBUG, NULL, gettext_noop("Do NOT fork into the background: run in debug mode."), NULL },
    { 'D', OPT_NODOTS_LOCAL, NULL, gettext_noop("Do NOT forward queries with no domain part."), NULL }, 
    { 'e', OPT_SELFMX, NULL, gettext_noop("Return self-pointing MX records for local hosts."), NULL },
@@ -9,7 +9,7 @@
    { 'f', OPT_FILTER, NULL, gettext_noop("Don't forward spurious DNS requests from Windows hosts."), NULL },
    { 'F', ARG_DUP, "<ipaddr>,...", gettext_noop("Enable DHCP in the range given with lease duration."), NULL },
    { 'g', ARG_ONE, "<groupname>", gettext_noop("Change to this group after startup (defaults to %s)."), CHGRP },
-@@ -394,7 +394,7 @@
+@@ -406,7 +406,7 @@ static struct {
    { LOPT_LOCAL, ARG_DUP, "/<domain>/", gettext_noop("Never forward queries to specified domains."), NULL },
    { 's', ARG_DUP, "<domain>[,<range>]", gettext_noop("Specify the domain to be assigned in DHCP leases."), NULL },
    { 't', ARG_ONE, "<host_name>", gettext_noop("Specify default target in an MX record."), NULL },
@@ -20,7 +20,7 @@
    { LOPT_MAXCTTL, ARG_ONE, "<integer>", gettext_noop("Specify time-to-live ceiling for cache."), NULL },
 --- a/src/config.h
 +++ b/src/config.h
-@@ -39,8 +39,8 @@
+@@ -40,8 +40,8 @@
  #define DHCP_PACKET_MAX 16384 /* hard limit on DHCP packet size */
  #define SMALLDNAME 50 /* most domain names are smaller than this */
  #define CNAME_CHAIN 10 /* chains longer than this atr dropped for loop protection */
@@ -31,7 +31,7 @@
  #define DEFLEASE 3600 /* default lease time, 1 hour */
  #define CHUSER "nobody"
  #define CHGRP "dip"
-@@ -192,7 +192,7 @@
+@@ -198,7 +198,7 @@ RESOLVFILE
  #   elif defined(__ANDROID__)
  #      define LEASEFILE "/data/misc/dhcp/dnsmasq.leases"
  #   else
@@ -40,7 +40,7 @@
  #   endif
  #endif
  
-@@ -200,7 +200,7 @@
+@@ -206,7 +206,7 @@ RESOLVFILE
  #   if defined(__FreeBSD__)
  #      define CONFFILE "/usr/local/etc/dnsmasq.conf"
  #   else
@@ -49,7 +49,7 @@
  #   endif
  #endif
  
-@@ -208,7 +208,7 @@
+@@ -214,7 +214,7 @@ RESOLVFILE
  #   if defined(__uClinux__)
  #      define RESOLVFILE "/etc/config/resolv.conf"
  #   else
@@ -58,7 +58,7 @@
  #   endif
  #endif
  
-@@ -216,7 +216,7 @@
+@@ -222,7 +222,7 @@ RESOLVFILE
  #   if defined(__ANDROID__)
  #      define RUNFILE "/data/dnsmasq.pid"
  #    else
