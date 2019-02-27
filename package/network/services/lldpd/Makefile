@@ -21,8 +21,6 @@ PKG_LICENSE:=ISC
 PKG_FIXUP:=autoreconf
 PKG_INSTALL:=1
 
-TARGET_CFLAGS+=--std=c99
-
 include $(INCLUDE_DIR)/package.mk
 
 define Package/lldpd
@@ -64,6 +62,10 @@ define Package/lldpd/install
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/liblldpctl.so* $(1)/opt/lib/
 endef
 
+#define Package/lldpd/conffiles
+#/etc/config/lldpd
+#endef
+
 CONFIGURE_ARGS += \
 	$(if $(CONFIG_LLDPD_WITH_PRIVSEP), \
 	--with-privsep-user=lldp \
@@ -87,5 +89,10 @@ CONFIGURE_ARGS += \
 	$(if $(CONFIG_LLDPD_WITH_JSON),--with-json=json-c,--with-json=no) \
 	$(if $(CONFIG_LLDPD_WITH_SNMP),--with-snmp,)
 
+# there is no flag to disable libbsd
+CONFIGURE_VARS += \
+	$(if $(CONFIG_USE_GLIBC),,libbsd_CFLAGS=-ldo-not-link-bsd) \
+	$(if $(CONFIG_USE_GLIBC),,libbsd_LDFLAGS=-ldo-not-link-bsd) \
+	$(if $(CONFIG_USE_GLIBC),,libbsd_LIBS="-lNONexistent")
 
 $(eval $(call BuildPackage,lldpd))
