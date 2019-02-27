@@ -5,12 +5,13 @@
 # See /LICENSE for more information.
 #
 # more binaries are added to server and client packages (as in Debian)
+# replace `$(ICONV_DEPENDS)` => `+libiconv-full` or use `include $(INCLUDE_DIR)/nls.mk`
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=samba
 PKG_VERSION:=3.6.25
-PKG_RELEASE:=12
+PKG_RELEASE:=14
 
 PKG_SOURCE_URL:=https://download.samba.org/pub/samba \
 		https://download.samba.org/pub/samba/stable
@@ -41,25 +42,25 @@ endef
 define Package/samba36-server
   $(call Package/samba/Default)
   TITLE+= server
-  DEPENDS:=+USE_GLIBC:librt $(ICONV_DEPENDS)
+  DEPENDS:=+USE_GLIBC:librt +libiconv-full
 endef
 
 #define Package/samba36-hotplug
 #  $(call Package/samba/Default)
-#  TITLE+= hotplug
-#  DEPENDS:=+block-mount
+#  TITLE+= hotplug script for auto sharing
+#  DEPENDS:=+blockd
 #endef
 
 define Package/samba36-client
   $(call Package/samba/Default)
   TITLE+= client
-  DEPENDS:=+libreadline +libncurses
+  DEPENDS:=+libreadline +libncurses +libiconv-full
 endef
 
 define Package/samba36-net
   $(call Package/samba/Default)
   TITLE+= net commands
-  DEPENDS:=+libreadline +libncurses
+  DEPENDS:=+libreadline +libncurses +libiconv-full
 endef
 
 define Package/samba36-server/config
@@ -86,6 +87,7 @@ CONFIGURE_VARS += \
 	libreplace_cv_HAVE_C99_VSNPRINTF=yes \
 	libreplace_cv_HAVE_GETADDRINFO=yes \
 	libreplace_cv_HAVE_IFACE_IFCONF=yes \
+	$(if $(CONFIG_IPV6),,libreplace_cv_HAVE_IPV6=no libreplace_cv_HAVE_IPV6_V6ONLY=no) \
 	LINUX_LFS_SUPPORT=yes \
 	samba_cv_CC_NEGATIVE_ENUM_VALUES=yes \
 	samba_cv_HAVE_GETTIMEOFDAY_TZ=yes \
@@ -106,16 +108,17 @@ CONFIGURE_VARS += \
 CONFIGURE_ARGS += \
 	--exec-prefix=/opt \
 	--prefix=/ \
-	--enable-external-libtdb=no \
 	--disable-avahi \
 	--disable-cups \
 	--disable-external-libtalloc \
+	--disable-external-libtdb \
+	--disable-external-libtevent \
 	--disable-pie \
 	--disable-relro \
 	--disable-static \
 	--disable-swat \
 	--disable-shared-libs \
-	--with-libiconv="$(ICONV_PREFIX)" \
+	--with-libiconv="$(STAGING_DIR)/opt/lib/libiconv-full" \
 	--with-codepagedir=/opt/etc/samba \
 	--with-configdir=/opt/etc/samba \
 	--with-included-iniparser \
@@ -151,7 +154,7 @@ endef
 
 define Package/samba36-server/install
 	$(INSTALL_DIR) $(1)/opt/etc/samba
-	$(INSTALL_DATA) ./files/smb.conf.template $(1)/opt/etc/samba
+	$(INSTALL_CONF) ./files/smb.conf.template $(1)/opt/etc/samba
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/codepages/lowcase.dat $(1)/opt/etc/samba
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/codepages/upcase.dat $(1)/opt/etc/samba
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/codepages/valid.dat $(1)/opt/etc/samba
@@ -169,10 +172,8 @@ define Package/samba36-server/install
 endef
 
 #define Package/samba36-hotplug/install
-#	$(INSTALL_DIR) $(1)/lib/samba
-#	$(INSTALL_DATA) ./files/lib/samba.sh $(1)/lib/samba/samba.sh
-#	$(INSTALL_DIR) $(1)/etc/hotplug.d/block
-#	$(INSTALL_DATA) ./files/samba.hotplug $(1)/etc/hotplug.d/block/60-samba
+#	$(INSTALL_DIR) $(1)/etc/hotplug.d/mount
+#	$(INSTALL_CONF) ./files/samba.hotplug $(1)/etc/hotplug.d/mount/60-samba
 #endef
 
 define Package/samba36-client/install
