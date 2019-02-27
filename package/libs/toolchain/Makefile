@@ -43,6 +43,7 @@ endef
 define Package/libgcc
 $(call Package/gcc/Default)
   TITLE:=GCC support library
+  ABI_VERSION:=1
 endef
 
 define Package/libgcc/config
@@ -69,6 +70,7 @@ define Package/libatomic
 $(call Package/gcc/Default)
   DEPENDS:=+libgcc
   TITLE:=Atomic support library
+  ABI_VERSION:=1
 endef
 
 define Package/libatomic/config
@@ -122,6 +124,7 @@ define Package/libstdcpp
 $(call Package/gcc/Default)
   NAME:=libstdc++
   TITLE:=GNU Standard C++ Library v3
+  ABI_VERSION:=6
 endef
 
 define Package/libstdcpp/config
@@ -174,7 +177,7 @@ define Package/libc/config
 		string
 		prompt "libc shared library files (use wildcards)"
 		depends on EXTERNAL_TOOLCHAIN && PACKAGE_libc
-		default "./lib/ld{*.so*,-linux*.so.*} ./lib/lib{anl,c,cidn,crypt,dl,m,nsl,nss_dns,nss_files,resolv,util}{-*.so,.so.*}"
+		default "./lib/ld{*.so*,-linux*.so.*} ./lib/lib{anl,c,cidn,crypt,dl,m,nsl,nss_dns,nss_files,resolv,util}{-*.so,.so.*,.so}"
 
 	endmenu
 endef
@@ -210,6 +213,26 @@ define Package/libthread-db
 $(call Package/libc/Default)
   DEPENDS:=@!USE_MUSL
   TITLE:=POSIX thread library debugging support
+endef
+
+define Package/libthread-db/config
+	menu "Configuration"
+	depends on EXTERNAL_TOOLCHAIN && PACKAGE_libthread-db
+
+	config LIBTHREAD_DB_ROOT_DIR
+		string
+		prompt "POSIX thread debugging shared library base directory"
+		depends on EXTERNAL_TOOLCHAIN && PACKAGE_libthread-db
+		default TOOLCHAIN_ROOT  if !NATIVE_TOOLCHAIN
+		default "/"  if NATIVE_TOOLCHAIN
+
+	config LIBTHREAD_DB_FILE_SPEC
+		string
+		prompt "POSIX thread debugging shared library files (use wildcards)"
+		depends on EXTERNAL_TOOLCHAIN && PACKAGE_libthread-db
+		default "./lib/libthread_db{-*.so,.so.*}"
+
+	endmenu
 endef
 
 define Package/librt
@@ -463,6 +486,7 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
   define Package/libstdcpp/install
 	$(INSTALL_DIR) $(1)/opt/lib
 	$(CP) $(TOOLCHAIN_DIR)/lib/libstdc++.so.* $(1)/opt/lib/
+	rm -f $(1)/opt/lib/*.py
   endef
 
   define Package/glibc/install
