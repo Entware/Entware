@@ -44,7 +44,7 @@
 #include <linux/if_packet.h>
 #endif
 
-#define PASSWD_FILE	"/etc/passwd"
+#define PASSWD_FILE	"/opt/etc/passwd"
 
 #ifndef DEFAULT_IFNAME
 #define DEFAULT_IFNAME "eth0"
