@@ -58,6 +58,7 @@ endef
 define Package/ca-bundle/install
 	$(INSTALL_DIR) $(1)/opt/etc/ssl/certs
 	cat $(PKG_INSTALL_DIR)/opt/share/ca-certificates/*/*.crt >$(1)/opt/etc/ssl/certs/ca-certificates.crt
+	$(LN) /opt/etc/ssl/certs/ca-certificates.crt $(1)/opt/etc/ssl/cert.pem
 endef
 $(eval $(call BuildPackage,ca-certificates))
 $(eval $(call BuildPackage,ca-bundle))
