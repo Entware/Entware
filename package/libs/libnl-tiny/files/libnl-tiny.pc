@@ -1,5 +1,5 @@
-prefix=/usr
-exec_prefix=/usr
+prefix=/opt
+exec_prefix=/opt
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include/libnl-tiny
 
