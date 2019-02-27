@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dante
 PKG_VERSION:=1.4.1
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.inet.no/dante/files/
@@ -23,7 +23,7 @@ PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
-TARGET_CFLAGS += -D_GNU_SOURCE -std=gnu89
+TARGET_CFLAGS += -fgnu89-inline -D_DEFAULT_SOURCE
 
 CONFIGURE_ARGS += \
 	--without-upnp \
@@ -34,7 +34,8 @@ CONFIGURE_ARGS += \
 	--with-pidfile=/opt/var/run/sockd.pid
 
 CONFIGURE_VARS += \
-	ac_cv_search_pam_start=""
+	ac_cv_search_pam_start="" \
+	ac_cv_func_sched_setscheduler=no
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/include
@@ -62,6 +63,7 @@ define Package/libsocks
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE+= Library
+  ABI_VERSION:=0
 endef
 
 define Package/libsocks/description
@@ -71,7 +73,7 @@ endef
 
 define Package/libsocks/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libsocks.so* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libsocks.so.* $(1)/opt/lib/
 endef
 
 

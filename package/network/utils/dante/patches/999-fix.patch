@@ -1,0 +1,11 @@
+--- a/lib/config_scan.c	2014-09-03 18:53:28.000000000 +0400
++++ b/lib/config_scan.c	2018-09-30 13:28:35.381534132 +0300
+@@ -3893,7 +3893,7 @@
+ #else /* !SOCKS_CLIENT */
+ #if HAVE_SCHED_SETAFFINITY
+ 
+-   BEGIN(0);
++/*   BEGIN(0);
+ 
+    if ((yylval.number = cpupolicy2numeric(yytext)) == -1)
+       yyerrorx("unknown scheduling policy \"%s\"", yytext);
