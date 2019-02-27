@@ -18,7 +18,7 @@ include $(INCLUDE_DIR)/package.mk
 ifeq ($(CONFIG_BIG_ENDIAN),y)
 TARGET_CFLAGS+= -DHAVE_BIG_ENDIAN=1
 endif
-TARGET_CFLAGS+= -D_GNU_SOURCE -I$(STAGING_DIR)/opt/include
+TARGET_CFLAGS+= -D_GNU_SOURCE
 
 define Package/adb
   SECTION:=utils
