@@ -51,7 +51,9 @@ endif
 
 define Package/nftables/install
 	$(INSTALL_DIR) $(1)/opt/sbin
-	$(CP) $(PKG_BUILD_DIR)/src/nft $(1)/opt/sbin/
+	$(CP) $(PKG_INSTALL_DIR)/opt/sbin/nft $(1)/opt/sbin/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/*.so* $(1)/opt/lib/
 endef
 
 $(eval $(call BuildPackage,nftables))
