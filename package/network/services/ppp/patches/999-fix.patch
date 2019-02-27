@@ -1,0 +1,64 @@
+--- a/pppd/Makefile.linux
++++ b/pppd/Makefile.linux
+@@ -191,8 +191,8 @@
+ 
+ ifdef FILTER
+ ifneq ($(wildcard /usr/include/pcap-bpf.h),)
+-LIBS    += -lpcap -L$(STAGING_DIR)/usr/lib
+-CFLAGS  += -DPPP_FILTER -I$(STAGING_DIR)/usr/include
++LIBS    += -lpcap -L$(STAGING_DIR)/opt/lib
++CFLAGS  += -DPPP_FILTER -I$(STAGING_DIR)/opt/include
+ endif
+ endif
+ 
+@@ -200,8 +200,8 @@
+ PPPDSRCS += pcap_pcc.c
+ HEADERS  += pcap_pcc.h
+ PPPDOBJS += pcap_pcc.o
+-LIBS	+= $(STAGING_DIR)/usr/lib/libpcap.a
+-CFLAGS	+= -DPPP_FILTER -DPPP_PRECOMPILED_FILTER -I$(STAGING_DIR)/usr/include
++LIBS	+= $(STAGING_DIR)/opt/lib/libpcap.a
++CFLAGS	+= -DPPP_FILTER -DPPP_PRECOMPILED_FILTER -I$(STAGING_DIR)/opt/include
+ endif
+ 
+ ifdef HAVE_INET6
+--- a/pppd/plugins/Makefile.linux
++++ b/pppd/plugins/Makefile.linux
+@@ -1,7 +1,7 @@
+ #CC	= gcc
+ COPTS	= -O2 -g
+ CFLAGS	= $(COPTS) -I.. -I../../include -fPIC
+-LDFLAGS_SHARED	= -shared
++LDFLAGS	= -shared
+ INSTALL	= install
+ 
+ DESTDIR = $(INSTROOT)/opt
+@@ -27,22 +27,22 @@
+ endif
+ 
+ all:	$(PLUGINS)
+-	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d all || exit $$?; done
++	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d all; done
+ 
+ %.so: %.c
+-	$(CC) -o $@ $(LDFLAGS) $(LDFLAGS_SHARED) $(CFLAGS) $^
++	$(CC) -o $@ $(LDFLAGS) $(CFLAGS) $^
+ 
+ VERSION = $(shell awk -F '"' '/VERSION/ { print $$2; }' ../patchlevel.h)
+ 
+ install: $(PLUGINS)
+ 	$(INSTALL) -d $(LIBDIR)
+ 	$(INSTALL) $? $(LIBDIR)
+-	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d install || exit $$?; done
++	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d install; done
+ 
+ clean:
+ 	rm -f *.o *.so *.a
+-	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d clean || exit $$?; done
++	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d clean; done
+ 
+ depend:
+ 	$(CPP) -M $(CFLAGS) *.c >.depend
+-	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d depend || exit $$?; done
++	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d depend; done
+
