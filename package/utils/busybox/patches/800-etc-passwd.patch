@@ -23,12 +23,12 @@
  # include <netinet/in.h>
 --- a/loginutils/adduser.c
 +++ b/loginutils/adduser.c
-@@ -204,7 +204,7 @@
+@@ -189,7 +189,7 @@ int adduser_main(int argc UNUSED_PARAM,
  	char *p;
  	unsigned opts;
  	char *uid;
 -	const char *skel = "/etc/skel";
 +	const char *skel = "/opt/etc/skel";
  
- #if ENABLE_FEATURE_ADDUSER_LONG_OPTIONS
- 	applet_long_options = adduser_longopts;
+ 	/* got root? */
+ 	if (geteuid()) {

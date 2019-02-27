@@ -1,7 +1,6 @@
-diff -Naur nbusybox-1.27.2/libbb/lineedit.c busybox-1.27.2/libbb/lineedit.c
---- a/libbb/lineedit.c	2017-07-06 18:14:57.000000000 +0300
-+++ b/libbb/lineedit.c	2018-01-30 18:41:02.996281564 +0300
-@@ -1553,6 +1553,8 @@
+--- a/libbb/lineedit.c
++++ b/libbb/lineedit.c
+@@ -1586,6 +1586,8 @@ static void remember_in_history(char *st
  # endif
  	}
  	/* i <= state->max_history-1 */
@@ -10,7 +9,7 @@ diff -Naur nbusybox-1.27.2/libbb/lineedit.c busybox-1.27.2/libbb/lineedit.c
  	state->history[i++] = xstrdup(str);
  	/* i <= state->max_history */
  	state->cur_history = i;
-@@ -1561,6 +1563,7 @@
+@@ -1594,6 +1596,7 @@ static void remember_in_history(char *st
  	save_history(str);
  # endif
  }
