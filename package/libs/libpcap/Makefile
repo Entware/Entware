@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libpcap
 PKG_VERSION:=1.9.0
-PKG_RELEASE:=1a
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.us.tcpdump.org/release/ \
@@ -32,6 +32,7 @@ define Package/libpcap
   TITLE:=Low-level packet capture library
   URL:=http://www.tcpdump.org/
   MENU:=1
+  ABI_VERSION:=1
 endef
 
 define Package/libpcap/description
@@ -75,7 +76,7 @@ CONFIGURE_ARGS += \
 endif
 
 MAKE_FLAGS += \
-	CCOPT="$(TARGET_CFLAGS)  -D_DEFAULT_SOURCE -I$(STAGING_DIR)/opt/include"
+	CCOPT="$(TARGET_CFLAGS) -I$(BUILD_DIR)/linux/include"
 
 define Build/Configure
 	$(call Build/Configure/Default)
