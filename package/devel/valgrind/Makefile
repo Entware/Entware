@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=valgrind
 PKG_VERSION:=3.14.0
-PKG_RELEASE:=1
+PKG_RELEASE:=1a
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=http://sourceware.org/pub/valgrind/
@@ -95,21 +95,20 @@ else
 	BITS := 32bit
 endif
 
+ifeq ($(CONFIG_mips)$(CONFIG_mipsel),y)
+TARGET_CFLAGS:=$(filter-out -mips32r2 ,$(TARGET_CFLAGS))
+TARGET_CFLAGS += -march=mips32r2
+
+CONFIGURE_VARS += \
+	LTO_AR=$(TOOLCHAIN_DIR)/bin/$(TARGET_CROSS)ar \
+	LTO_RANLIB=$(TOOLCHAIN_DIR)/bin/$(TARGET_CROSS)ranlib
+endif
+
 CONFIGURE_ARGS += \
 	--enable-tls \
-	--without-x \
-	--without-mpicc \
-	--without-uiout \
-	--disable-valgrindmi \
-	--disable-tui \
-	--disable-valgrindtk \
-	--without-included-gettext \
-	--with-pagesize=4
-
-ifeq (,$(filter mips mipsel,$(ARCH)))
-CONFIGURE_ARGS += \
-	--enable-lto
-endif
+	--enable-lto \
+	--with-tmpdir=/opt/tmp \
+	--without-mpicc
 
 define Package/valgrind/install	
 	$(INSTALL_DIR) $(1)/opt/bin
@@ -124,6 +123,7 @@ define Package/valgrind/install
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/memcheck-* \
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/vgpreload_memcheck*.so \
 		$(1)/opt/lib/valgrind/
+	$(SED) 's,:/lib,:/opt/lib,g' $(1)/opt/lib/valgrind/default.supp
 
 ifneq ($(ARCH),aarch64)
 	$(CP) \
@@ -135,12 +135,11 @@ endef
 define Package/valgrind-cachegrind/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/cg_* $(1)/opt/bin/
-	$(SED) 's,$(STAGING_DIR_HOST),/opt,g' $(1)/opt/bin/cg_annotate
-	$(SED) 's,$(STAGING_DIR_HOST),/opt,g' $(1)/opt/bin/cg_diff
 	$(INSTALL_DIR) $(1)/opt/lib/valgrind
 	$(CP) \
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/cachegrind-* \
 		$(1)/opt/lib/valgrind/
+	$(SED) 's,^#!.*,#!/opt/bin/perl,' $(1)/opt/bin/cg_{annotate,diff}
 endef
 
 define Package/valgrind-callgrind/install
@@ -150,6 +149,7 @@ define Package/valgrind-callgrind/install
 	$(CP) \
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/callgrind-* \
 		$(1)/opt/lib/valgrind/
+	$(SED) 's,^#!.*,#!/opt/bin/perl -w,' $(1)/opt/bin/callgrind_{annotate,control}
 endef
 
 define Package/valgrind-drd/install
@@ -163,12 +163,12 @@ endef
 define Package/valgrind-massif/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/ms_print $(1)/opt/bin/
-	$(SED) 's,$(STAGING_DIR_HOST),/opt,g' $(1)/opt/bin/ms_print
 	$(INSTALL_DIR) $(1)/opt/lib/valgrind
 	$(CP) \
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/massif-* \
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/vgpreload_massif*.so \
 		$(1)/opt/lib/valgrind/
+	$(SED) 's,^#!.*,#!/opt/bin/perl,' $(1)/opt/bin/ms_print
 endef
 
 define Package/valgrind-helgrind/install
