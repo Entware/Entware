@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=tcpdump
 PKG_VERSION:=4.9.2
-PKG_RELEASE:=1a
+PKG_RELEASE:=1b
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.us.tcpdump.org/release/ \
@@ -47,6 +47,7 @@ define Package/tcpdump-mini
 endef
 
 CONFIGURE_ARGS += \
+	--without-cap-ng \
 	--without-crypto
 
 ifeq ($(CONFIG_IPV6),y)
