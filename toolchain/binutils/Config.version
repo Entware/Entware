@@ -13,6 +13,9 @@ config BINUTILS_VERSION_2_30
 config BINUTILS_VERSION_2_31_1
 	bool
 
+config BINUTILS_VERSION_2_32
+	bool
+
 config BINUTILS_VERSION
 	string
 	default "2.26.1"          if BINUTILS_VERSION_2_26_1
@@ -20,3 +23,4 @@ config BINUTILS_VERSION
 	default "2.29.1"	  if BINUTILS_VERSION_2_29_1
 	default "2.30"	          if BINUTILS_VERSION_2_30
 	default "2.31.1"	       if BINUTILS_VERSION_2_31_1
+	default "2.32"		       if BINUTILS_VERSION_2_32

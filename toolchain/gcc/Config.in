@@ -2,7 +2,7 @@
 
 choice
 	prompt "GCC compiler Version" if TOOLCHAINOPTS
-	default GCC_USE_VERSION_7_3_0
+	default GCC_USE_VERSION_7_4_0
 	help
 	  Select the version of gcc you wish to use.
 
@@ -12,8 +12,8 @@ choice
 	config GCC_USE_VERSION_6_3_0
 		bool "gcc 6.3.0"
 
-	config GCC_USE_VERSION_7_3_0
-		bool "gcc 7.3.0"
+	config GCC_USE_VERSION_7_4_0
+		bool "gcc 7.4.0"
 
 endchoice
 

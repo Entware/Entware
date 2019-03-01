@@ -1,4 +1,4 @@
-config GCC_VERSION_7_3_0
+config GCC_VERSION_7_4_0
 	default y if !TOOLCHAINOPTS
 	bool
 
@@ -6,4 +6,4 @@ config GCC_VERSION
 	string
 	default "5.4.0" if GCC_USE_VERSION_5_4_0
 	default "6.3.0" if GCC_USE_VERSION_6_3_0
-	default "7.3.0" if GCC_USE_VERSION_7_3_0
+	default "7.4.0" if GCC_USE_VERSION_7_4_0
