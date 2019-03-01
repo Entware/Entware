@@ -1,15 +1,11 @@
-commit 8ad45992acab9a2dead144d5b387fbe132ce59c1
-Author: Marek Lindner <mareklindner@neomailbox.ch>
-Date:   Sun Dec 2 22:02:04 2018 +0800
+commit 98f86e61ea95b482f4613795a79626c353b135c4
+Author: Daniel Golle <daniel@makrotopia.org>
+Date:   Fri Mar 1 06:57:40 2019 +0100
 
-    ipq40xx: fix openmesh sysupgrade with tar content out of order
+    mac80211: rt2x00: cleanup ePA, RXIQ and TX-LOFT code
     
-    The tar extraction depends on the order in which the files
-    are added to the tar file. Since the order is not guaranteed
-    and depends on the host system, the combined mtd write fails
-    with sysupgrade images built on some systems.
-    Fix by changing to tar file order independent mtd write.
-    
-    Fixes: 86e18f6706e1 ("ipq806x: add support for OpenMesh A42")
-    Signed-off-by: Marek Lindner <mareklindner@neomailbox.ch>
-    Signed-off-by: Sven Eckelmann <sven@narfation.org>
+    consolidate patch 651-rt2x00-remove-unneccesary-code.patch.
+    fixup the most obvious whitespace problems in RXIQ and TX-LOFT code.
+    always backup registers bbpr1, bbpr4, bbpr241 and bbpr242 to avoid
+    compiler warning about them being potentially uninitialized.
+    no functional changes (intended)
