@@ -26,7 +26,7 @@ tools-y += sstrip
 tools-y += quilt
 tools-y += mm-macros missing-macros cmake scons bc findutils gengetopt patchelf
 tools-y += mtools
-tools-y += lzma
+tools-y += lzma zip
 tools-$(BUILD_ISL) += isl
 tools-y += go-src
 tools-y += go-bootstrap
@@ -72,9 +72,10 @@ $(foreach tool, $(tools-y), $(eval $(curdir)/$(tool)/compile += $(patsubst %,$(c
 tools-y += $(tools-core)
 
 # make core tools depend on sed and flock
-$(foreach tool, $(tools-core), $(eval $(curdir)/$(tool)/compile += $(curdir)/sed/compile))
+$(foreach tool, $(filter-out xz,$(tools-core)), $(eval $(curdir)/$(tool)/compile += $(curdir)/sed/compile))
+$(curdir)/xz/compile += $(curdir)/flock/compile
 
-$(curdir)/sed/compile := $(curdir)/flock/compile
+$(curdir)/sed/compile := $(curdir)/flock/compile $(curdir)/xz/compile
 tools-y += flock sed
 
 $(curdir)/autoremove := 1
