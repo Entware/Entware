@@ -1,6 +1,6 @@
 --- a/libopkg/opkg_install.c
 +++ b/libopkg/opkg_install.c
-@@ -208,8 +208,7 @@
+@@ -213,8 +213,7 @@
  			root_dir = pkg->dest->root_dir;
  	}
  

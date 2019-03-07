@@ -1,0 +1,16 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -36,10 +36,10 @@
+ TEST_BIG_ENDIAN(WORDS_BIGENDIAN)
+ 
+ ADD_DEFINITIONS(-Os -Wall --std=gnu99 -g3 -Wmissing-declarations
+-	-DDATADIR="/usr/share"
+-	-DOPKGETCDIR="/etc"
++	-DDATADIR="/opt/share"
++	-DOPKGETCDIR="/opt/etc"
+ 	-DOPKGLOCKFILE="${LOCK_FILE}"
+-	-DOPKGLIBDIR="/usr/lib"
++	-DOPKGLIBDIR="/opt/lib"
+ 	-DHOST_CPU_STR="${HOST_CPU}"
+ 	-DBUILD_CPU=${BUILD_CPU}
+ 	-DPATH_SPEC="${PATH_SPEC}"

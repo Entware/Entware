@@ -1,5 +1,0 @@
-src/gz packages http://qnapware.zyxmon.org/binaries-x86
-dest root /
-dest ram /opt/tmp
-lists_dir ext /opt/var/opkg-lists
-option tmp_dir /opt/tmp
