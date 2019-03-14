@@ -4,6 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+# Entware specific: -DLZO_CFG_NO_UNALIGNED=1 for x86 targets
 
 include $(TOPDIR)/rules.mk
 

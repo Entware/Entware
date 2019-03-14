@@ -4,7 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-# Stripped charset are added back
+# Entware specific: Stripped charset are added back
 
 include $(TOPDIR)/rules.mk
 

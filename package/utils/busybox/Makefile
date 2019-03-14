@@ -4,6 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+# Entware specific postinst/prerm
 
 include $(TOPDIR)/rules.mk
 
@@ -111,9 +112,9 @@ endef
 
 # The postinst & prerm scripts will work only when busybox has readlink applet.
 # We cannot use readlink directly, it is not yet installed and use 'busybox readlink' instead.
-# We convert /opt/bin/busybox to canonical form because /opt is a simpink in some Entware installs
+# We convert /opt/bin/busybox to canonical form because /opt is a symlink in some Entware installs
 # We remove all symlinks to /opt/bin/busybox in /opt/bin and /opt/sbin before installation and removal.
-# It alows to handle applets list change and busybox reinstall in a correct way.
+# It allows to handle applets list change and busybox reinstall in a correct way.
 # /opt/share/busybox_applets.lst is not needed any more
 
 define Package/busybox/postinst

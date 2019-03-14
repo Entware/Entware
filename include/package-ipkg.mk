@@ -4,6 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+# Entware specific: default postint/prerm files disabled
 
 ifndef DUMP
   include $(INCLUDE_DIR)/feeds.mk

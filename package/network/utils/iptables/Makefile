@@ -4,8 +4,8 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+# Entware specific: keep 1.4.21 version
 # Do not split extensions into separate packages, do not install dev headers
-# We do not upgrade 1.4.21 to a newer version in Entware
 
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk

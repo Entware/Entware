@@ -4,8 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-# Entware comment
-# We will keep this version because arm feed use 3.2 kernel. 
+# Entware specific: We will keep this version because arm feed use 3.2 kernel.
 # We use 3.2 kernels because Synology still use it on arm NASes.
 #
 

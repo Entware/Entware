@@ -6,8 +6,9 @@
 #
 # Main makefile for the host tools
 #
-# Entware note: some tools (image and kernel related) that we do not need are removed
-#               other tools go 
+# Entware specific: some tools (image and kernel related) that we do not need
+# are removed, go-src, go-bootstrap tools added
+
 curdir:=tools
 
 # subdirectories to descend into

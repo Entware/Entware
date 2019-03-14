@@ -4,6 +4,8 @@
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
+#
+# Entware specific: static linkage against libubox, opkg upgrade (all) support
 
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
@@ -32,7 +34,7 @@ PKG_BUILD_PARALLEL:=1
 HOST_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
 
-HOST_BUILD_DEPENDS:=libubox/host
+HOST_BUILD_DEPENDS:=libubox libubox/host
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/host-build.mk
@@ -42,7 +44,7 @@ define Package/opkg
   SECTION:=base
   CATEGORY:=Base system
   TITLE:=opkg package manager
-  DEPENDS:=+libpthread +libubox
+  DEPENDS:=+libpthread
   URL:=$(PKG_SOURCE_URL)
   MENU:=1
 endef

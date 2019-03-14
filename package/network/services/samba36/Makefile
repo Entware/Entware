@@ -4,7 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-# more binaries are added to server and client packages (as in Debian)
+# Entware specific: more binaries are added to server and client packages (as in Debian)
 # replace `$(ICONV_DEPENDS)` => `+libiconv-full` or use `include $(INCLUDE_DIR)/nls.mk`
 
 include $(TOPDIR)/rules.mk

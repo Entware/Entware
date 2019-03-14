@@ -4,11 +4,12 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+# Entware specific:
 # opkg binary segfaults when a real package is replaced by "provided" package.
 # we removed PROVIDES libncurses field in libncursesw and added a real libncurses package that
 # installes symlinks. We've added more symlinks to make binaries from older packages to be compatible with
 # the new libncurses(w) package.
-# Our patch set is different from LEDE for historical reason, it will be merged after next uptade in LEDE
+# Our patch set is different from LEDE for historical reason, it will be merged after next sync
 
 include $(TOPDIR)/rules.mk
 
