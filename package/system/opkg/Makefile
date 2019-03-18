@@ -34,7 +34,8 @@ PKG_BUILD_PARALLEL:=1
 HOST_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
 
-HOST_BUILD_DEPENDS:=libubox libubox/host
+HOST_BUILD_DEPENDS:=libubox/host
+PKG_BUILD_DEPENDS:=libubox
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/host-build.mk
