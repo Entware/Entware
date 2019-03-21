@@ -1,0 +1,27 @@
+--- a/pppd/plugins/Makefile.linux
++++ b/pppd/plugins/Makefile.linux
+@@ -27,7 +27,7 @@
+ endif
+ 
+ all:	$(PLUGINS)
+-	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d all || exit $$?; done
++	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d all; done
+ 
+ %.so: %.c
+ 	$(CC) -o $@ $(LDFLAGS) $(LDFLAGS_SHARED) $(CFLAGS) $^
+@@ -37,12 +37,12 @@
+ install: $(PLUGINS)
+ 	$(INSTALL) -d $(LIBDIR)
+ 	$(INSTALL) $? $(LIBDIR)
+-	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d install || exit $$?; done
++	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d install; done
+ 
+ clean:
+ 	rm -f *.o *.so *.a
+-	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d clean || exit $$?; done
++	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d clean; done
+ 
+ depend:
+ 	$(CPP) -M $(CFLAGS) *.c >.depend
+-	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d depend || exit $$?; done
++	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d depend; done
