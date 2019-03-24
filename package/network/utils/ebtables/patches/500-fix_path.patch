@@ -46,3 +46,11 @@
  #define LOCKFILE LOCKDIR"/lock"
  #endif
  int use_lockfd;
+--- a/ebtables-save
++++ b/ebtables-save
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl -w
++#!/opt/bin/perl -w
+ #
+ #
+ # A script that generates text output of the ebtables rules.
