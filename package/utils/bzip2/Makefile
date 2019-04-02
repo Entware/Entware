@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=bzip2
 PKG_VERSION:=1.0.6
-PKG_RELEASE:=5
+PKG_RELEASE:=5a
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://distfiles.gentoo.org/distfiles/ \
@@ -57,14 +57,14 @@ define Package/bzip2/description
 endef
 
 TARGET_CFLAGS += \
-	$(FPIC)
+	$(FPIC) \
+	$(TARGET_LDFLAGS)
 
 CONFIGURE_ARGS += --prefix=/opt
 
 MAKE_FLAGS += \
 	-f Makefile-libbz2_so \
 	CFLAGS="$(TARGET_CFLAGS)" \
-	LDFLAGS="$(TARGET_LDFLAGS)" \
 	all
 
 define Build/InstallDev
@@ -88,11 +88,11 @@ define Package/bzip2/install
 endef
 
 HOST_CFLAGS += \
-	$(FPIC)
+	$(FPIC) \
+	$(HOST_LDFLAGS)
 
 HOST_MAKE_FLAGS+= \
 	CFLAGS="$(HOST_CFLAGS)" \
-	LDFLAGS="$(HOST_LDFLAGS)" \
 	all
 
 HOST_CONFIGURE_ARGS+= \
