@@ -12,7 +12,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=iproute2
 PKG_VERSION:=4.4.0
-PKG_RELEASE:=10
+PKG_RELEASE:=10a
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/utils/net/iproute2
@@ -39,7 +39,6 @@ $(call Package/iproute2/Default)
  TITLE:=Routing control utility (Minimal)
  VARIANT:=tiny
  PROVIDES:=ip
- ALTERNATIVES:=200:/sbin/ip:/sbin/ip-tiny
 endef
 
 define Package/ip-full
@@ -47,7 +46,6 @@ $(call Package/iproute2/Default)
  TITLE:=Routing control utility (Full)
  VARIANT:=full
  PROVIDES:=ip
- ALTERNATIVES:=300:/sbin/ip:/sbin/ip-full
 endef
 
 define Package/tc
