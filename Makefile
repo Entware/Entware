@@ -87,7 +87,7 @@ prereq: $(target/stamp-prereq) tmp/.prereq_packages
 	fi
 
 checksum: FORCE
-	$(call sha256sums,$(BIN_DIR))
+	$(call sha256sums,$(BIN_DIR),$(CONFIG_BUILDBOT))
 
 diffconfig: FORCE
 	mkdir -p $(BIN_DIR)

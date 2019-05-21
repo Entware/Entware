@@ -1,11 +1,6 @@
-commit 98f86e61ea95b482f4613795a79626c353b135c4
-Author: Daniel Golle <daniel@makrotopia.org>
-Date:   Fri Mar 1 06:57:40 2019 +0100
+commit 8eb7cf0cd7ada5b64ebb23f41d0559204fb50dad
+Author: Koen Vandeputte <koen.vandeputte@ncentric.com>
+Date:   Mon May 20 10:51:18 2019 +0200
 
-    mac80211: rt2x00: cleanup ePA, RXIQ and TX-LOFT code
+    kernel: bump 4.19 to 4.19.44
     
-    consolidate patch 651-rt2x00-remove-unneccesary-code.patch.
-    fixup the most obvious whitespace problems in RXIQ and TX-LOFT code.
-    always backup registers bbpr1, bbpr4, bbpr241 and bbpr242 to avoid
-    compiler warning about them being potentially uninitialized.
-    no functional changes (intended)
