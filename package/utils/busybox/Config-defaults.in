@@ -834,10 +834,10 @@ config BUSYBOX_DEFAULT_TR
 	default y
 config BUSYBOX_DEFAULT_FEATURE_TR_CLASSES
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_FEATURE_TR_EQUIV
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_TRUE
 	bool
 	default y
