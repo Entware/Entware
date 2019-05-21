@@ -182,8 +182,42 @@ static struct device_info boards[] = {
 			{"device-info", 0x31400, 0x00400},
 			{"signature", 0x32000, 0x00400},
 			{"device-id", 0x33000, 0x00100},
-			{"os-image", 0x40000, 0x1c0000},
-			{"file-system", 0x200000, 0x5b0000},
+			{"firmware", 0x40000, 0x770000},
+			{"soft-version", 0x7b0000, 0x00100},
+			{"support-list", 0x7b1000, 0x01000},
+			{"user-config", 0x7c0000, 0x10000},
+			{"default-config", 0x7d0000, 0x10000},
+			{"log", 0x7e0000, 0x10000},
+			{"radio", 0x7f0000, 0x10000},
+			{NULL, 0, 0}
+		},
+
+		.first_sysupgrade_partition = "os-image",
+		.last_sysupgrade_partition = "support-list",
+	},
+
+	/** Firmware layout for the CPE210 V3 */
+	{
+		.id     = "CPE210V3",
+		.vendor = "CPE210(TP-LINK|UN|N300-2|00000000):3.0\r\n",
+		.support_list =
+			"SupportList:\r\n"
+			"CPE210(TP-LINK|EU|N300-2|45550000):3.0\r\n"
+			"CPE210(TP-LINK|UN|N300-2|00000000):3.0\r\n"
+			"CPE210(TP-LINK|UN|N300-2):3.0\r\n"
+			"CPE210(TP-LINK|EU|N300-2):3.0\r\n",
+		.support_trail = '\xff',
+		.soft_ver = NULL,
+
+		.partitions = {
+			{"fs-uboot", 0x00000, 0x20000},
+			{"partition-table", 0x20000, 0x01000},
+			{"default-mac", 0x30000, 0x00020},
+			{"product-info", 0x31100, 0x00100},
+			{"device-info", 0x31400, 0x00400},
+			{"signature", 0x32000, 0x00400},
+			{"device-id", 0x33000, 0x00100},
+			{"firmware", 0x40000, 0x770000},
 			{"soft-version", 0x7b0000, 0x00100},
 			{"support-list", 0x7b1000, 0x01000},
 			{"user-config", 0x7c0000, 0x10000},
@@ -784,7 +818,8 @@ static struct device_info boards[] = {
 			"{product_name:Archer C7,product_ver:5.0.0,special_id:43410000}\n"
 			"{product_name:Archer C7,product_ver:5.0.0,special_id:4A500000}\n"
 			"{product_name:Archer C7,product_ver:5.0.0,special_id:54570000}\n"
-			"{product_name:Archer C7,product_ver:5.0.0,special_id:52550000}\n",
+			"{product_name:Archer C7,product_ver:5.0.0,special_id:52550000}\n"
+			"{product_name:Archer C7,product_ver:5.0.0,special_id:4B520000}\n",
 
 		.support_trail = '\x00',
 		.soft_ver = "soft_ver:1.0.0\n",
@@ -1137,6 +1172,38 @@ static struct device_info boards[] = {
 			{"user-config", 0x630000, 0x10000},
 			{"default-config", 0x640000, 0x10000},
 			{"radio", 0x7f0000, 0x10000},
+			{NULL, 0, 0}
+		},
+
+		.first_sysupgrade_partition = "os-image",
+		.last_sysupgrade_partition = "file-system"
+	},
+
+	/** Firmware layout for the RE350K v1 */
+	{
+		.id = "RE350K-V1",
+		.vendor = "",
+		.support_list =
+			"SupportList:\n"
+			"{product_name:RE350K,product_ver:1.0.0,special_id:00000000,product_region:US}\n",
+		.support_trail = '\x00',
+		.soft_ver = NULL,
+
+		/** We're using a dynamic kernel/rootfs split here */
+		.partitions = {
+			{"fs-uboot", 0x00000, 0x20000},
+			{"firmware", 0x20000, 0xd70000},
+			{"partition-table", 0xd90000, 0x02000},
+			{"default-mac", 0xda0000, 0x00020},
+			{"pin", 0xda0100, 0x00020},
+			{"product-info", 0xda1100, 0x01000},
+			{"soft-version", 0xdb0000, 0x01000},
+			{"support-list", 0xdb1000, 0x01000},
+			{"profile", 0xdb2000, 0x08000},
+			{"user-config", 0xdc0000, 0x10000},
+			{"default-config", 0xdd0000, 0x10000},
+			{"device-id", 0xde0000, 0x00108},
+			{"radio", 0xff0000, 0x10000},
 			{NULL, 0, 0}
 		},
 
