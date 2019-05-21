@@ -9,14 +9,13 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openssl
 PKG_BASE:=1.1.1
-PKG_BUGFIX:=a
+PKG_BUGFIX:=b
 PKG_VERSION:=$(PKG_BASE)$(PKG_BUGFIX)
-PKG_RELEASE:=2
+PKG_RELEASE:=5
 PKG_USE_MIPS16:=0
 ENGINES_DIR=engines-1.1
 
-PKG_BUILD_PARALLEL:=0
-#PKG_BUILD_DEPENDS:=cryptodev-linux
+PKG_BUILD_PARALLEL:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:= \
@@ -25,14 +24,18 @@ PKG_SOURCE_URL:= \
 	ftp://ftp.pca.dfn.de/pub/tools/net/openssl/source/ \
 	http://www.openssl.org/source/ \
 	http://www.openssl.org/source/old/$(PKG_BASE)/
-PKG_HASH:=fc20130f8b7cbd2fb918b2f14e2f429e109c31ddd0fb38fc5d71d9ffed3f9f41
+PKG_HASH:=5c557b023230413dfb0756f3137a13e6d726838ccd1430888ad15bfb2b43ea4b
 
 PKG_LICENSE:=OpenSSL
 PKG_LICENSE_FILES:=LICENSE
+PKG_MAINTAINER:=Eneas U de Queiroz <cote2004-github@yahoo.com>
 PKG_CPE_ID:=cpe:/a:openssl:openssl
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_OPENSSL_ENGINE \
-	CONFIG_OPENSSL_ENGINE_CRYPTO \
+	CONFIG_OPENSSL_ENGINE_BUILTIN \
+	CONFIG_OPENSSL_ENGINE_BUILTIN_AFALG \
+	CONFIG_OPENSSL_ENGINE_BUILTIN_DEVCRYPTO \
+	CONFIG_OPENSSL_ENGINE_BUILTIN_PADLOCK \
 	CONFIG_OPENSSL_NO_DEPRECATED \
 	CONFIG_OPENSSL_OPTIMIZE_SPEED \
 	CONFIG_OPENSSL_PREFER_CHACHA_OVER_GCM \
@@ -133,8 +136,8 @@ define Package/libopenssl-afalg
   $(call Package/openssl/Default)
   SUBMENU:=SSL
   TITLE:=AFALG hardware acceleration engine
-  DEPENDS:=libopenssl @OPENSSL_ENGINE @KERNEL_AIO @!LINUX_3_18 +kmod-crypto-user \
-	   +libopenssl-conf
+  DEPENDS:=libopenssl @OPENSSL_ENGINE @KERNEL_AIO \
+	   +PACKAGE_libopenssl-afalg:kmod-crypto-user +libopenssl-conf @!OPENSSL_ENGINE_BUILTIN
 endef
 
 define Package/libopenssl-afalg/description
@@ -142,21 +145,40 @@ This package adds an engine that enables hardware acceleration
 through the AF_ALG kernel interface.
 To use it, you need to configure the engine in /etc/ssl/openssl.cnf
 See https://www.openssl.org/docs/man1.1.1/man5/config.html#Engine-Configuration-Module
+and https://openwrt.org/docs/techref/hardware/cryptographic.hardware.accelerators
 The engine_id is "afalg"
+endef
+
+define Package/libopenssl-devcrypto
+  $(call Package/openssl/Default)
+  SUBMENU:=SSL
+  TITLE:=/dev/crypto hardware acceleration engine
+  DEPENDS:=libopenssl @OPENSSL_ENGINE +PACKAGE_libopenssl-devcrypto:kmod-cryptodev +libopenssl-conf \
+	   @!OPENSSL_ENGINE_BUILTIN
+endef
+
+define Package/libopenssl-devcrypto/description
+This package adds an engine that enables hardware acceleration
+through the /dev/crypto kernel interface.
+To use it, you need to configure the engine in /etc/ssl/openssl.cnf
+See https://www.openssl.org/docs/man1.1.1/man5/config.html#Engine-Configuration-Module
+and https://openwrt.org/docs/techref/hardware/cryptographic.hardware.accelerators
+The engine_id is "devcrypto"
 endef
 
 define Package/libopenssl-padlock
   $(call Package/openssl/Default)
   SUBMENU:=SSL
   TITLE:=VIA Padlock hardware acceleration engine
-  DEPENDS:=libopenssl @OPENSSL_ENGINE @TARGET_x86 +kmod-crypto-hw-padlock \
-	   +libopenssl-conf
+  DEPENDS:=libopenssl @OPENSSL_ENGINE @TARGET_x86 +PACKAGE_libopenssl-padlock:kmod-crypto-hw-padlock \
+	   +libopenssl-conf @!OPENSSL_ENGINE_BUILTIN
 endef
 
 define Package/libopenssl-padlock/description
 This package adds an engine that enables VIA Padlock hardware acceleration.
 To use it, you need to configure it in /etc/ssl/openssl.cnf.
 See https://www.openssl.org/docs/man1.1.1/man5/config.html#Engine-Configuration-Module
+and https://openwrt.org/docs/techref/hardware/cryptographic.hardware.accelerators
 The engine_id is "padlock"
 endef
 
@@ -241,14 +263,27 @@ else
 endif
 
 ifdef CONFIG_OPENSSL_ENGINE
-  ifdef CONFIG_OPENSSL_ENGINE_CRYPTO
-    OPENSSL_OPTIONS += enable-devcryptoeng
-  endif
-  ifndef CONFIG_PACKAGE_libopenssl-afalg
-    OPENSSL_OPTIONS += no-afalgeng
-  endif
-  ifndef CONFIG_PACKAGE_libopenssl-padlock
-    OPENSSL_OPTIONS += no-hw-padlock
+  ifdef CONFIG_OPENSSL_ENGINE_BUILTIN
+    OPENSSL_OPTIONS += disable-dynamic-engine
+    ifndef CONFIG_OPENSSL_ENGINE_BUILTIN_AFALG
+      OPENSSL_OPTIONS += no-afalgeng
+    endif
+    ifdef CONFIG_OPENSSL_ENGINE_BUILTIN_DEVCRYPTO
+      OPENSSL_OPTIONS += enable-devcryptoeng
+    endif
+    ifndef CONFIG_OPENSSL_ENGINE_BUILTIN_PADLOCK
+      OPENSSL_OPTIONS += no-hw-padlock
+    endif
+  else
+    ifdef CONFIG_PACKAGE_libopenssl-devcrypto
+      OPENSSL_OPTIONS += enable-devcryptoeng
+    endif
+    ifndef CONFIG_PACKAGE_libopenssl-afalg
+      OPENSSL_OPTIONS += no-afalgeng
+    endif
+    ifndef CONFIG_PACKAGE_libopenssl-padlock
+      OPENSSL_OPTIONS += no-hw-padlock
+    endif
   endif
 else
   OPENSSL_OPTIONS += no-engine
@@ -295,10 +330,6 @@ OPENSSL_TARGET:=linux-$(call qstrip,$(CONFIG_ARCH))-openwrt
 STAMP_CONFIGURED := $(STAMP_CONFIGURED)_$(shell echo $(OPENSSL_OPTIONS) | mkhash md5)
 
 define Build/Configure
-	[ -f $(STAMP_CONFIGURED) ] || { \
-		rm -f $(PKG_BUILD_DIR)/*.so.* $(PKG_BUILD_DIR)/*.a; \
-		find $(PKG_BUILD_DIR) -name \*.o | xargs rm -f; \
-	}
 	(cd $(PKG_BUILD_DIR); \
 		./Configure $(OPENSSL_TARGET) \
 			--prefix=/opt \
@@ -306,7 +337,8 @@ define Build/Configure
 			--openssldir=/opt/etc/ssl \
 			$(TARGET_CPPFLAGS) \
 			$(TARGET_LDFLAGS) \
-			$(OPENSSL_OPTIONS) \
+			$(OPENSSL_OPTIONS) && \
+		{ [ -f $(STAMP_CONFIGURED) ] || make clean; } \
 	)
 endef
 
@@ -364,6 +396,11 @@ define Package/libopenssl-afalg/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/lib/$(ENGINES_DIR)/afalg.so $(1)/opt/lib/$(ENGINES_DIR)
 endef
 
+define Package/libopenssl-devcrypto/install
+	$(INSTALL_DIR) $(1)/opt/lib/$(ENGINES_DIR)
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/lib/$(ENGINES_DIR)/devcrypto.so $(1)/opt/lib/$(ENGINES_DIR)
+endef
+
 define Package/libopenssl-padlock/install
 	$(INSTALL_DIR) $(1)/opt/lib/$(ENGINES_DIR)
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/lib/$(ENGINES_DIR)/*padlock.so $(1)/opt/lib/$(ENGINES_DIR)
@@ -372,5 +409,6 @@ endef
 $(eval $(call BuildPackage,libopenssl))
 $(eval $(call BuildPackage,libopenssl-conf))
 #$(eval $(call BuildPackage,libopenssl-afalg))
+#$(eval $(call BuildPackage,libopenssl-devcrypto))
 #$(eval $(call BuildPackage,libopenssl-padlock))
 $(eval $(call BuildPackage,openssl-util))
