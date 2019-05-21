@@ -15,7 +15,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ncurses
 PKG_VERSION:=6.1
-PKG_RELEASE:=3
+PKG_RELEASE:=4
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
@@ -209,10 +209,6 @@ endef
 define Host/Compile
 	$(MAKE) -C $(HOST_BUILD_DIR) libs
 	$(MAKE) -C $(HOST_BUILD_DIR)/progs tic
-endef
-
-define Host/Install
-	$(INSTALL_BIN) $(HOST_BUILD_DIR)/progs/tic $(STAGING_DIR_HOST)/bin/tic
 endef
 
 $(eval $(call HostBuild))
