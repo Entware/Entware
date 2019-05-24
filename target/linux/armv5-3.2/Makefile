@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 ARCH:=arm
 BOARD:=armv5-3.2
 BOARDNAME:=Entware (armv5, soft float, kernel-3.2)
-FEATURES:=usb audio pci
+FEATURES:=gpio usb audio pci
 KERNEL_PATCHVER:=3.2.40
 DEFAULT_PACKAGES := toolchain
 
