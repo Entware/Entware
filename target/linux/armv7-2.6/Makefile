@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 ARCH:=arm
 BOARD:=armv7-2.6
 BOARDNAME:=Entware (armv7, soft float, kernel-2.6.36)
-FEATURES:=usb audio pci
+FEATURES:=gpio usb audio pci
 KERNEL_PATCHVER:=2.6.36
 CPU_TYPE:=cortex-a9
 DEFAULT_PACKAGES := toolchain
