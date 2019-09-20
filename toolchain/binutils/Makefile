@@ -11,26 +11,30 @@ PKG_VERSION:=$(call qstrip,$(CONFIG_BINUTILS_VERSION))
 BIN_VERSION:=$(PKG_VERSION)
 
 PKG_SOURCE_URL:=@GNU/binutils/
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
+
+TAR_OPTIONS += --exclude='*.rej'
 
 ifeq ($(PKG_VERSION),2.26.1)
+  PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
   PKG_HASH:=39c346c87aa4fb14b2f786560aec1d29411b6ec34dce3fe7309fe3dd56949fd8
 endif
 
 ifeq ($(PKG_VERSION),2.27)
+  PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
   PKG_HASH:=369737ce51587f92466041a97ab7d2358c6d9e1b6490b3940eb09fb0a9a6ac88
 endif
 
 ifeq ($(PKG_VERSION),2.29.1)
-  PKG_HASH:=1509dff41369fb70aed23682351b663b56db894034773e6dbf7d5d6071fc55cc
+  PKG_HASH:=e7010a46969f9d3e53b650a518663f98a5dde3c3ae21b7d71e5e6803bc36b577
 endif
 
 ifeq ($(PKG_VERSION),2.30)
-  PKG_HASH:=efeade848067e9a03f1918b1da0d37aaffa0b0127a06b5e9236229851d9d0c09
+  PKG_HASH:=6e46b8aeae2f727a36f0bd9505e405768a72218f1796f0d09757d45209871ae6
 endif
 
 ifeq ($(PKG_VERSION),2.31.1)
-  PKG_HASH:=ffcc382695bf947da6135e7436b8ed52d991cf270db897190f19d6f9838564d0
+  PKG_HASH:=5d20086ecf5752cc7d9134246e9588fa201740d540f7eb84d795b1f7a93bca86
 endif
 
 ifeq ($(PKG_VERSION),2.32)
@@ -41,39 +45,35 @@ HOST_BUILD_PARALLEL:=1
 
 PATCH_DIR:=./patches/$(PKG_VERSION)
 
-TAR_OPTIONS += --exclude=ld/*.rej
-
-
 include $(INCLUDE_DIR)/toolchain-build.mk
 
-BINUTILS_CONFIGURE:= \
-	./configure \
-		--prefix=$(TOOLCHAIN_DIR) \
-		--build=$(GNU_HOST_NAME) \
-		--host=$(GNU_HOST_NAME) \
-		--target=$(REAL_GNU_TARGET_NAME) \
-		--with-sysroot=$(TOOLCHAIN_DIR) \
-		--enable-deterministic-archives \
-		--enable-plugins \
-		--disable-multilib \
-		--disable-werror \
-		--disable-nls \
-		--disable-sim \
-		--disable-gdb \
-		$(GRAPHITE_CONFIGURE) \
-		$(SOFT_FLOAT_CONFIG_OPTION) \
-		$(call qstrip,$(CONFIG_EXTRA_BINUTILS_CONFIG_OPTIONS)) 
+HOST_CONFIGURE_ARGS = \
+	--prefix=$(TOOLCHAIN_DIR) \
+	--build=$(GNU_HOST_NAME) \
+	--host=$(GNU_HOST_NAME) \
+	--target=$(REAL_GNU_TARGET_NAME) \
+	--with-sysroot=$(TOOLCHAIN_DIR) \
+	--enable-deterministic-archives \
+	--enable-plugins \
+	--disable-multilib \
+	--disable-werror \
+	--disable-nls \
+	--disable-sim \
+	--disable-gdb \
+	$(GRAPHITE_CONFIGURE) \
+	$(SOFT_FLOAT_CONFIG_OPTION) \
+	$(call qstrip,$(CONFIG_EXTRA_BINUTILS_CONFIG_OPTIONS))
 
 ifneq ($(CONFIG_SSP_SUPPORT),)
-  BINUTILS_CONFIGURE+= \
+  HOST_CONFIGURE_ARGS+= \
 		--enable-libssp
 else
-  BINUTILS_CONFIGURE+= \
+  HOST_CONFIGURE_ARGS+= \
 		--disable-libssp
 endif
 
 ifneq ($(CONFIG_EXTRA_TARGET_ARCH),)
-  BINUTILS_CONFIGURE+= \
+  HOST_CONFIGURE_ARGS+= \
 		--enable-targets=$(call qstrip,$(CONFIG_EXTRA_TARGET_ARCH_NAME))-linux-$(TARGET_SUFFIX)
 endif
 
@@ -82,12 +82,6 @@ define Host/Prepare
 	ln -snf $(notdir $(HOST_BUILD_DIR)) $(BUILD_DIR_TOOLCHAIN)/$(PKG_NAME)
 	$(CP) $(SCRIPT_DIR)/config.{guess,sub} $(HOST_BUILD_DIR)/
 	$(SED) 's, " Linaro.*,,' $(HOST_BUILD_DIR)/bfd/version.h
-endef
-
-define Host/Configure
-	(cd $(HOST_BUILD_DIR); \
-		$(BINUTILS_CONFIGURE) \
-	);
 endef
 
 define Host/Compile
