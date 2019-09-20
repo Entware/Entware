@@ -1,6 +1,6 @@
 --- a/shell/ash.c
 +++ b/shell/ash.c
-@@ -14214,7 +14214,7 @@ int ash_main(int argc UNUSED_PARAM, char
+@@ -14347,7 +14347,7 @@ int ash_main(int argc UNUSED_PARAM, char
  		const char *hp;
  
  		state = 1;
@@ -11,7 +11,7 @@
  		hp = lookupvar("HOME");
 --- a/shell/hush.c
 +++ b/shell/hush.c
-@@ -10119,8 +10119,8 @@ int hush_main(int argc, char **argv)
+@@ -10139,8 +10139,8 @@ int hush_main(int argc, char **argv)
  	/* If we are login shell... */
  	if (flags & OPT_login) {
  		HFILE *input;
