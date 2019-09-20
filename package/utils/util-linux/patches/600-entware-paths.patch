@@ -1,6 +1,6 @@
 --- a/include/pathnames.h
 +++ b/include/pathnames.h
-@@ -22,17 +22,17 @@
+@@ -21,17 +21,17 @@
  #undef _PATH_DEFPATH
  
  #ifdef USE_USRDIR_PATHS_ONLY
