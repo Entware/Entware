@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lua
 PKG_VERSION:=5.1.5
-PKG_RELEASE:=2
+PKG_RELEASE:=6
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.lua.org/ftp/ \
@@ -133,11 +133,14 @@ define Host/Install
 	$(MAKE) -C $(HOST_BUILD_DIR) \
 		INSTALL_TOP="$(STAGING_DIR_HOSTPKG)" \
 		install
+
+	$(LN) $(STAGING_DIR_HOSTPKG)/bin/lua5.1 $(STAGING_DIR_HOSTPKG)/bin/lua
 endef
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/include
 	$(CP) $(PKG_INSTALL_DIR)/opt/include/lua{,lib,conf}.h $(1)/opt/include/
+	$(CP) $(PKG_INSTALL_DIR)/opt/include/lua.hpp $(1)/opt/include/
 	$(CP) $(PKG_INSTALL_DIR)/opt/include/lauxlib.h $(1)/opt/include/
 	$(CP) $(PKG_INSTALL_DIR)/opt/include/lnum_config.h $(1)/opt/include/
 	$(INSTALL_DIR) $(1)/opt/lib
@@ -155,12 +158,14 @@ endef
 
 define Package/lua/install
 	$(INSTALL_DIR) $(1)/opt/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/lua $(1)/opt/bin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/lua5.1 $(1)/opt/bin/
+	$(LN) lua5.1 $(1)/opt/bin/lua
 endef
 
 define Package/luac/install
 	$(INSTALL_DIR) $(1)/opt/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/luac $(1)/opt/bin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/luac5.1 $(1)/opt/bin/
+	$(LN) luac5.1 $(1)/opt/bin/luac
 endef
 
 define Package/lua-examples/install
