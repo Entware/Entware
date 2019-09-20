@@ -12,7 +12,7 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=iptables
 PKG_VERSION:=1.4.21
-PKG_RELEASE:=2a
+PKG_RELEASE:=3
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=http://www.netfilter.org/projects/iptables/files \
@@ -28,6 +28,10 @@ PKG_BUILD_PARALLEL:=1
 PKG_LICENSE:=GPL-2.0
 PKG_CPE_ID:=cpe:/a:netfilter_core_team:iptables
 
+ifeq ($(CONFIG_PACKAGE_opt-ndmsv2),m)
+PATCH_DIR:=./patches_kn
+endif
+
 include $(INCLUDE_DIR)/package.mk
 
 define Package/iptables
@@ -36,6 +40,9 @@ define Package/iptables
   CATEGORY:=Network
   SUBMENU:=Firewall
   URL:=http://netfilter.org/
+ifeq ($(CONFIG_PACKAGE_opt-ndmsv2),m)
+  PKGARCH:=$(BOARD)_kn
+endif
 endef
 
 define Package/iptables/description

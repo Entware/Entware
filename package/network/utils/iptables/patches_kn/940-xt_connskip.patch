@@ -1,0 +1,66 @@
+diff -Naur a/extensions/libxt_connskip.c b/extensions/libxt_connskip.c
+--- a/extensions/libxt_connskip.c	1970-01-01 03:00:00.000000000 +0300
++++ b/extensions/libxt_connskip.c	2019-07-19 13:03:48.238018000 +0300
+@@ -0,0 +1,62 @@
++#include <stdio.h>
++#include <xtables.h>
++
++struct xt_connskip_info {
++	uint32_t skipcount;
++};
++
++enum {
++	O_CONNSKIP = 0,
++};
++
++static void connskip_help(void)
++{
++	printf(
++"connskip match options:\n"
++"--connskip count    Count of first passed packets in connection\n");
++}
++
++static const struct xt_option_entry connskip_opts[] = {
++	{.name = "connskip", .id = O_CONNSKIP, .type = XTTYPE_UINT32,
++	 .flags = XTOPT_MAND | XTOPT_PUT,
++	 XTOPT_POINTER(struct xt_connskip_info, skipcount)},
++	XTOPT_TABLEEND,
++};
++
++static void connskip_parse(struct xt_option_call *cb)
++{
++	xtables_option_parse(cb);
++}
++
++static void
++connskip_print(const void *ip, const struct xt_entry_match *match, int numeric)
++{
++	const struct xt_connskip_info *info = (void *)match->data;
++
++	printf(" connskip %u", info->skipcount);
++}
++
++static void connskip_save(const void *ip, const struct xt_entry_match *match)
++{
++	const struct xt_connskip_info *info = (void *)match->data;
++
++	printf(" --connskip %u", info->skipcount);
++}
++
++static struct xtables_match cpu_match = {
++	.family		= NFPROTO_UNSPEC,
++	.name		= "connskip",
++	.version	= XTABLES_VERSION,
++	.size		= XT_ALIGN(sizeof(struct xt_connskip_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_connskip_info)),
++	.help		= connskip_help,
++	.print		= connskip_print,
++	.save		= connskip_save,
++	.x6_parse	= connskip_parse,
++	.x6_options	= connskip_opts,
++};
++
++void _init(void)
++{
++	xtables_register_match(&cpu_match);
++}

@@ -1,0 +1,138 @@
+diff -Naur a/extensions/libxt_tls.c b/extensions/libxt_tls.c
+--- a/extensions/libxt_tls.c	1970-01-01 03:00:00.000000000 +0300
++++ b/extensions/libxt_tls.c	2019-07-19 13:22:04.293034000 +0300
+@@ -0,0 +1,134 @@
++#include <stdio.h>
++#include <xtables.h>
++
++#define XT_TLS_OP_HOST			0x01
++#define XT_TLS_OP_BLOCK_ESNI	0x02
++
++/* match info */
++struct xt_tls_mt_info {
++	__u8 invert;
++	char tls_host[127];
++};
++
++enum {
++	O_SNI = 0,
++	O_ESNI = 1
++};
++
++static void tls_help(void)
++{
++	printf(
++"tls match options:\n"
++"[!] --tls-sni \"hostname\"    TLS/DTLS SNI hostname wildcard to match\n"
++"    --tls-esni                Match when ESNI extension is found\n");
++}
++
++static const struct xt_option_entry tls_opts[] = {
++	{.name = "tls-sni", .id = O_SNI, .type = XTTYPE_STRING,
++	 .flags = XTOPT_INVERT | XTOPT_MAND | XTOPT_PUT,
++	 XTOPT_POINTER(struct xt_tls_mt_info, tls_host)},
++	{.name = "tls-esni", .id = O_ESNI, .type = XTTYPE_NONE},
++	XTOPT_TABLEEND,
++};
++
++static void tls_parse(struct xt_option_call *cb)
++{
++	struct xt_tls_mt_info *tlsinfo = cb->data;
++
++	xtables_option_parse(cb);
++
++	switch (cb->entry->id) {
++	case O_SNI:
++			if (cb->invert)
++				tlsinfo->invert |= XT_TLS_OP_HOST;
++			break;
++	case O_ESNI:
++			tlsinfo->invert |= XT_TLS_OP_BLOCK_ESNI;
++			break;
++	}
++}
++
++static void
++tls_print(const void *ip, const struct xt_entry_match *match, int numeric)
++{
++	struct xt_tls_mt_info *info = (void *)match->data;
++
++	info->tls_host[126] = '\0';
++
++	printf(" %stls \"%s\"%s",
++		(info->invert & XT_TLS_OP_HOST) ? "! " : " ",
++		info->tls_host,
++		(info->invert & XT_TLS_OP_BLOCK_ESNI) ? " esni" : "");
++}
++
++static void tls_save(const void *ip, const struct xt_entry_match *match)
++{
++	struct xt_tls_mt_info *info = (void *)match->data;
++
++	info->tls_host[126] = '\0';
++
++	printf(" %s--tls-sni \"%s\"%s",
++		(info->invert & XT_TLS_OP_HOST) ? "! " : " ",
++		info->tls_host,
++		(info->invert & XT_TLS_OP_BLOCK_ESNI) ? " --tls-esni" : "");
++}
++
++static struct xtables_match tls_match[] = {
++	{
++		.family		= NFPROTO_IPV4,
++		.name		= "tls",
++		.revision   = 0,
++		.version	= XTABLES_VERSION,
++		.size		= XT_ALIGN(sizeof(struct xt_tls_mt_info)),
++		.userspacesize	= XT_ALIGN(sizeof(struct xt_tls_mt_info)),
++		.help		= tls_help,
++		.print		= tls_print,
++		.save		= tls_save,
++		.x6_parse	= tls_parse,
++		.x6_options	= tls_opts,
++	},
++	{
++		.family		= NFPROTO_IPV6,
++		.name		= "tls",
++		.revision   = 0,
++		.version	= XTABLES_VERSION,
++		.size		= XT_ALIGN(sizeof(struct xt_tls_mt_info)),
++		.userspacesize	= XT_ALIGN(sizeof(struct xt_tls_mt_info)),
++		.help		= tls_help,
++		.print		= tls_print,
++		.save		= tls_save,
++		.x6_parse	= tls_parse,
++		.x6_options	= tls_opts,
++	},
++	{
++		.family		= NFPROTO_IPV4,
++		.name		= "dtls",
++		.revision   = 0,
++		.version	= XTABLES_VERSION,
++		.size		= XT_ALIGN(sizeof(struct xt_tls_mt_info)),
++		.userspacesize	= XT_ALIGN(sizeof(struct xt_tls_mt_info)),
++		.help		= tls_help,
++		.print		= tls_print,
++		.save		= tls_save,
++		.x6_parse	= tls_parse,
++		.x6_options	= tls_opts,
++	},
++	{
++		.family		= NFPROTO_IPV6,
++		.name		= "dtls",
++		.revision   = 0,
++		.version	= XTABLES_VERSION,
++		.size		= XT_ALIGN(sizeof(struct xt_tls_mt_info)),
++		.userspacesize	= XT_ALIGN(sizeof(struct xt_tls_mt_info)),
++		.help		= tls_help,
++		.print		= tls_print,
++		.save		= tls_save,
++		.x6_parse	= tls_parse,
++		.x6_options	= tls_opts,
++	},
++};
++
++void _init(void)
++{
++	xtables_register_matches(tls_match, ARRAY_SIZE(tls_match));
++}

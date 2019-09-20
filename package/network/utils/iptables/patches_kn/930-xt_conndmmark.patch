@@ -1,0 +1,287 @@
+diff -Naur a/include/linux/netfilter/xt_connndmmark.h b/include/linux/netfilter/xt_connndmmark.h
+--- a/include/linux/netfilter/xt_connndmmark.h	1970-01-01 03:00:00.000000000 +0300
++++ b/include/linux/netfilter/xt_connndmmark.h	2018-10-30 18:58:44.814051000 +0300
+@@ -0,0 +1,30 @@
++#ifndef _XT_CONNNDMMARK_H
++#define _XT_CONNNDMMARK_H
++
++#include <linux/types.h>
++
++/* Copyright (C) 2002,2004 MARA Systems AB <http://www.marasystems.com>
++ * by Henrik Nordstrom <hno@marasystems.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++enum {
++	XT_CONNNDMMARK_SET = 0,
++	XT_CONNNDMMARK_RESTORE
++};
++
++struct xt_connndmmark_tginfo {
++	__u8 ctmark, ctmask, nfmask;
++	__u8 mode;
++};
++
++struct xt_connndmmark_mtinfo {
++	__u8 mark, mask;
++	__u8 invert;
++};
++
++#endif /*_XT_CONNNDMMARK_H*/
+diff -Naur a/extensions/libxt_connndmmark.c b/extensions/libxt_connndmmark.c
+--- a/extensions/libxt_connndmmark.c	1970-01-01 03:00:00.000000000 +0300
++++ b/extensions/libxt_connndmmark.c	2018-11-01 18:39:16.327821550 +0300
+@@ -0,0 +1,249 @@
++/* Shared library add-on to iptables to add connmark matching support.
++ *
++ * (C) 2002,2004 MARA Systems AB <http://www.marasystems.com>
++ * by Henrik Nordstrom <hno@marasystems.com>
++ *
++ * Version 1.1
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++#include <stdbool.h>
++#include <stdint.h>
++#include <stdio.h>
++#include <xtables.h>
++#include <linux/netfilter/xt_connndmmark.h>
++
++struct xt_connndmmark_info {
++	uint8_t mark, mask;
++	uint8_t invert;
++};
++
++enum {
++	O_MARK = 0,
++};
++
++static void connndmmark_mt_help(void)
++{
++	printf(
++"connndmmark match options:\n"
++"[!] --mark value[/mask]    Match NDM ctmark value with optional mask\n");
++}
++
++static const struct xt_option_entry connndmmark_mt_opts[] = {
++	{.name = "mark", .id = O_MARK, .type = XTTYPE_MARKMASK32,
++	 .flags = XTOPT_MAND | XTOPT_INVERT},
++	XTOPT_TABLEEND,
++};
++
++static void connndmmark_mt_parse(struct xt_option_call *cb)
++{
++	struct xt_connndmmark_info *markinfo = cb->data;
++
++	xtables_option_parse(cb);
++	markinfo->mark = cb->val.mark;
++	markinfo->mask = cb->val.mask;
++	if (cb->invert)
++		markinfo->invert = 1;
++}
++
++static void print_mark(unsigned int mark, unsigned int mask)
++{
++	if (mask != 0xffU)
++		printf(" 0x%x/0x%x", mark, mask);
++	else
++		printf(" 0x%x", mark);
++}
++
++static void
++connndmmark_mt_print(const void *ip, const struct xt_entry_match *match, int numeric)
++{
++	const struct xt_connndmmark_info *info = (const void *)match->data;
++
++	printf(" CONNNDMMARK match ");
++	if (info->invert)
++		printf("!");
++	print_mark(info->mark, info->mask);
++}
++
++static void
++connndmmark_mt_save(const void *ip, const struct xt_entry_match *match)
++{
++	const struct xt_connndmmark_info *info = (const void *)match->data;
++
++	if (info->invert)
++		printf(" !");
++
++	printf(" --mark");
++	print_mark(info->mark, info->mask);
++}
++
++enum {
++	O_SET_MARK = 0,
++	O_RESTORE_MARK,
++	F_SET_MARK     = 1 << O_SET_MARK,
++	F_RESTORE_MARK = 1 << O_RESTORE_MARK,
++	F_OP_ANY       = F_SET_MARK | F_RESTORE_MARK,
++};
++
++#define s struct xt_connndmmark_tginfo
++static const struct xt_option_entry connndmmark_tg_opts[] = {
++	{.name = "set-mark", .id = O_SET_MARK, .type = XTTYPE_MARKMASK32,
++	 .excl = F_OP_ANY},
++	{.name = "restore-mark", .id = O_RESTORE_MARK, .type = XTTYPE_NONE,
++	 .excl = F_OP_ANY},
++	XTOPT_TABLEEND,
++};
++#undef s
++
++static void connndmmark_tg_help(void)
++{
++	printf(
++"CONNNDMMARK target options:\n"
++"  --set-mark value[/mask]       Set conntrack NDM mark value\n"
++"  --restore-mark [--mask mask]  Restore saved NDM nfmark value\n"
++);
++}
++
++static void connndmmark_tg_init(struct xt_entry_target *target)
++{
++	struct xt_connndmmark_tginfo *info = (void *)target->data;
++
++	/*
++	 * Need these defaults for --save-mark/--restore-mark if no
++	 * --ctmark or --nfmask is given.
++	 */
++	info->ctmask = 0xFF;
++	info->nfmask = 0xFF;
++}
++
++static void connndmmark_tg_parse(struct xt_option_call *cb)
++{
++	struct xt_connndmmark_tginfo *info = cb->data;
++
++	xtables_option_parse(cb);
++	switch (cb->entry->id) {
++	case O_SET_MARK:
++		info->mode   = XT_CONNNDMMARK_SET;
++		info->ctmark = cb->val.mark;
++		info->ctmask = cb->val.mark | cb->val.mask;
++		break;
++	case O_RESTORE_MARK:
++		info->mode = XT_CONNNDMMARK_RESTORE;
++		break;
++	}
++}
++
++static void connndmmark_tg_check(struct xt_fcheck_call *cb)
++{
++	if (!(cb->xflags & F_OP_ANY))
++		xtables_error(PARAMETER_PROBLEM,
++		           "CONNNDMMARK target: No operation specified");
++}
++
++static void
++connndmmark_tg_print(const void *ip, const struct xt_entry_target *target,
++                  int numeric)
++{
++	const struct xt_connndmmark_tginfo *info = (const void *)target->data;
++
++	switch (info->mode) {
++	case XT_CONNNDMMARK_SET:
++		if (info->ctmark == 0)
++			printf(" CONNNDMMARK and 0x%x",
++			       (unsigned int)(uint8_t)~info->ctmask);
++		else if (info->ctmark == info->ctmask)
++			printf(" CONNNDMMARK or 0x%x", info->ctmark);
++		else if (info->ctmask == 0)
++			printf(" CONNNDMMARK xor 0x%x", info->ctmark);
++		else if (info->ctmask == 0xFF)
++			printf(" CONNNDMMARK set 0x%x", info->ctmark);
++		else
++			printf(" CONNNDMMARK xset 0x%x/0x%x",
++			       info->ctmark, info->ctmask);
++		break;
++	case XT_CONNNDMMARK_RESTORE:
++		if (info->ctmask == 0xFF && info->nfmask == 0xFF)
++			printf(" CONNNDMMARK restore");
++		else if (info->ctmask == info->nfmask)
++			printf(" CONNNDMMARK restore mask 0x%x", info->ctmask);
++		else
++			printf(" CONNNDMMARK restore ctmask 0x%x nfmask ~0x%x",
++			       info->ctmask, info->nfmask);
++		break;
++
++	default:
++		printf(" ERROR: UNKNOWN CONNNDMMARK MODE");
++		break;
++	}
++}
++
++static void
++connndmmark_tg_save(const void *ip, const struct xt_entry_target *target)
++{
++	const struct xt_connndmmark_tginfo *info = (const void *)target->data;
++
++	switch (info->mode) {
++	case XT_CONNNDMMARK_SET:
++		printf(" --set-xmark 0x%x/0x%x", info->ctmark, info->ctmask);
++		break;
++	case XT_CONNNDMMARK_RESTORE:
++		printf(" --restore-mark --nfmask 0x%x --ctmask 0x%x",
++		       info->nfmask, info->ctmask);
++		break;
++	default:
++		printf(" ERROR: UNKNOWN CONNNDMMARK MODE");
++		break;
++	}
++}
++
++static struct xtables_match connndmmark_mt_reg[] = {
++	{
++		.family        = NFPROTO_UNSPEC,
++		.name          = "connndmmark",
++		.revision      = 0,
++		.version       = XTABLES_VERSION,
++		.size          = XT_ALIGN(sizeof(struct xt_connndmmark_info)),
++		.userspacesize = XT_ALIGN(sizeof(struct xt_connndmmark_info)),
++		.help          = connndmmark_mt_help,
++		.print         = connndmmark_mt_print,
++		.save          = connndmmark_mt_save,
++		.x6_parse      = connndmmark_mt_parse,
++		.x6_options    = connndmmark_mt_opts,
++	},
++};
++
++static struct xtables_target connndmmark_tg_reg[] = {
++	{
++		.version       = XTABLES_VERSION,
++		.name          = "CONNNDMMARK",
++		.revision      = 0,
++		.family        = NFPROTO_UNSPEC,
++		.size          = XT_ALIGN(sizeof(struct xt_connndmmark_tginfo)),
++		.userspacesize = XT_ALIGN(sizeof(struct xt_connndmmark_tginfo)),
++		.help          = connndmmark_tg_help,
++		.init          = connndmmark_tg_init,
++		.print         = connndmmark_tg_print,
++		.save          = connndmmark_tg_save,
++		.x6_parse      = connndmmark_tg_parse,
++		.x6_fcheck     = connndmmark_tg_check,
++		.x6_options    = connndmmark_tg_opts,
++	},
++};
++
++void _init(void)
++{
++	xtables_register_matches(connndmmark_mt_reg, ARRAY_SIZE(connndmmark_mt_reg));
++	xtables_register_targets(connndmmark_tg_reg, ARRAY_SIZE(connndmmark_tg_reg));
++}
