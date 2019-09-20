@@ -31,7 +31,7 @@
  #define DEFLEASE 3600 /* default lease time, 1 hour */
  #define CHUSER "nobody"
  #define CHGRP "dip"
-@@ -198,7 +198,7 @@ RESOLVFILE
+@@ -197,7 +197,7 @@ RESOLVFILE
  #   elif defined(__ANDROID__)
  #      define LEASEFILE "/data/misc/dhcp/dnsmasq.leases"
  #   else
@@ -40,7 +40,7 @@
  #   endif
  #endif
  
-@@ -206,7 +206,7 @@ RESOLVFILE
+@@ -205,7 +205,7 @@ RESOLVFILE
  #   if defined(__FreeBSD__)
  #      define CONFFILE "/usr/local/etc/dnsmasq.conf"
  #   else
@@ -49,7 +49,7 @@
  #   endif
  #endif
  
-@@ -214,7 +214,7 @@ RESOLVFILE
+@@ -213,7 +213,7 @@ RESOLVFILE
  #   if defined(__uClinux__)
  #      define RESOLVFILE "/etc/config/resolv.conf"
  #   else
@@ -58,7 +58,7 @@
  #   endif
  #endif
  
-@@ -222,7 +222,7 @@ RESOLVFILE
+@@ -221,7 +221,7 @@ RESOLVFILE
  #   if defined(__ANDROID__)
  #      define RUNFILE "/data/dnsmasq.pid"
  #    else
