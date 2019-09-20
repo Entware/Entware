@@ -11,12 +11,12 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=wireguard
 
-PKG_VERSION:=0.0.20190406
+PKG_VERSION:=0.0.20190702
 PKG_RELEASE:=1
 
 PKG_SOURCE:=WireGuard-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=https://git.zx2c4.com/WireGuard/snapshot/
-PKG_HASH:=2f06f3adf70b95e74a7736a22dcf6e9ef623b311a15b7d55b5474e57c3d0415b
+PKG_HASH:=1a1311bc71abd47a72c47d918be3bacc486b3de90734661858af75cc990dbaac
 
 PKG_LICENSE:=GPL-2.0 Apache-2.0
 PKG_LICENSE_FILES:=COPYING
@@ -37,6 +37,9 @@ define Package/wireguard/Default
   URL:=https://www.wireguard.com
   MAINTAINER:=Jason A. Donenfeld <Jason@zx2c4.com> \
               Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
+ifeq ($(CONFIG_PACKAGE_opt-ndmsv2),m)
+  PKGARCH:=$(BOARD)_kn
+endif
 endef
 
 define Package/wireguard/Default/description
@@ -62,7 +65,7 @@ MAKE_PATH:=src/tools
 MAKE_VARS += PLATFORM=linux
 
 define Build/Compile
-	$(MAKE) $(KERNEL_MAKEOPTS) M="$(PKG_BUILD_DIR)/src" modules
+#	$(MAKE) $(KERNEL_MAKEOPTS) M="$(PKG_BUILD_DIR)/src" modules
 	$(call Build/Compile/Default)
 endef
 
@@ -88,11 +91,12 @@ define Package/wireguard-tools/description
 endef
 
 define Package/wireguard-tools/install
-	$(INSTALL_DIR) $(1)/usr/bin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/tools/wg $(1)/usr/bin/
-	$(INSTALL_BIN) ./files/wireguard_watchdog $(1)/usr/bin/
-	$(INSTALL_DIR) $(1)/lib/netifd/proto/
-	$(INSTALL_BIN) ./files/wireguard.sh $(1)/lib/netifd/proto/
+	$(INSTALL_DIR) $(1)/opt/bin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/tools/wg $(1)/opt/bin/
+#	$(INSTALL_BIN) ./files/wireguard_watchdog $(1)/usr/bin/
+#	$(INSTALL_DIR) $(1)/lib/netifd/proto/
+#	$(INSTALL_BIN) ./files/wireguard.sh $(1)/lib/netifd/proto/
+	$(INSTALL_DIR) $(1)/opt/etc/wireguard $(1)/opt/var/run/wireguard
 endef
 
 define KernelPackage/wireguard
@@ -112,5 +116,5 @@ define KernelPackage/wireguard/description
 endef
 
 #$(eval $(call BuildPackage,wireguard))
-#$(eval $(call BuildPackage,wireguard-tools))
+$(eval $(call BuildPackage,wireguard-tools))
 #$(eval $(call KernelPackage,wireguard))

@@ -1,0 +1,21 @@
+--- a/src/tools/Makefile
++++ b/src/tools/Makefile
+@@ -3,15 +3,15 @@
+ # Copyright (C) 2015-2019 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
+ 
+ PKG_CONFIG ?= pkg-config
+-PREFIX ?= /usr
++PREFIX ?= /opt
+ DESTDIR ?=
+-SYSCONFDIR ?= /etc
++SYSCONFDIR ?= /opt/etc
+ BINDIR ?= $(PREFIX)/bin
+ LIBDIR ?= $(PREFIX)/lib
+ MANDIR ?= $(PREFIX)/share/man
+ BASHCOMPDIR ?= $(PREFIX)/share/bash-completion/completions
+ SYSTEMDUNITDIR ?= $(shell $(PKG_CONFIG) --variable=systemdsystemunitdir systemd 2>/dev/null || echo "$(PREFIX)/lib/systemd/system")
+-RUNSTATEDIR ?= /var/run
++RUNSTATEDIR ?= /opt/var/run
+ WITH_BASHCOMPLETION ?=
+ WITH_WGQUICK ?=
+ WITH_SYSTEMDUNITS ?=
