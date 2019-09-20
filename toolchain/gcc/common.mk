@@ -38,14 +38,13 @@ ifeq ($(PKG_VERSION),6.3.0)
   PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 endif
 
-ifeq ($(PKG_VERSION),7.3.0)
+ifeq ($(PKG_VERSION),7.4.0)
   PKG_HASH:=eddde28d04f334aec1604456e536416549e9b1aa137fc69204e65eb0c009fe51
-  PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 endif
 
 PATCH_DIR=../patches/$(GCC_VERSION)
 
-BUGURL=http://www.lede-project.org/bugs/
+BUGURL=http://bugs.openwrt.org/
 PKGVERSION=OpenWrt GCC $(PKG_VERSION) $(REVISION)
 
 HOST_BUILD_PARALLEL:=1
@@ -115,13 +114,10 @@ GCC_CONFIGURE:= \
 		--with-gmp=$(TOPDIR)/staging_dir/host \
 		--with-mpfr=$(TOPDIR)/staging_dir/host \
 		--with-mpc=$(TOPDIR)/staging_dir/host \
-		--disable-decimal-float
+		--disable-decimal-float \
+		--with-diagnostics-color=auto-if-env
 ifneq ($(CONFIG_mips)$(CONFIG_mipsel),)
   GCC_CONFIGURE += --with-mips-plt
-endif
-
-ifndef GCC_VERSION_4_8
-  GCC_CONFIGURE += --with-diagnostics-color=auto-if-env
 endif
 
 ifneq ($(CONFIG_GCC_DEFAULT_PIE),)
