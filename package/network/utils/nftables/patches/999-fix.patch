@@ -1,0 +1,20 @@
+--- a/src/xt.c
++++ b/src/xt.c
+@@ -20,7 +20,17 @@
+ 
+ #include <libmnl/libmnl.h>
+ #include <linux/netfilter/nfnetlink.h>
++
++/* nf_tables_compat.h since Linux 3.13 */
++#ifndef LINUX_VERSION_CODE
++#include <linux/version.h>
++#endif
++
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,13,0)
+ #include <linux/netfilter/nf_tables_compat.h>
++#endif
++/* nf_tables_compat.h since Linux 3.13 */
++
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+ #include <linux/netfilter_arp/arp_tables.h>
