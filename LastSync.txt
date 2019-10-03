@@ -1,6 +1,8 @@
-commit 8eb7cf0cd7ada5b64ebb23f41d0559204fb50dad
-Author: Koen Vandeputte <koen.vandeputte@ncentric.com>
-Date:   Mon May 20 10:51:18 2019 +0200
+commit 2e2fe82d1e74794a2fe78861ed43627798d5ae4b
+Author: Álvaro Fernández Rojas <noltari@gmail.com>
+Date:   Fri Sep 20 07:50:47 2019 +0200
 
-    kernel: bump 4.19 to 4.19.44
+    brcm2708: fix Hifiberry DAC+DSP package definition
     
+    Fixes: ce536ae ("brcm2708: add support for Hifiberry DAC+DSP")
+    Signed-off-by: Álvaro Fernández Rojas <noltari@gmail.com>
