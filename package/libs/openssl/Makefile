@@ -4,6 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+# Entware specific: OPENSSL_OPTIONS += -DOPENSSL_RAND_SEED_DEVRANDOM_SHM_ID=-1
 
 include $(TOPDIR)/rules.mk
 
@@ -182,6 +183,8 @@ The engine_id is "padlock"
 endef
 
 OPENSSL_OPTIONS:= shared
+
+OPENSSL_OPTIONS += -DOPENSSL_RAND_SEED_DEVRANDOM_SHM_ID=-1
 
 ifndef CONFIG_OPENSSL_WITH_BLAKE2
   OPENSSL_OPTIONS += no-blake2
