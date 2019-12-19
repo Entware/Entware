@@ -21,7 +21,7 @@ PKG_FIXUP:=autoreconf
 PKG_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
 
-ifeq ($(CONFIG_TARGET_armv7_2_6),y)
+ifeq ($(CONFIG_TARGET_armv7_2_6)$(CONFIG_TARGET_x86_2_6),y)
 PATCH_DIR:=./patches-2.6
 endif
 
