@@ -11,7 +11,7 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=opkg
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 #PKG_FLAGS:=essential
 
 PKG_SOURCE_PROTO:=git
@@ -66,7 +66,7 @@ endef
 #/etc/opkg/customfeeds.conf
 #endef
 
-TARGET_CFLAGS += -ffunction-sections -fdata-sections
+TARGET_CFLAGS += -ffunction-sections -fdata-sections -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
 EXTRA_CFLAGS += $(TARGET_CPPFLAGS)
 
 CMAKE_OPTIONS += \
