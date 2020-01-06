@@ -37,7 +37,8 @@ config USB_GADGET_SUPPORT
 	bool
 
 config RTC_SUPPORT
-	bool
+	tristate
+	depends on m
 
 config BIG_ENDIAN
 	bool
@@ -127,12 +128,6 @@ config arm
 
 config armeb
 	select BIG_ENDIAN
-	bool
-
-config arm_v4
-	bool
-
-config arm_v5
 	bool
 
 config arm_v6
