@@ -28,18 +28,20 @@ GCC_DIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE_URL:=@GNU/gcc/gcc-$(PKG_VERSION)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 
-ifeq ($(PKG_VERSION),5.4.0)
-  PKG_HASH:=608df76dec2d34de6558249d8af4cbee21eceddbcb580d666f7a5a583ca3303a
-  PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+ifeq ($(PKG_VERSION),5.5.0)
+  PKG_HASH:=530cea139d82fe542b358961130c69cfde8b3d14556370b65823d2f91f0ced87
 endif
 
-ifeq ($(PKG_VERSION),6.3.0)
-  PKG_HASH:=f06ae7f3f790fbf0f018f6d40e844451e6bc3b7bc96e128e63b09825c1f8b29f
-  PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+ifeq ($(PKG_VERSION),7.5.0)
+  PKG_HASH:=b81946e7f01f90528a1f7352ab08cc602b9ccc05d4e44da4bd501c5a189ee661
 endif
 
-ifeq ($(PKG_VERSION),7.4.0)
-  PKG_HASH:=eddde28d04f334aec1604456e536416549e9b1aa137fc69204e65eb0c009fe51
+ifeq ($(PKG_VERSION),8.3.0)
+  PKG_HASH:=64baadfe6cc0f4947a84cb12d7f0dfaf45bb58b7e92461639596c21e02d97d2c
+endif
+
+ifeq ($(PKG_VERSION),9.2.0)
+  PKG_HASH:=ea6ef08f121239da5695f76c9b33637a118dcf63e24164422231917fa61fb206
 endif
 
 PATCH_DIR=../patches/$(GCC_VERSION)
@@ -87,7 +89,7 @@ endif
 
 GCC_CONFIGURE:= \
 	SHELL="$(BASH)" \
-	$(if $(shell gcc --version 2>&1 | grep LLVM), \
+	$(if $(shell gcc --version 2>&1 | grep -E "Apple.(LLVM|clang)"), \
 		CFLAGS="-O2 -fbracket-depth=512 -pipe" \
 		CXXFLAGS="-O2 -fbracket-depth=512 -pipe" \
 	) \
@@ -111,6 +113,7 @@ GCC_CONFIGURE:= \
 		$(call qstrip,$(CONFIG_EXTRA_GCC_CONFIG_OPTIONS)) \
 		$(if $(CONFIG_mips64)$(CONFIG_mips64el),--with-arch=mips64 \
 			--with-abi=$(call qstrip,$(CONFIG_MIPS64_ABI))) \
+		$(if $(CONFIG_arc),--with-cpu=$(CONFIG_CPU_TYPE)) \
 		--with-gmp=$(TOPDIR)/staging_dir/host \
 		--with-mpfr=$(TOPDIR)/staging_dir/host \
 		--with-mpc=$(TOPDIR)/staging_dir/host \
@@ -162,11 +165,20 @@ ifneq ($(GCC_ARCH),)
   GCC_CONFIGURE+= --with-arch=$(GCC_ARCH)
 endif
 
-ifneq ($(CONFIG_SOFT_FLOAT),y)
-  ifeq ($(CONFIG_arm),y)
+ifeq ($(CONFIG_arm),y)
+  GCC_CONFIGURE+= \
+	--with-cpu=$(word 1, $(subst +," ,$(CONFIG_CPU_TYPE)))
+
+  ifneq ($(CONFIG_SOFT_FLOAT),y)
     GCC_CONFIGURE+= \
+		--with-fpu=$(word 2, $(subst +, ",$(CONFIG_CPU_TYPE))) \
 		--with-float=hard
   endif
+
+  # Do not let TARGET_CFLAGS get poisoned by extra CPU optimization flags
+  # that do not belong here. The cpu,fpu type should be specified via
+  # --with-cpu and --with-fpu for ARM and not CFLAGS.
+  TARGET_CFLAGS:=$(filter-out -m%,$(call qstrip,$(TARGET_CFLAGS)))
 endif
 
 ifeq ($(CONFIG_TARGET_x86)$(CONFIG_USE_GLIBC)$(CONFIG_INSTALL_GCCGO),yyy)
