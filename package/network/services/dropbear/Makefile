@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dropbear
 PKG_VERSION:=2019.78
-PKG_RELEASE:=2
+PKG_RELEASE:=2a
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:= \
@@ -58,8 +58,6 @@ define Package/dropbear/description
 endef
 
 define Package/dropbear/conffiles
-$(if $(CONFIG_DROPBEAR_ECC),/opt/etc/dropbear/dropbear_ecdsa_host_key)
-/opt/etc/dropbear/dropbear_rsa_host_key
 /opt/etc/config/dropbear.conf
 endef
 
@@ -148,8 +146,6 @@ define Package/dropbear/install
 	$(INSTALL_BIN) ./files/S51dropbear $(1)/opt/etc/init.d
 	$(INSTALL_DIR) $(1)/opt/etc/config
 	$(INSTALL_CONF) ./files/dropbear.conf $(1)/opt/etc/config
-	$(if $(CONFIG_DROPBEAR_ECC),touch $(1)/opt/etc/dropbear/dropbear_ecdsa_host_key)
-	touch $(1)/opt/etc/dropbear/dropbear_rsa_host_key
 endef
 
 define Package/dropbearconvert/install
