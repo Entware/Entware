@@ -1,8 +1,3 @@
-commit 2e2fe82d1e74794a2fe78861ed43627798d5ae4b
-Author: Álvaro Fernández Rojas <noltari@gmail.com>
-Date:   Fri Sep 20 07:50:47 2019 +0200
-
-    brcm2708: fix Hifiberry DAC+DSP package definition
-    
-    Fixes: ce536ae ("brcm2708: add support for Hifiberry DAC+DSP")
-    Signed-off-by: Álvaro Fernández Rojas <noltari@gmail.com>
+commit 8fc25d8664841ff1cd0f3082b4c404cab76d6341
+Author: Adrian Schmutzler <freifunk@adrianschmutzler.de>
+Date:   Sun Jan 5 23:19:45 2020 +0100

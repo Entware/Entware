@@ -18,6 +18,7 @@ $(if $(findstring $(space),$(TOPDIR)),$(error ERROR: The path to the Entware dir
 
 world:
 
+DISTRO_PKG_CONFIG:=$(shell which -a pkg-config | grep -E '\/usr' | head -n 1)
 export PATH:=$(TOPDIR)/staging_dir/host/bin:$(PATH)
 
 ifneq ($(OPENWRT_BUILD),1)
@@ -98,6 +99,9 @@ feedsversion: FORCE
 diffconfig: FORCE
 	mkdir -p $(BIN_DIR)
 	$(SCRIPT_DIR)/diffconfig.sh > $(BIN_DIR)/config.buildinfo
+
+buildinfo: FORCE
+	$(_SINGLE)$(SUBMAKE) -r diffconfig buildversion feedsversion
 
 headers: FORCE
 	tar -czf $(BIN_DIR)/include.tar.gz -C $(STAGING_DIR)/opt/include .
