@@ -33,6 +33,11 @@ define Package/libnl-tiny/description
  This package contains a stripped down version of libnl
 endef
 
+ifeq ($(or $(CONFIG_GCC_USE_VERSION_8),$(CONFIG_GCC_USE_VERSION_9)),y)
+TARGET_CFLAGS += -Wno-error=sign-compare
+endif
+
+
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig $(1)/opt/include/libnl-tiny
 	$(CP) $(PKG_INSTALL_DIR)/opt/include/libnl-tiny/* $(1)/opt/include/libnl-tiny
