@@ -723,6 +723,11 @@ define Package/lscpu/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/lscpu $(1)/opt/bin/
 endef
 
+define Package/more/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/more $(1)/opt/bin/
+endef
+
 define Package/mcookie/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/mcookie $(1)/opt/bin/
