@@ -50,7 +50,7 @@ define Package/dropbear
   SECTION:=net
   CATEGORY:=Base system
   TITLE:=Small SSH2 client/server
-  DEPENDS:= +DROPBEAR_ZLIB:zlib
+  DEPENDS:=+DROPBEAR_ZLIB:zlib
 endef
 
 define Package/dropbear/description
@@ -66,6 +66,7 @@ define Package/dropbearconvert
   SECTION:=utils
   CATEGORY:=Utilities
   TITLE:=Utility for converting SSH keys
+  DEPENDS:=+DROPBEAR_ZLIB:zlib
 endef
 
 CONFIGURE_ARGS += \
