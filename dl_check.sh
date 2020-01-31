@@ -16,9 +16,8 @@ for entware_target in $(ls -1 configs); do
     done
 done
 
-mirrors="http://sources.lede-project.org \
-    http://mirror2.openwrt.org/sources \
-    http://downloads.openwrt.org/sources"
+mirrors="https://sources.openwrt.org
+    https://mirror2.openwrt.org/sources"
 
 echo 'Creating upload mirror...'
 mkdir -p dl.2upload
