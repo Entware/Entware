@@ -228,6 +228,8 @@ $(_endef)
 				[ -f "$$(IDIR_$(1))/$$$$x" ] || keepfiles="$$$${keepfiles:+$$$$keepfiles }$$$$x"; \
 			done; \
 			[ -z "$$$$keepfiles" ] || { \
+				mkdir -p $$(IDIR_$(1))/opt/lib/upgrade/keep.d; \
+				for x in $$$$keepfiles; do echo $$$$x >> $$(IDIR_$(1))/opt/lib/upgrade/keep.d/$(1); done; \
 			}; \
 		)
     endif
