@@ -1,3 +1,5 @@
-commit 8fc25d8664841ff1cd0f3082b4c404cab76d6341
-Author: Adrian Schmutzler <freifunk@adrianschmutzler.de>
-Date:   Sun Jan 5 23:19:45 2020 +0100
+commit 7f059af7a6dc71b67220272aa2681ccfdc3fa6e7
+Author: Hauke Mehrtens <hauke@hauke-m.de>
+Date:   Sat Feb 29 16:31:26 2020 +0100
+
+    x86: Remove kernel 4.14 support

@@ -60,6 +60,7 @@ clean: FORCE
 dirclean: clean
 	rm -rf $(STAGING_DIR_HOST) $(STAGING_DIR_HOSTPKG) $(TOOLCHAIN_DIR) $(BUILD_DIR_BASE)/host $(BUILD_DIR_BASE)/hostpkg $(BUILD_DIR_TOOLCHAIN)
 	rm -rf $(TMP_DIR)
+	$(MAKE) -C $(TOPDIR)/scripts/config clean
 
 ifndef DUMP_TARGET_DB
 $(BUILD_DIR)/.prepared: Makefile
@@ -107,9 +108,9 @@ headers: FORCE
 	tar -czf $(BIN_DIR)/include.tar.gz -C $(STAGING_DIR)/opt/include .
 
 prepare: .config $(tools/stamp-compile) $(toolchain/stamp-compile)
-	$(_SINGLE)$(SUBMAKE) -r diffconfig buildversion feedsversion
+	$(_SINGLE)$(SUBMAKE) -r buildinfo
 
-world: prepare $(target/stamp-compile) $(package/stamp-compile) FORCE
+world: prepare $(target/stamp-compile) $(package/stamp-compile) $(package/stamp-install) $(target/stamp-install) FORCE
 	$(_SINGLE)$(SUBMAKE) -r package/index
 	$(_SINGLE)$(SUBMAKE) -r checksum
 	$(_SINGLE)$(SUBMAKE) -r headers
