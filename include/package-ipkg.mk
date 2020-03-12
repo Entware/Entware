@@ -208,7 +208,7 @@ $(_endef)
 	(cd $$(IDIR_$(1)); \
 		( \
 			find . -type f \! -path ./CONTROL/\* -exec sha256sum \{\} \; 2> /dev/null | \
-			sed 's|\([[:blank:]]\)\./|\1/|' > $$(IDIR_$(1))/CONTROL/files-sha256 \
+			sed 's|\([[:blank:]]\)\./|\1/|' > $$(IDIR_$(1))/CONTROL/files-sha256sum \
 		) || true \
 	)
     endif
@@ -228,8 +228,6 @@ $(_endef)
 				[ -f "$$(IDIR_$(1))/$$$$x" ] || keepfiles="$$$${keepfiles:+$$$$keepfiles }$$$$x"; \
 			done; \
 			[ -z "$$$$keepfiles" ] || { \
-				mkdir -p $$(IDIR_$(1))/opt/lib/upgrade/keep.d; \
-				for x in $$$$keepfiles; do echo $$$$x >> $$(IDIR_$(1))/opt/lib/upgrade/keep.d/$(1); done; \
 			}; \
 		)
     endif
