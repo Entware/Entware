@@ -8,23 +8,18 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=f2fs-tools
-PKG_VERSION:=1.12.0
-PKG_RELEASE:=3
+PKG_VERSION:=1.13.0
+PKG_RELEASE:=1
 
 PKG_LICENSE:=GPL-2.0
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://git.kernel.org/pub/scm/linux/kernel/git/jaegeuk/f2fs-tools.git/snapshot/
-PKG_HASH:=e2124e4dffaba865d41495d817bcb924d096adaec67ff777b8c7da99aa13f696
+PKG_HASH:=b39d3ae9224267aab0070b5f17d91d0c5143f6d960166a27f6b11c8c87072c7d
 
 PKG_FIXUP:=autoreconf
 PKG_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
-
-ifeq ($(CONFIG_TARGET_armv7_2_6)$(CONFIG_TARGET_x86_2_6),y)
-PATCH_DIR:=./patches-2.6
-endif
-
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
@@ -63,6 +58,7 @@ define Package/libf2fs
 endef
 
 CONFIGURE_ARGS += \
+	--disable-static \
 	--without-selinux \
 	--without-blkid
 

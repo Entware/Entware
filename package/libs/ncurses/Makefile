@@ -14,12 +14,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ncurses
-PKG_VERSION:=6.1
-PKG_RELEASE:=5
+PKG_VERSION:=6.2
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@GNU/$(PKG_NAME)
-PKG_HASH:=aa057eeeb4a14d470101eff4597d5833dcef5965331be3528c08d99cebaa0d17
+PKG_HASH:=30306e0c76e0f9f1f0de987cf1c82a5c21e1ce6568b9227f7da5b71cbea86c9d
 
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=README
@@ -81,12 +81,12 @@ CONFIGURE_ARGS += \
 	--enable-const \
 	--enable-overwrite \
 	--enable-pc-files \
-	--enable-rpath \
-	--disable-rpath-hack \
+	--disable-rpath \
 	--without-ada \
 	--without-debug \
 	--without-manpages \
 	--without-profile \
+	--without-progs \
 	--without-tests \
 	--disable-big-core \
 	--disable-home-terminfo \
@@ -96,8 +96,7 @@ CONFIGURE_ARGS += \
 	--with-default-terminfo-dir=/opt/share/terminfo \
 	--with-pkg-config-libdir=/opt/lib/pkgconfig \
 	--enable-widec \
-	--with-build-cppflags=-D_GNU_SOURCE \
-	--disable-stripping
+	--with-build-cppflags=-D_GNU_SOURCE
 
 CONFIGURE_VARS += \
 	cf_try_fPIC=no
@@ -112,8 +111,7 @@ HOST_CONFIGURE_ARGS += \
 	--without-manpages \
 	--without-profile \
 	--without-tests \
-	--without-curses-h \
-	--disable-stripping
+	--without-curses-h
 
 
 ifeq ($(HOST_OS),FreeBSD)
@@ -126,20 +124,13 @@ MAKE_FLAGS += \
 	HOSTCC="$(HOSTCC)" \
 	HOSTCCFLAGS="" \
 	PKG_CONFIG_LIBDIR=/opt/lib/pkgconfig \
-	libs \
-	progs
+	libs
 
 define Build/Install/Default
 	$(MAKE_VARS) \
 	$(MAKE) -C $(PKG_BUILD_DIR)/$(MAKE_PATH) \
 		$(MAKE_INSTALL_FLAGS) \
-		$(1) install.progs install.libs install.data;
-endef
-
-define Package/ncurses-bin/install
-	$(INSTALL_DIR) $(1)/opt/bin
-	$(CP) $(PKG_INSTALL_DIR)/opt/bin/* $(1)/opt/bin/
-	$(RM) $(1)/opt/bin/ncurses6-config
+		$(1) install.libs install.data;
 endef
 
 define Package/terminfo/install
@@ -169,7 +160,10 @@ endef
 define Package/libncursesw/install
 	$(INSTALL_DIR) $(1)/opt/lib
 	for lib in ncurses panel menu form; do \
-		$(CP) $(PKG_INSTALL_DIR)/opt/lib/lib$$$${lib}w.so* $(1)/opt/lib/; \
+		$(CP) $(PKG_INSTALL_DIR)/opt/lib/lib$$$${lib}w.so.* $(1)/opt/lib/; \
+		for so in $(1)/opt/lib/lib$$$${lib}w.so.*; do \
+			ln -s $$$${so##*/} $$$${so%w.so*}.so$$$${so##*w.so}; \
+		done; \
 	done
 endef
 
@@ -186,18 +180,20 @@ endef
 
 define Package/libncurses/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	ln -s libncurses.so.6.1 $(1)/opt/lib/libcurses.so
+	ln -s libncurses.so.6.2 $(1)/opt/lib/libcurses.so
 	for lib in ncurses panel menu form; do \
 		ln -s lib$$$${lib}w.so $(1)/opt/lib/lib$$$${lib}.so; \
 		ln -s lib$$$${lib}w.so.6 $(1)/opt/lib/lib$$$${lib}.so.6; \
-		ln -s lib$$$${lib}w.so.6.1 $(1)/opt/lib/lib$$$${lib}.so.6.1; \
+		ln -s lib$$$${lib}w.so.6.2 $(1)/opt/lib/lib$$$${lib}.so.6.2; \
 	done
 endef
 
 define Build/InstallDev
 	$(CP) $(PKG_INSTALL_DIR)/* $(1)
 	for lib in ncurses panel menu form; do \
-		ln -s lib$$$${lib}w.so $(1)/opt/lib/lib$$$${lib}.so; \
+		for so in $(1)/opt/lib/lib$$$${lib}w.so*; do \
+			ln -s $$$${so##*/} $$$${so%w.so*}.so$$$${so##*w.so}; \
+		done; \
 	done
 	ln -s . $(1)/opt/include/ncursesw
 	$(TARGET_CROSS)ar rc $(1)/opt/lib/libtinfo.a
@@ -218,4 +214,3 @@ $(eval $(call BuildPackage,terminfo))
 $(eval $(call BuildPackage,libncursesw))
 $(eval $(call BuildPackage,libncurses))
 $(eval $(call BuildPackage,libncurses-dev))
-$(eval $(call BuildPackage,ncurses-bin))

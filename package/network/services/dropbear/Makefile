@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dropbear
 PKG_VERSION:=2019.78
-PKG_RELEASE:=2a
+PKG_RELEASE:=3
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:= \
@@ -22,6 +22,7 @@ PKG_LICENSE_FILES:=LICENSE libtomcrypt/LICENSE libtommath/LICENSE
 PKG_CPE_ID:=cpe:/a:matt_johnston:dropbear_ssh_server
 
 PKG_BUILD_PARALLEL:=1
+PKG_ASLR_PIE_REGULAR:=1
 PKG_USE_MIPS16:=0
 PKG_FIXUP:=autoreconf
 
@@ -123,6 +124,10 @@ define Build/Configure
 
 	# Enforce rebuild of svr-chansession.c
 	rm -f $(PKG_BUILD_DIR)/svr-chansession.o
+
+	# Rebuild them on config change
+	+$(MAKE) -C $(PKG_BUILD_DIR)/libtomcrypt clean
+	+$(MAKE) -C $(PKG_BUILD_DIR)/libtommath clean
 endef
 
 define Build/Compile
