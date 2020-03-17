@@ -195,7 +195,7 @@ define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/include/ext2fs
 	$(CP) $(PKG_BUILD_DIR)/lib/ext2fs/*.h $(1)/opt/include/ext2fs
 	$(INSTALL_DIR) $(1)/opt/include/et
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/lib/et/*.h $(1)/opt/include/et
+	$(CP) $(PKG_BUILD_DIR)/lib/et/*.h $(1)/opt/include/et
 	# Apparently there is some confusion
 	echo "#include <et/com_err.h>" > $(1)/opt/include/com_err.h
 	$(INSTALL_DIR) $(1)/opt/include/ss
