@@ -108,9 +108,9 @@ CONFIGURE_ARGS += \
 	--disable-tui \
 	--disable-valgrindtk \
 	--without-included-gettext \
-	--with-pagesize=4 \
+	--with-pagesize=4
 
-define Package/valgrind/install	
+define Package/valgrind/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/valgrind* $(1)/opt/bin/
 	$(INSTALL_DIR) $(1)/opt/lib/valgrind
@@ -143,9 +143,9 @@ define Package/valgrind-cachegrind/install
 	$(CP) \
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/cachegrind-* \
 		$(1)/opt/lib/valgrind/
-	$(SED) 's,^#!.*,#!/opt/bin/perl,' $(1)/opt/bin/cg_{annotate,diff}
 	$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/bin
 	$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip -g",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/lib/valgrind/cachegrind-*
+	$(SED) 's,^#!.*,#!/opt/bin/perl,' $(1)/opt/bin/cg_{annotate,diff}
 endef
 
 define Package/valgrind-callgrind/install
@@ -155,9 +155,9 @@ define Package/valgrind-callgrind/install
 	$(CP) \
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/callgrind-* \
 		$(1)/opt/lib/valgrind/
-	$(SED) 's,^#!.*,#!/opt/bin/perl -w,' $(1)/opt/bin/callgrind_{annotate,control}
 	$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/bin
 	$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip -g",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/lib/valgrind/callgrind-*
+	$(SED) 's,^#!.*,#!/opt/bin/perl -w,' $(1)/opt/bin/callgrind_{annotate,control}
 endef
 
 define Package/valgrind-drd/install
@@ -166,7 +166,7 @@ define Package/valgrind-drd/install
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/drd-* \
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/vgpreload_drd*.so \
 		$(1)/opt/lib/valgrind/
-		$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/bin
+	$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/bin
 	$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip -g",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/lib/valgrind/drd-*
 endef
 
@@ -178,9 +178,9 @@ define Package/valgrind-massif/install
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/massif-* \
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/vgpreload_massif*.so \
 		$(1)/opt/lib/valgrind/
-	$(SED) 's,^#!.*,#!/opt/bin/perl,' $(1)/opt/bin/ms_print
-		$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/bin
+	$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/bin
 	$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip -g",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/lib/valgrind/massif-*
+	$(SED) 's,^#!.*,#!/opt/bin/perl,' $(1)/opt/bin/ms_print
 endef
 
 define Package/valgrind-helgrind/install
@@ -189,8 +189,8 @@ define Package/valgrind-helgrind/install
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/helgrind-* \
 		$(PKG_INSTALL_DIR)/opt/lib/valgrind/vgpreload_helgrind*.so \
 		$(1)/opt/lib/valgrind/
-		$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/bin
-		$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip -g",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/lib/valgrind/helgrind-*
+	$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/bin
+	$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip -g",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/lib/valgrind/helgrind-*
 endef
 
 define Package/valgrind-vgdb/install
