@@ -126,8 +126,8 @@ CMAKE_OPTIONS += \
 
 define Build/InstallDev
 	$(call Build/InstallDev/cmake,$(1))
-	$(SED) 's,/usr/include,$$$${prefix}/include,g' $(1)/opt/lib/pkgconfig/libevent*.pc
-	$(SED) 's,/usr/lib,$$$${exec_prefix}/lib,g' $(1)/opt/lib/pkgconfig/libevent*.pc
+	$(SED) 's,/opt/include,$$$${prefix}/include,g' $(1)/opt/lib/pkgconfig/libevent*.pc
+	$(SED) 's,/opt/lib,$$$${exec_prefix}/lib,g' $(1)/opt/lib/pkgconfig/libevent*.pc
 endef
 
 define Package/libevent2/install
