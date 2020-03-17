@@ -112,7 +112,7 @@ define Kernel/Configure/Initramfs
 	$(call Kernel/SetInitramfs)
 endef
 
-# One more place to disable kernel modules building
+# Entware specific: one more place to disable kernel modules building
 define Kernel/CompileModules/Default
 	rm -f $(LINUX_DIR)/vmlinux $(LINUX_DIR)/System.map
 #	+$(KERNEL_MAKE) modules
