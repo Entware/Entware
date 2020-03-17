@@ -120,8 +120,7 @@ BIN_DIR:=$(OUTPUT_DIR)/targets/$(BOARD)/$(SUBTARGET)
 INCLUDE_DIR:=$(TOPDIR)/include
 SCRIPT_DIR:=$(TOPDIR)/scripts
 BUILD_DIR_BASE:=$(TOPDIR)/build_dir
-# Entware specific 
-# Entware keeps LIBCV (LIBC version) as a suffix in directory names! Lede has removed it....
+# Entware specific: keeps LIBCV (LIBC version) as a suffix in directory names! Lede has removed it....
 ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
   GCCV:=$(call qstrip,$(CONFIG_GCC_VERSION))
   LIBC:=$(call qstrip,$(CONFIG_LIBC))
@@ -144,8 +143,12 @@ else
   TOOLCHAIN_DIR_NAME:=toolchain-$(GNU_TARGET_NAME)
 endif
 
-#ifeq ($(or $(CONFIG_EXTERNAL_TOOLCHAIN),$(CONFIG_GCC_VERSION_4_8),$(CONFIG_TARGET_uml)),)
-#  iremap = -iremap$(1):$(2)
+#ifeq ($(or $(CONFIG_EXTERNAL_TOOLCHAIN),$(CONFIG_TARGET_uml)),)
+#  ifeq ($(CONFIG_GCC_USE_IREMAP),y)
+#    iremap = -iremap$(1):$(2)
+#  else
+#    iremap = -ffile-prefix-map=$(1)=$(2)
+#  endif
 #endif
 
 PACKAGE_DIR:=$(BIN_DIR)/packages
@@ -185,13 +188,6 @@ else
 LIBGCC_A=$(lastword $(wildcard $(TOOLCHAIN_DIR)/lib/gcc/*/*/libgcc.a))
 LIBGCC_S=$(if $(wildcard $(TOOLCHAIN_DIR)/lib/libgcc_s.so),-L$(TOOLCHAIN_DIR)/lib -lgcc_s,$(LIBGCC_A))
 endif
-#
-# glibc does not have librpc, so we set it only for uclibc
-# dynamic linker depends on libc and arch. it is set for the targets we compile
-# may be it is better to patch gcc & glibc to set the path of dynamic linker ????
-#
-#LIBRPC=-lrpc
-#LIBRPC_DEPENDS=+librpc
 
 ifeq ($(LIBC),uClibc)
 DYNLINKER=ld-uClibc.so.0
@@ -309,8 +305,6 @@ endif
 ifeq ($(ARCH),i386)
     GOARCH=386
 endif
-
-
 
 HOSTCC:=gcc
 HOSTCXX:=g++
