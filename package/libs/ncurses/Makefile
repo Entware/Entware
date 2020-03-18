@@ -5,11 +5,10 @@
 # See /LICENSE for more information.
 #
 # Entware specific:
-# opkg binary segfaults when a real package is replaced by "provided" package.
+# * opkg binary segfaults when a real package is replaced by "provided" package.
 # we removed PROVIDES libncurses field in libncursesw and added a real libncurses package that
-# installes symlinks. We've added more symlinks to make binaries from older packages to be compatible with
-# the new libncurses(w) package.
-# Our patch set is different from LEDE for historical reason, it will be merged after next sync
+# installes symlinks.
+# * ncurses-bin packages added
 
 include $(TOPDIR)/rules.mk
 
@@ -86,7 +85,6 @@ CONFIGURE_ARGS += \
 	--without-debug \
 	--without-manpages \
 	--without-profile \
-	--without-progs \
 	--without-tests \
 	--disable-big-core \
 	--disable-home-terminfo \
@@ -96,7 +94,8 @@ CONFIGURE_ARGS += \
 	--with-default-terminfo-dir=/opt/share/terminfo \
 	--with-pkg-config-libdir=/opt/lib/pkgconfig \
 	--enable-widec \
-	--with-build-cppflags=-D_GNU_SOURCE
+	--with-build-cppflags=-D_GNU_SOURCE \
+	--disable-stripping
 
 CONFIGURE_VARS += \
 	cf_try_fPIC=no
@@ -124,13 +123,13 @@ MAKE_FLAGS += \
 	HOSTCC="$(HOSTCC)" \
 	HOSTCCFLAGS="" \
 	PKG_CONFIG_LIBDIR=/opt/lib/pkgconfig \
-	libs
+	libs progs
 
 define Build/Install/Default
 	$(MAKE_VARS) \
 	$(MAKE) -C $(PKG_BUILD_DIR)/$(MAKE_PATH) \
 		$(MAKE_INSTALL_FLAGS) \
-		$(1) install.libs install.data;
+		$(1) install.libs install.data install.progs;
 endef
 
 define Package/terminfo/install
@@ -188,6 +187,12 @@ define Package/libncurses/install
 	done
 endef
 
+define Package/ncurses-bin/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(CP) $(PKG_INSTALL_DIR)/opt/bin/* $(1)/opt/bin
+	$(RM) $(1)/opt/bin/ncurses6-config
+endef
+
 define Build/InstallDev
 	$(CP) $(PKG_INSTALL_DIR)/* $(1)
 	for lib in ncurses panel menu form; do \
@@ -214,3 +219,4 @@ $(eval $(call BuildPackage,terminfo))
 $(eval $(call BuildPackage,libncursesw))
 $(eval $(call BuildPackage,libncurses))
 $(eval $(call BuildPackage,libncurses-dev))
+$(eval $(call BuildPackage,ncurses-bin))
