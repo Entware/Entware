@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=f2fs-tools
 PKG_VERSION:=1.13.0
-PKG_RELEASE:=1
+PKG_RELEASE:=1a
 
 PKG_LICENSE:=GPL-2.0
 
@@ -78,7 +78,6 @@ endef
 
 define Package/f2fsck/install
 	$(INSTALL_DIR) $(1)/opt/sbin
-
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/fsck.f2fs $(1)/opt/sbin
 	ln -s fsck.f2fs $(1)/opt/sbin/defrag.f2fs
 	ln -s fsck.f2fs $(1)/opt/sbin/dump.f2fs

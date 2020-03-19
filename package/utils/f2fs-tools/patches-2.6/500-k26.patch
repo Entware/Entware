@@ -1,0 +1,20 @@
+--- a/tools/f2fscrypt.c
++++ b/tools/f2fscrypt.c
+@@ -40,6 +40,7 @@
+ #include <signal.h>
+ #include <linux/fs.h>
+ #include <uuid/uuid.h>
++#include <linux/types.h>
+ 
+ #if !defined(HAVE_ADD_KEY) || !defined(HAVE_KEYCTL)
+ #include <sys/syscall.h>
+--- a/tools/sha512.c
++++ b/tools/sha512.c
+@@ -30,6 +30,7 @@
+ #include <unistd.h>
+ #include <signal.h>
+ #include <linux/fs.h>
++#include <linux/types.h>
+ 
+ #if HAVE_SYS_TYPES_H
+ #include <sys/types.h>
