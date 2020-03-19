@@ -145,7 +145,8 @@ define Package/valgrind-cachegrind/install
 		$(1)/opt/lib/valgrind/
 	$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/bin
 	$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip -g",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/lib/valgrind/cachegrind-*
-	$(SED) 's,^#!.*,#!/opt/bin/perl,' $(1)/opt/bin/cg_{annotate,diff}
+	# XXX Entware cpecific: fix exec path in scripts
+	$(SED) 's,^#!.*perl,#!/opt/bin/perl,' $(1)/opt/bin/cg_{annotate,diff}
 endef
 
 define Package/valgrind-callgrind/install
@@ -157,7 +158,8 @@ define Package/valgrind-callgrind/install
 		$(1)/opt/lib/valgrind/
 	$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/bin
 	$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip -g",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/lib/valgrind/callgrind-*
-	$(SED) 's,^#!.*,#!/opt/bin/perl -w,' $(1)/opt/bin/callgrind_{annotate,control}
+	# XXX Entware cpecific: fix exec path in scripts
+	$(SED) 's,^#!.*perl,#!/opt/bin/perl,' $(1)/opt/bin/callgrind_{annotate,control}
 endef
 
 define Package/valgrind-drd/install
@@ -180,7 +182,8 @@ define Package/valgrind-massif/install
 		$(1)/opt/lib/valgrind/
 	$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/bin
 	$(patsubst STRIP=%,STRIP="$(TARGET_CROSS)strip -g",$(RSTRIP)) $(PKG_INSTALL_DIR)/opt/lib/valgrind/massif-*
-	$(SED) 's,^#!.*,#!/opt/bin/perl,' $(1)/opt/bin/ms_print
+	# XXX Entware cpecific: fix exec path in scripts
+	$(SED) 's,^#!.*perl,#!/opt/bin/perl,' $(1)/opt/bin/ms_print
 endef
 
 define Package/valgrind-helgrind/install
