@@ -159,10 +159,7 @@ endef
 define Package/libncursesw/install
 	$(INSTALL_DIR) $(1)/opt/lib
 	for lib in ncurses panel menu form; do \
-		$(CP) $(PKG_INSTALL_DIR)/opt/lib/lib$$$${lib}w.so.* $(1)/opt/lib/; \
-		for so in $(1)/opt/lib/lib$$$${lib}w.so.*; do \
-			ln -s $$$${so##*/} $$$${so%w.so*}.so$$$${so##*w.so}; \
-		done; \
+		$(CP) $(PKG_INSTALL_DIR)/opt/lib/lib$$$${lib}w.so* $(1)/opt/lib/; \
 	done
 endef
 
