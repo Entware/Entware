@@ -1,0 +1,69 @@
+--- a/src/config.h	2020-03-08 15:56:19.000000000 +0000
++++ b/src/config.h	2020-04-12 10:21:53.456588961 +0000
+@@ -40,8 +40,8 @@
+ #define DHCP_PACKET_MAX 16384 /* hard limit on DHCP packet size */
+ #define SMALLDNAME 50 /* most domain names are smaller than this */
+ #define CNAME_CHAIN 10 /* chains longer than this atr dropped for loop protection */
+-#define HOSTSFILE "/etc/hosts"
+-#define ETHERSFILE "/etc/ethers"
++#define HOSTSFILE "/opt/etc/hosts"
++#define ETHERSFILE "/opt/etc/ethers"
+ #define DEFLEASE 3600 /* default lease time, 1 hour */
+ #define CHUSER "nobody"
+ #define CHGRP "dip"
+@@ -197,7 +197,7 @@ RESOLVFILE
+ #   elif defined(__ANDROID__)
+ #      define LEASEFILE "/data/misc/dhcp/dnsmasq.leases"
+ #   else
+-#      define LEASEFILE "/var/lib/misc/dnsmasq.leases"
++#      define LEASEFILE "/opt/var/lib/dnsmasq.leases"
+ #   endif
+ #endif
+ 
+@@ -205,7 +205,7 @@ RESOLVFILE
+ #   if defined(__FreeBSD__)
+ #      define CONFFILE "/usr/local/etc/dnsmasq.conf"
+ #   else
+-#      define CONFFILE "/etc/dnsmasq.conf"
++#      define CONFFILE "/opt/etc/dnsmasq.conf"
+ #   endif
+ #endif
+ 
+@@ -213,7 +213,7 @@ RESOLVFILE
+ #   if defined(__uClinux__)
+ #      define RESOLVFILE "/etc/config/resolv.conf"
+ #   else
+-#      define RESOLVFILE "/etc/resolv.conf"
++#      define RESOLVFILE "/opt/etc/resolv.conf"
+ #   endif
+ #endif
+ 
+@@ -221,7 +221,7 @@ RESOLVFILE
+ #   if defined(__ANDROID__)
+ #      define RUNFILE "/data/dnsmasq.pid"
+ #    else
+-#      define RUNFILE "/var/run/dnsmasq.pid"
++#      define RUNFILE "/opt/var/run/dnsmasq.pid"
+ #    endif
+ #endif
+ 
+--- a/src/option.c	2020-03-08 15:56:19.000000000 +0000
++++ b/src/option.c	2020-04-12 10:21:53.456588961 +0000
+@@ -364,7 +364,7 @@ static struct {
+   { 'd', OPT_DEBUG, NULL, gettext_noop("Do NOT fork into the background: run in debug mode."), NULL },
+   { 'D', OPT_NODOTS_LOCAL, NULL, gettext_noop("Do NOT forward queries with no domain part."), NULL }, 
+   { 'e', OPT_SELFMX, NULL, gettext_noop("Return self-pointing MX records for local hosts."), NULL },
+-  { 'E', OPT_EXPAND, NULL, gettext_noop("Expand simple names in /etc/hosts with domain-suffix."), NULL },
++  { 'E', OPT_EXPAND, NULL, gettext_noop("Expand simple names in /opt/etc/hosts with domain-suffix."), NULL },
+   { 'f', OPT_FILTER, NULL, gettext_noop("Don't forward spurious DNS requests from Windows hosts."), NULL },
+   { 'F', ARG_DUP, "<ipaddr>,...", gettext_noop("Enable DHCP in the range given with lease duration."), NULL },
+   { 'g', ARG_ONE, "<groupname>", gettext_noop("Change to this group after startup (defaults to %s)."), CHGRP },
+@@ -408,7 +408,7 @@ static struct {
+   { LOPT_LOCAL, ARG_DUP, "/<domain>/", gettext_noop("Never forward queries to specified domains."), NULL },
+   { 's', ARG_DUP, "<domain>[,<range>]", gettext_noop("Specify the domain to be assigned in DHCP leases."), NULL },
+   { 't', ARG_ONE, "<host_name>", gettext_noop("Specify default target in an MX record."), NULL },
+-  { 'T', ARG_ONE, "<integer>", gettext_noop("Specify time-to-live in seconds for replies from /etc/hosts."), NULL },
++  { 'T', ARG_ONE, "<integer>", gettext_noop("Specify time-to-live in seconds for replies from /opt/etc/hosts."), NULL },
+   { LOPT_NEGTTL, ARG_ONE, "<integer>", gettext_noop("Specify time-to-live in seconds for negative caching."), NULL },
+   { LOPT_MAXTTL, ARG_ONE, "<integer>", gettext_noop("Specify time-to-live in seconds for maximum TTL to send to clients."), NULL },
+   { LOPT_MAXCTTL, ARG_ONE, "<integer>", gettext_noop("Specify time-to-live ceiling for cache."), NULL },
