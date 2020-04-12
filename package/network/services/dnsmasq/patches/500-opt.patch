@@ -1,54 +1,5 @@
---- a/src/config.h	2020-03-08 15:56:19.000000000 +0000
-+++ b/src/config.h	2020-04-12 10:21:53.456588961 +0000
-@@ -40,8 +40,8 @@
- #define DHCP_PACKET_MAX 16384 /* hard limit on DHCP packet size */
- #define SMALLDNAME 50 /* most domain names are smaller than this */
- #define CNAME_CHAIN 10 /* chains longer than this atr dropped for loop protection */
--#define HOSTSFILE "/etc/hosts"
--#define ETHERSFILE "/etc/ethers"
-+#define HOSTSFILE "/opt/etc/hosts"
-+#define ETHERSFILE "/opt/etc/ethers"
- #define DEFLEASE 3600 /* default lease time, 1 hour */
- #define CHUSER "nobody"
- #define CHGRP "dip"
-@@ -197,7 +197,7 @@ RESOLVFILE
- #   elif defined(__ANDROID__)
- #      define LEASEFILE "/data/misc/dhcp/dnsmasq.leases"
- #   else
--#      define LEASEFILE "/var/lib/misc/dnsmasq.leases"
-+#      define LEASEFILE "/opt/var/lib/dnsmasq.leases"
- #   endif
- #endif
- 
-@@ -205,7 +205,7 @@ RESOLVFILE
- #   if defined(__FreeBSD__)
- #      define CONFFILE "/usr/local/etc/dnsmasq.conf"
- #   else
--#      define CONFFILE "/etc/dnsmasq.conf"
-+#      define CONFFILE "/opt/etc/dnsmasq.conf"
- #   endif
- #endif
- 
-@@ -213,7 +213,7 @@ RESOLVFILE
- #   if defined(__uClinux__)
- #      define RESOLVFILE "/etc/config/resolv.conf"
- #   else
--#      define RESOLVFILE "/etc/resolv.conf"
-+#      define RESOLVFILE "/opt/etc/resolv.conf"
- #   endif
- #endif
- 
-@@ -221,7 +221,7 @@ RESOLVFILE
- #   if defined(__ANDROID__)
- #      define RUNFILE "/data/dnsmasq.pid"
- #    else
--#      define RUNFILE "/var/run/dnsmasq.pid"
-+#      define RUNFILE "/opt/var/run/dnsmasq.pid"
- #    endif
- #endif
- 
---- a/src/option.c	2020-03-08 15:56:19.000000000 +0000
-+++ b/src/option.c	2020-04-12 10:21:53.456588961 +0000
+--- a/src/option.c
++++ b/src/option.c
 @@ -364,7 +364,7 @@ static struct {
    { 'd', OPT_DEBUG, NULL, gettext_noop("Do NOT fork into the background: run in debug mode."), NULL },
    { 'D', OPT_NODOTS_LOCAL, NULL, gettext_noop("Do NOT forward queries with no domain part."), NULL }, 
@@ -67,3 +18,52 @@
    { LOPT_NEGTTL, ARG_ONE, "<integer>", gettext_noop("Specify time-to-live in seconds for negative caching."), NULL },
    { LOPT_MAXTTL, ARG_ONE, "<integer>", gettext_noop("Specify time-to-live in seconds for maximum TTL to send to clients."), NULL },
    { LOPT_MAXCTTL, ARG_ONE, "<integer>", gettext_noop("Specify time-to-live ceiling for cache."), NULL },
+--- a/src/config.h
++++ b/src/config.h
+@@ -40,8 +40,8 @@
+ #define DHCP_PACKET_MAX 16384 /* hard limit on DHCP packet size */
+ #define SMALLDNAME 50 /* most domain names are smaller than this */
+ #define CNAME_CHAIN 10 /* chains longer than this atr dropped for loop protection */
+-#define HOSTSFILE "/etc/hosts"
+-#define ETHERSFILE "/etc/ethers"
++#define HOSTSFILE "/opt/etc/hosts"
++#define ETHERSFILE "/opt/etc/ethers"
+ #define DEFLEASE 3600 /* default lease time, 1 hour */
+ #define CHUSER "nobody"
+ #define CHGRP "dip"
+@@ -198,7 +198,7 @@ RESOLVFILE
+ #   elif defined(__ANDROID__)
+ #      define LEASEFILE "/data/misc/dhcp/dnsmasq.leases"
+ #   else
+-#      define LEASEFILE "/var/lib/misc/dnsmasq.leases"
++#      define LEASEFILE "/opt/var/lib/dnsmasq.leases"
+ #   endif
+ #endif
+ 
+@@ -206,7 +206,7 @@ RESOLVFILE
+ #   if defined(__FreeBSD__)
+ #      define CONFFILE "/usr/local/etc/dnsmasq.conf"
+ #   else
+-#      define CONFFILE "/etc/dnsmasq.conf"
++#      define CONFFILE "/opt/etc/dnsmasq.conf"
+ #   endif
+ #endif
+ 
+@@ -214,7 +214,7 @@ RESOLVFILE
+ #   if defined(__uClinux__)
+ #      define RESOLVFILE "/etc/config/resolv.conf"
+ #   else
+-#      define RESOLVFILE "/etc/resolv.conf"
++#      define RESOLVFILE "/opt/etc/resolv.conf"
+ #   endif
+ #endif
+ 
+@@ -222,7 +222,7 @@ RESOLVFILE
+ #   if defined(__ANDROID__)
+ #      define RUNFILE "/data/dnsmasq.pid"
+ #    else
+-#      define RUNFILE "/var/run/dnsmasq.pid"
++#      define RUNFILE "/opt/var/run/dnsmasq.pid"
+ #    endif
+ #endif
+ 
