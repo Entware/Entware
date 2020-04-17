@@ -1,0 +1,35 @@
+--- a/src/netlink.h
++++ b/src/netlink.h
+@@ -442,11 +442,6 @@
+ 			return -1;
+ 		}
+ 
+-		if (nlh->nlmsg_flags & NLM_F_DUMP_INTR) {
+-			errno = EINTR;
+-			return -1;
+-		}
+-
+ 		if (nlh->nlmsg_type >= NLMSG_MIN_TYPE) {
+ 			if (cb_data){
+ 				ret = cb_data(nlh, data);
+--- a/src/ipc.c
++++ b/src/ipc.c
+@@ -3,15 +3,15 @@
+  * Copyright (C) 2015-2020 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
+  */
+ 
++#include <netinet/in.h>
++#include <sys/socket.h>
++#include <net/if.h>
+ #ifdef __linux__
+ #include <linux/if_link.h>
+ #include <linux/rtnetlink.h>
+ #include <linux/wireguard.h>
+ #include "netlink.h"
+ #endif
+-#include <netinet/in.h>
+-#include <sys/socket.h>
+-#include <net/if.h>
+ #include <errno.h>
+ #include <stdbool.h>
+ #include <stddef.h>

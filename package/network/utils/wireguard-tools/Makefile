@@ -30,10 +30,15 @@ include $(INCLUDE_DIR)/package-defaults.mk
 MAKE_PATH:=src
 MAKE_VARS += PLATFORM=linux
 
+ifeq ($(CONFIG_LINUX_2_6_36),y)
+PATCH_DIR= ./patches-2.6
+endif
+
+
 define Package/wireguard-tools
   $(call Package/wireguard/Default)
   TITLE:=WireGuard userspace control program (wg)
-  DEPENDS:=+libmnl +ip @!LINUX_2_6_36
+  DEPENDS:=+libmnl +ip
 endef
 
 define Package/wireguard-tools/description
