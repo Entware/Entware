@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dropbear
 PKG_VERSION:=2019.78
-PKG_RELEASE:=3
+PKG_RELEASE:=3a
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:= \
@@ -29,6 +29,7 @@ PKG_FIXUP:=autoreconf
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_TARGET_INIT_PATH CONFIG_DROPBEAR_ECC CONFIG_DROPBEAR_ECC_FULL \
 	CONFIG_DROPBEAR_CURVE25519 CONFIG_DROPBEAR_ZLIB \
+	CONFIG_DROPBEAR_ED25519 CONFIG_DROPBEAR_CHACHA20POLY1305 \
 	CONFIG_DROPBEAR_UTMP CONFIG_DROPBEAR_PUTUTLINE \
 	CONFIG_DROPBEAR_DBCLIENT
 
@@ -104,6 +105,9 @@ define Build/Configure
 			$(PKG_BUILD_DIR)/localoptions.h; \
 	done
 
+	echo '#define DROPBEAR_ED25519 $(if $(CONFIG_DROPBEAR_ED25519),1,0)' >> \
+		$(PKG_BUILD_DIR)/localoptions.h
+
 	# remove protocol idented software version number
 	$(ESED) 's,^(#define LOCAL_IDENT) .*$$$$,\1 "SSH-2.0-dropbear",g' \
 		$(PKG_BUILD_DIR)/sysoptions.h
@@ -121,6 +125,9 @@ define Build/Configure
 		$(ESED) 's,^(#define '$$$$OPTION') .*$$$$,\1 $(if $(CONFIG_DROPBEAR_ECC_FULL),1,0),g' \
 		$(PKG_BUILD_DIR)/sysoptions.h; \
 	done
+
+	echo '#define DROPBEAR_CHACHA20POLY1305 $(if $(CONFIG_DROPBEAR_CHACHA20POLY1305),1,0)' >> \
+		$(PKG_BUILD_DIR)/localoptions.h
 
 	# Enforce rebuild of svr-chansession.c
 	rm -f $(PKG_BUILD_DIR)/svr-chansession.o
@@ -168,6 +175,10 @@ fi
 
 if [ ! -f /opt/etc/dropbear/dropbear_ecdsa_host_key ]; then
     /opt/bin/dropbearkey -t ecdsa -f /opt/etc/dropbear/dropbear_ecdsa_host_key
+fi
+
+if [ ! -f /opt/etc/dropbear/dropbear_ed25519_host_key ]; then
+    /opt/bin/dropbearkey -t ed25519 -f /opt/etc/dropbear/dropbear_ed25519_host_key
 fi
 endef
 
