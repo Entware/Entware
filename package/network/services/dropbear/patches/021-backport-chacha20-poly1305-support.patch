@@ -1,4 +1,4 @@
-From 0a7720321419ce7f4b4e004079f4c3236142161a Mon Sep 17 00:00:00 2001
+From 3cdf9ec918b37c17e12b33e4c244944d1ee836ca Mon Sep 17 00:00:00 2001
 From: Vladislav Grishenko <themiron@mail.ru>
 Date: Mon, 6 Apr 2020 23:28:09 +0500
 Subject: [PATCH] Add Chacha20-Poly1305 authenticated encryption
@@ -13,16 +13,16 @@ Compiling in will add ~5,5kB to binary size on x86-64.
 ---
  Makefile.in                                 |   2 +-
  algo.h                                      |   8 ++
- chachapoly.c                                | 146 ++++++++++++++++++++
+ chachapoly.c                                | 148 ++++++++++++++++++++
  chachapoly.h                                |  44 ++++++
  common-algo.c                               |  11 +-
- common-kex.c                                |  57 +++++---
+ common-kex.c                                |  44 ++++--
  default_options.h                           |   6 +
  libtomcrypt/src/headers/tomcrypt_dropbear.h |   4 +
  packet.c                                    | 145 +++++++++++++------
  session.h                                   |   4 +
  sysoptions.h                                |   8 +-
- 11 files changed, 371 insertions(+), 64 deletions(-)
+ 11 files changed, 368 insertions(+), 56 deletions(-)
  create mode 100644 chachapoly.c
  create mode 100644 chachapoly.h
 
@@ -60,10 +60,10 @@ index b12fb94..efd0d73 100644
  struct dropbear_hash {
 diff --git a/chachapoly.c b/chachapoly.c
 new file mode 100644
-index 0000000..0569ed4
+index 0000000..8fb06c5
 --- /dev/null
 +++ b/chachapoly.c
-@@ -0,0 +1,146 @@
+@@ -0,0 +1,148 @@
 +/*
 + * Dropbear SSH
 + * 
@@ -101,11 +101,13 @@ index 0000000..0569ed4
 +#define POLY1305_KEY_LEN 32
 +#define POLY1305_TAG_LEN 16
 +
-+const struct dropbear_cipher dropbear_chachapoly =
-+	{NULL, CHACHA20_KEY_LEN*2, CHACHA20_BLOCKSIZE};
++static const struct ltc_cipher_descriptor dummy = {.name = NULL};
 +
 +static const struct dropbear_hash dropbear_chachapoly_mac =
 +	{NULL, POLY1305_KEY_LEN, POLY1305_TAG_LEN};
++
++const struct dropbear_cipher dropbear_chachapoly =
++	{&dummy, CHACHA20_KEY_LEN*2, CHACHA20_BLOCKSIZE};
 +
 +static int dropbear_chachapoly_start(int UNUSED(cipher), const unsigned char* UNUSED(IV),
 +			const unsigned char *key, int keylen,
@@ -307,63 +309,42 @@ index 558aad2..1436456 100644
  #if DROPBEAR_AES128
  	{"aes128-ctr", 0, &dropbear_aes128, 1, &dropbear_mode_ctr},
 diff --git a/common-kex.c b/common-kex.c
-index 16b7e27..c87c0dc 100644
+index 16b7e27..5e2923f 100644
 --- a/common-kex.c
 +++ b/common-kex.c
-@@ -294,6 +294,7 @@ static void gen_new_keys() {
- 	hash_state hs;
- 	const struct ltc_hash_descriptor *hash_desc = ses.newkeys->algo_kex->hash_desc;
- 	char mactransletter, macrecvletter; /* Client or server specific */
-+	int recv_cipher, trans_cipher;
- 
- 	TRACE(("enter gen_new_keys"))
- 	/* the dh_K and hash are the start of all hashes, we make use of that */
-@@ -328,28 +329,30 @@ static void gen_new_keys() {
- 	hashkeys(C2S_key, sizeof(C2S_key), &hs, 'C');
+@@ -329,9 +329,12 @@ static void gen_new_keys() {
  	hashkeys(S2C_key, sizeof(S2C_key), &hs, 'D');
  
-+	recv_cipher = -1;
  	if (ses.newkeys->recv.algo_crypt->cipherdesc != NULL) {
 -		int recv_cipher = find_cipher(ses.newkeys->recv.algo_crypt->cipherdesc->name);
-+		recv_cipher = find_cipher(ses.newkeys->recv.algo_crypt->cipherdesc->name);
- 		if (recv_cipher < 0)
- 			dropbear_exit("Crypto error");
--		if (ses.newkeys->recv.crypt_mode->start(recv_cipher, 
--				recv_IV, recv_key, 
--				ses.newkeys->recv.algo_crypt->keysize, 0, 
--				&ses.newkeys->recv.cipher_state) != CRYPT_OK) {
+-		if (recv_cipher < 0)
 -			dropbear_exit("Crypto error");
--		}
-+	}
-+	if (ses.newkeys->recv.crypt_mode->start(recv_cipher, 
-+			recv_IV, recv_key, 
-+			ses.newkeys->recv.algo_crypt->keysize, 0, 
-+			&ses.newkeys->recv.cipher_state) != CRYPT_OK) {
-+		dropbear_exit("Crypto error");
++		int recv_cipher = -1;
++		if (ses.newkeys->recv.algo_crypt->cipherdesc->name != NULL) {
++			recv_cipher = find_cipher(ses.newkeys->recv.algo_crypt->cipherdesc->name);
++			if (recv_cipher < 0)
++				dropbear_exit("Crypto error");
++		}
+ 		if (ses.newkeys->recv.crypt_mode->start(recv_cipher, 
+ 				recv_IV, recv_key, 
+ 				ses.newkeys->recv.algo_crypt->keysize, 0, 
+@@ -341,9 +344,12 @@ static void gen_new_keys() {
  	}
  
-+	trans_cipher = -1;
  	if (ses.newkeys->trans.algo_crypt->cipherdesc != NULL) {
 -		int trans_cipher = find_cipher(ses.newkeys->trans.algo_crypt->cipherdesc->name);
-+		trans_cipher = find_cipher(ses.newkeys->trans.algo_crypt->cipherdesc->name);
- 		if (trans_cipher < 0)
- 			dropbear_exit("Crypto error");
--		if (ses.newkeys->trans.crypt_mode->start(trans_cipher, 
--				trans_IV, trans_key, 
--				ses.newkeys->trans.algo_crypt->keysize, 0, 
--				&ses.newkeys->trans.cipher_state) != CRYPT_OK) {
+-		if (trans_cipher < 0)
 -			dropbear_exit("Crypto error");
--		}
-+	}
-+	if (ses.newkeys->trans.crypt_mode->start(trans_cipher, 
-+			trans_IV, trans_key, 
-+			ses.newkeys->trans.algo_crypt->keysize, 0, 
-+			&ses.newkeys->trans.cipher_state) != CRYPT_OK) {
-+		dropbear_exit("Crypto error");
- 	}
- 
- 	if (ses.newkeys->trans.algo_mac->hash_desc != NULL) {
-@@ -868,19 +871,29 @@ static void read_kex_algos() {
++		int trans_cipher = -1;
++		if (ses.newkeys->trans.algo_crypt->cipherdesc->name != NULL) {
++			trans_cipher = find_cipher(ses.newkeys->trans.algo_crypt->cipherdesc->name);
++			if (trans_cipher < 0)
++				dropbear_exit("Crypto error");
++		}
+ 		if (ses.newkeys->trans.crypt_mode->start(trans_cipher, 
+ 				trans_IV, trans_key, 
+ 				ses.newkeys->trans.algo_crypt->keysize, 0, 
+@@ -868,19 +874,29 @@ static void read_kex_algos() {
  
  	/* mac_algorithms_client_to_server */
  	c2s_hash_algo = buf_match_algo(ses.payload, sshhashes, NULL, NULL);
@@ -395,7 +376,7 @@ index 16b7e27..c87c0dc 100644
  
  	/* compression_algorithms_client_to_server */
  	c2s_comp_algo = buf_match_algo(ses.payload, ses.compress_algos, NULL, NULL);
-@@ -925,8 +938,14 @@ static void read_kex_algos() {
+@@ -925,8 +941,14 @@ static void read_kex_algos() {
  		ses.newkeys->trans.crypt_mode =
  			(struct dropbear_cipher_mode*)c2s_cipher_algo->mode;
  		ses.newkeys->recv.algo_mac = 
@@ -410,7 +391,7 @@ index 16b7e27..c87c0dc 100644
  			(struct dropbear_hash*)c2s_hash_algo->data;
  		ses.newkeys->recv.algo_comp = s2c_comp_algo->val;
  		ses.newkeys->trans.algo_comp = c2s_comp_algo->val;
-@@ -941,8 +960,14 @@ static void read_kex_algos() {
+@@ -941,8 +963,14 @@ static void read_kex_algos() {
  		ses.newkeys->trans.crypt_mode =
  			(struct dropbear_cipher_mode*)s2c_cipher_algo->mode;
  		ses.newkeys->recv.algo_mac = 
