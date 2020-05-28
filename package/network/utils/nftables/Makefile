@@ -7,13 +7,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nftables
-PKG_VERSION:=0.9.2
+PKG_VERSION:=0.9.3
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=https://netfilter.org/projects/$(PKG_NAME)/files
-PKG_HASH:=5cb66180143e6bfc774f4eb316206d40ac1cb6df269a90882404cbf7165513f5
-PKG_MAINTAINER:=Steven Barth <steven@midlink.org>
+PKG_HASH:=956b915ce2a7aeaff123e49006be7a0690a0964e96c062703181a36e2e5edb78
+PKG_MAINTAINER:=
 PKG_LICENSE:=GPL-2.0
 
 PKG_FIXUP:=autoreconf
@@ -30,31 +30,43 @@ CONFIGURE_ARGS += \
         --without-cli \
         --disable-python \
 
-define Package/nftables
+define Package/nftables/Default
   SECTION:=net
   CATEGORY:=Network
   SUBMENU:=Firewall
-  TITLE:=nftables packet filtering userspace utility
-  DEPENDS:=+libnftnl +PACKAGE_NFT_WITH_JSON:jansson
+  TITLE:=nftables userspace utility
+  DEPENDS:=+libnftnl
   URL:=http://netfilter.org/projects/nftables/
+  PROVIDES:=nftables
 endef
 
-define Package/nftables/config
-	config PACKAGE_NFT_WITH_JSON
-		bool "Build nftables with json support"
-		depends on PACKAGE_nftables
-		default n
+define Package/nftables-nojson
+  $(Package/nftables/Default)
+  TITLE+= no JSON support
+  VARIANT:=nojson
+  DEFAULT_VARIANT:=1
 endef
 
-ifeq ($(CONFIG_PACKAGE_NFT_WITH_JSON),y)
-CONFIGURE_ARGS += --with-json
+define Package/nftables-json
+  $(Package/nftables/Default)
+  TITLE+= with JSON support
+  VARIANT:=json
+  DEPENDS+=+jansson
+endef
+
+ifeq ($(BUILD_VARIANT),json)
+  CONFIGURE_ARGS += --with-json
 endif
 
-define Package/nftables/install
+define Package/nftables/install/Default
 	$(INSTALL_DIR) $(1)/opt/sbin
 	$(CP) $(PKG_INSTALL_DIR)/opt/sbin/nft $(1)/opt/sbin/
 	$(INSTALL_DIR) $(1)/opt/lib
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/*.so* $(1)/opt/lib/
 endef
 
-$(eval $(call BuildPackage,nftables))
+Package/nftables-nojson/install = $(Package/nftables/install/Default)
+Package/nftables-json/install = $(Package/nftables/install/Default)
+
+$(eval $(call BuildPackage,nftables-nojson))
+$(eval $(call BuildPackage,nftables-json))
