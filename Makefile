@@ -88,6 +88,14 @@ prereq: $(target/stamp-prereq) tmp/.prereq_packages
 		exit 1; \
 	fi
 
+$(BIN_DIR)/profiles.json: FORCE
+	$(if $(CONFIG_JSON_OVERVIEW_IMAGE_INFO), \
+		WORK_DIR=$(BUILD_DIR)/json_info_files \
+			$(SCRIPT_DIR)/json_overview_image_info.py $@ \
+	)
+
+json_overview_image_info: $(BIN_DIR)/profiles.json
+
 checksum: FORCE
 	$(call sha256sums,$(BIN_DIR),$(CONFIG_BUILDBOT))
 
@@ -104,18 +112,12 @@ diffconfig: FORCE
 buildinfo: FORCE
 	$(_SINGLE)$(SUBMAKE) -r diffconfig buildversion feedsversion
 
-headers: FORCE
-	tar -czf $(BIN_DIR)/include.tar.gz \
-	-C $(STAGING_DIR)/opt/include . \
-	-C $(STAGING_DIR)/opt/lib/libiconv-full/include . \
-	-C $(STAGING_DIR)/opt/lib/libintl-full/include . \
-	-C $(STAGING_DIR)/opt/lib/glib-2.0/include . 
-
 prepare: .config $(tools/stamp-compile) $(toolchain/stamp-compile)
 	$(_SINGLE)$(SUBMAKE) -r buildinfo
 
-world: prepare $(target/stamp-compile) $(package/stamp-compile) FORCE
+world: prepare $(target/stamp-compile) $(package/stamp-compile) $(package/stamp-install) $(target/stamp-install) FORCE
 	$(_SINGLE)$(SUBMAKE) -r package/index
+	$(_SINGLE)$(SUBMAKE) -r json_overview_image_info
 	$(_SINGLE)$(SUBMAKE) -r checksum
 	$(_SINGLE)$(SUBMAKE) -r headers
 

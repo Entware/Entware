@@ -1,5 +1,3 @@
-commit 7f059af7a6dc71b67220272aa2681ccfdc3fa6e7
-Author: Hauke Mehrtens <hauke@hauke-m.de>
-Date:   Sat Feb 29 16:31:26 2020 +0100
-
-    x86: Remove kernel 4.14 support
+commit afea16b8f752b3ccd3f66f9ac3890586d44cde69
+Author: Matthias Schiffer <mschiffer@universe-factory.net>
+Date:   Sat May 23 21:17:15 2020 +0200
