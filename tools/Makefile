@@ -22,7 +22,7 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
 endif
 
 tools-$(BUILD_TOOLCHAIN) += gmp mpfr mpc libelf expat
-tools-y += m4 libtool autoconf automake flex bison pkgconf mklibs zlib
+tools-y += m4 libtool autoconf autoconf-archive automake flex bison pkgconf mklibs zlib
 tools-y += sstrip
 tools-y += quilt
 tools-y += mm-macros missing-macros cmake bc findutils gengetopt patchelf
