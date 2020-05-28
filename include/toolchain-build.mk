@@ -22,5 +22,5 @@ define FixupLibdir
 		mv $(1)/lib64/* $(1)/lib/; \
 		rm -rf $(1)/lib64; \
 	fi
-	ln -snf lib $(1)/lib64
+	ln -sf lib $(1)/lib64
 endef
