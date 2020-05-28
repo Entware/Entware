@@ -174,7 +174,7 @@ EOF
 	print <<EOF;
 choice
 	prompt "Target System"
-	default TARGET_ath79
+	default TARGET_aarch64_3_10
 	reset if !DEVEL
 	
 EOF
@@ -186,26 +186,7 @@ EOF
 
 	print <<EOF;
 endchoice
-
-choice
-	prompt "Subtarget" if HAS_SUBTARGETS
-EOF
-	foreach my $target (@target) {
-		next unless $target->{def_subtarget};
-		print <<EOF;
-	default TARGET_$target->{conf}_$target->{def_subtarget} if TARGET_$target->{conf}
-EOF
-	}
-	print <<EOF;
-
-EOF
-	foreach my $target (@target) {
-		next unless $target->{subtarget};
-		print_target($target);
-	}
-
-print <<EOF;
-endchoice
+# Entware specific: no Subtargets
 
 choice
 	prompt "Target Profile"
