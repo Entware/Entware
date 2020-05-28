@@ -21,8 +21,8 @@ ifeq ($(PKG_VERSION),2.25)
   PKG_HASH:=94a7a5d7a0094de5b358b340e9b55806f2fe544bc556f3057b6c88a6460fe681
 endif
 
-ifeq ($(PKG_VERSION),2.27)
-  PKG_HASH:=e49c919c83579984f7c2442243861d04227e8dc831a08d7bf60cdacfdcd08797
+ifeq ($(PKG_VERSION),2.31)
+  PKG_HASH:=d55e6f90fca44c74ac992d85eef1ec3c8407d6d622f851fede6128b4b217ac71
 endif
 
 PATCH_DIR:=$(PATH_PREFIX)/patches/$(PKG_VERSION)
@@ -51,9 +51,10 @@ ifeq ($(ARCH),mips64)
 endif
 
 GLIBC_CONFIGURE:= \
+	unset LD_LIBRARY_PATH; \
 	BUILD_CC="$(HOSTCC)" \
 	$(TARGET_CONFIGURE_OPTS) \
-	CFLAGS="$(TARGET_CFLAGS)" \
+	CFLAGS="-O2 $(filter-out -Os,$(call qstrip,$(TARGET_CFLAGS)))" \
 	libc_cv_slibdir="/lib" \
 	use_ldconfig=no \
 	$(HOST_BUILD_DIR)/$(GLIBC_PATH)configure \
