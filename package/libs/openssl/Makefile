@@ -92,10 +92,7 @@ endef
 define Package/libopenssl
 $(call Package/openssl/Default)
   SUBMENU:=SSL
-  DEPENDS:=+OPENSSL_WITH_COMPRESSION:zlib \
-	   +OPENSSL_ENGINE_BUILTIN_AFALG:kmod-crypto-user \
-	   +OPENSSL_ENGINE_BUILTIN_DEVCRYPTO:kmod-cryptodev \
-	   +OPENSSL_ENGINE_BUILTIN_PADLOCK:kmod-crypto-hw-padlock
+  DEPENDS:=+OPENSSL_WITH_COMPRESSION:zlib
   TITLE+= (libraries)
   ABI_VERSION:=1.1
   MENU:=1
