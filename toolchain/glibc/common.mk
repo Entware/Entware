@@ -68,7 +68,7 @@ GLIBC_CONFIGURE:= \
 		--without-cvs \
 		--enable-add-ons \
 		--enable-obsolete-rpc \
-		$(if $(CONFIG_GLIBC_USE_VERSION_2_27),--enable-obsolete-nsl,) \
+		$(if $(CONFIG_GLIBC_USE_VERSION_2_31),--enable-obsolete-nsl,) \
 		--$(if $(CONFIG_SOFT_FLOAT),without,with)-fp
 
 export libc_cv_ssp=no
