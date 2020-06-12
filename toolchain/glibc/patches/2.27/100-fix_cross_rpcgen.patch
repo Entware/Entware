@@ -1,6 +1,6 @@
 --- a/sunrpc/rpc/types.h
 +++ b/sunrpc/rpc/types.h
-@@ -75,18 +75,23 @@ typedef unsigned long rpcport_t;
+@@ -75,18 +75,23 @@
  #endif
  
  #ifndef __u_char_defined
@@ -36,9 +36,9 @@
  
 --- a/sunrpc/rpc_main.c
 +++ b/sunrpc/rpc_main.c
-@@ -958,9 +958,10 @@ mkfile_output (struct commandline *cmd)
+@@ -958,9 +958,10 @@
  	abort ();
-       temp = rindex (cmd->infile, '.');
+       temp = strrchr (cmd->infile, '.');
        cp = stpcpy (mkfilename, "Makefile.");
 -      if (temp != NULL)
 -	*((char *) stpncpy (cp, cmd->infile, temp - cmd->infile)) = '\0';

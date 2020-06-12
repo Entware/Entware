@@ -1,6 +1,6 @@
 --- a/resolv/netdb.h
 +++ b/resolv/netdb.h
-@@ -44,7 +44,7 @@
+@@ -43,7 +43,7 @@
  #define	_PATH_HEQUIV		"/etc/hosts.equiv"
  #define	_PATH_HOSTS		"/etc/hosts"
  #define	_PATH_NETWORKS		"/etc/networks"

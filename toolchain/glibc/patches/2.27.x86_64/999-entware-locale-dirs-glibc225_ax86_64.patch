@@ -1,12 +1,12 @@
 --- a/locale/Makefile
 +++ b/locale/Makefile
-@@ -79,6 +79,12 @@
+@@ -81,6 +81,12 @@
  # The path to the compiled binary locale archive or compiled locales,
  # along with the parent path to the source locales and source
  # charmaps.
 +complocaledir = /opt/usr/lib/locale
 +i18ndir = /opt/usr/share/i18n
-+rtld-LDFLAGS = -Wl,--dynamic-linker=/opt/lib/ld.so.1
++rtld-LDFLAGS = -Wl,--dynamic-linker=/opt/lib/ld-linux-x86-64.so.2
 +LDFLAGS-locale = -Wl,-rpath,/opt/lib
 +LDFLAGS-localedef = -Wl,-rpath,/opt/lib
 +

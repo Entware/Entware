@@ -1,6 +1,6 @@
 --- a/Makeconfig
 +++ b/Makeconfig
-@@ -270,7 +270,7 @@
+@@ -255,7 +255,7 @@
  # other than there, so the zoneinfo directory contains only universal data,
  # localizing the configuration data elsewhere.
  ifndef localtime-file
