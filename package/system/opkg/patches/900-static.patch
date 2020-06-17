@@ -1,0 +1,42 @@
+--- a/CMakeLists.txt	2020-06-10 15:30:44.647556078 +0000
++++ b/CMakeLists.txt	2020-06-10 15:32:00.120024334 +0000
+@@ -10,6 +10,7 @@ SET(LOCK_FILE "/var/lock/opkg.lock" CACH
+ SET(PATH_SPEC "/usr/sbin:/usr/bin:/sbin:/bin" CACHE STRING "Override default PATH value")
+ SET(VERSION "" CACHE STRING "Override version")
+ 
++OPTION(STATIC "Build statically" OFF)
+ OPTION(STATIC_UBOX "Statically link libubox" OFF)
+ OPTION(BUILD_TESTS "Build test programs" ON)
+ OPTION(ENABLE_USIGN "Enable usign support" ON)
+--- a/src/CMakeLists.txt	2020-06-10 15:30:53.979613990 +0000
++++ b/src/CMakeLists.txt	2020-06-10 15:32:56.116371610 +0000
+@@ -2,12 +2,18 @@ cmake_minimum_required(VERSION 2.6)
+ 
+ PROJECT(opkg-cl C)
+ 
++IF(STATIC)
++	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc")
++	SET(CMAKE_LINK_SEARCH_START_STATIC ON)
++	SET(CMAKE_LINK_SEARCH_END_STATIC ON)
++ENDIF()
++
+ INCLUDE(CheckLibraryExists)
+ 
+ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/../libopkg)
+ LINK_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/../libopkg ${CMAKE_CURRENT_SOURCE_DIR}/../libbb)
+ 
+-IF(STATIC_UBOX)
++IF(STATIC OR STATIC_UBOX)
+ 	FIND_LIBRARY(ubox NAMES libubox.a)
+ ELSE()
+ 	FIND_LIBRARY(ubox NAMES ubox)
+@@ -19,6 +25,9 @@ TARGET_LINK_LIBRARIES(opkg-cl opkg bb ${
+ CHECK_LIBRARY_EXISTS(pthread pthread_create "" NEED_PTHREAD)
+ IF(NEED_PTHREAD)
+ 	TARGET_LINK_LIBRARIES(opkg-cl pthread)
++	IF(STATIC)
++		TARGET_LINK_LIBRARIES(opkg-cl c gcc_pic)
++	ENDIF()
+ ENDIF()
+ 
+ INSTALL(TARGETS opkg-cl RUNTIME DESTINATION bin)
