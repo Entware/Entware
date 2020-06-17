@@ -16,7 +16,8 @@ for entware_target in $(ls -1 configs); do
     done
 done
 
-mirrors="https://sources.openwrt.org
+mirrors="https://sources.cdn.openwrt.org
+    https://sources.openwrt.org
     https://mirror2.openwrt.org/sources"
 
 echo 'Creating upload mirror...'
