@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=util-linux
 PKG_VERSION:=2.35.1
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.35
@@ -275,6 +275,17 @@ endef
 define Package/getopt/description
  getopt is used to break up (parse) options in command lines for easy parsing
  by shell procedures, and to check for legal options
+endef
+
+define Package/hardlink
+$(call Package/util-linux/Default)
+  TITLE:=consolidate duplicate files using hardlinks
+  DEPENDS:=+libpcre2
+  SUBMENU:=Filesystem
+endef
+
+define Package/hardlink/description
+ Consolidate duplicate files using hardlinks.
 endef
 
 define Package/hwclock
@@ -693,6 +704,11 @@ define Package/ionice/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/ionice $(1)/opt/bin/
 endef
 
+define Package/hardlink/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/hardlink $(1)/opt/bin/
+endef
+
 define Package/hwclock/install
 	$(INSTALL_DIR) $(1)/opt/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/hwclock $(1)/opt/sbin/
@@ -841,6 +857,7 @@ $(eval $(call BuildPackage,fsfreeze))
 $(eval $(call BuildPackage,fstrim))
 $(eval $(call BuildPackage,getopt))
 $(eval $(call BuildPackage,ionice))
+$(eval $(call BuildPackage,hardlink))
 $(eval $(call BuildPackage,hwclock))
 $(eval $(call BuildPackage,logger))
 $(eval $(call BuildPackage,look))

@@ -1,6 +1,6 @@
 --- a/include/pathnames.h
 +++ b/include/pathnames.h
-@@ -21,17 +21,17 @@
+@@ -20,17 +20,17 @@
  #undef _PATH_DEFPATH
  
  #ifdef USE_USRDIR_PATHS_ONLY
@@ -22,7 +22,7 @@
  #endif
  
  #define	_PATH_HUSHLOGIN		".hushlogin"
-@@ -58,11 +58,11 @@
+@@ -57,11 +57,11 @@
  #define _PATH_TERMCOLORS_DIR	"/etc/" _PATH_TERMCOLORS_DIRNAME
  
  /* login paths */
@@ -37,5 +37,5 @@
 +#define _PATH_SHADOW_PASSWD	"/opt/etc/shadow"
 +#define _PATH_SHELLS		"/opt/etc/shells"
  
- #ifndef _PATH_BTMP
- # define _PATH_BTMP		"/var/log/btmp"
+ #ifndef _PATH_TMP
+ # define _PATH_TMP		"/tmp/"
