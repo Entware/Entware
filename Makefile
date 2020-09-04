@@ -62,6 +62,11 @@ dirclean: clean
 	rm -rf $(TMP_DIR)
 	$(MAKE) -C $(TOPDIR)/scripts/config clean
 
+cacheclean:
+ifneq ($(CONFIG_CCACHE),)
+	rm -rf $(if $(call qstrip,$(CONFIG_CCACHE_DIR)),$(call qstrip,$(CONFIG_CCACHE_DIR)),$(TOPDIR)/.ccache)
+endif
+
 ifndef DUMP_TARGET_DB
 $(BUILD_DIR)/.prepared: Makefile
 	@mkdir -p $$(dirname $@)
@@ -127,6 +132,9 @@ world: prepare $(target/stamp-compile) $(package/stamp-compile) FORCE
 	$(_SINGLE)$(SUBMAKE) -r json_overview_image_info
 	$(_SINGLE)$(SUBMAKE) -r checksum
 	$(_SINGLE)$(SUBMAKE) -r headers
+ifneq ($(CONFIG_CCACHE),)
+	$(STAGING_DIR_HOST)/bin/ccache -s
+endif
 
 .PHONY: clean dirclean prereq prepare world package/symlinks package/symlinks-install package/symlinks-clean
 

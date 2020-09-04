@@ -324,6 +324,13 @@ endif
 
 BUILD_KEY=$(TOPDIR)/key-build
 
+ifeq ($(HOST_OS),Darwin)
+  FAKEROOT_SO:=$(STAGING_DIR_HOST)/lib/libfakeroot.dylib
+else
+  FAKEROOT_SO:=$(STAGING_DIR_HOST)/lib/libfakeroot.so
+endif
+FAKEROOT:=$(STAGING_DIR_HOST)/bin/fakeroot -l $(FAKEROOT_SO) -f $(STAGING_DIR_HOST)/bin/faked
+
 TARGET_CC:=$(TARGET_CROSS)gcc
 TARGET_CXX:=$(TARGET_CROSS)g++
 KPATCH:=$(SCRIPT_DIR)/patch-kernel.sh
@@ -358,6 +365,9 @@ ifneq ($(CONFIG_CCACHE),)
   TARGET_CXX:= ccache_cxx
   HOSTCC:= ccache $(HOSTCC)
   HOSTCXX:= ccache $(HOSTCXX)
+  export CCACHE_BASEDIR:=$(TOPDIR)
+  export CCACHE_DIR:=$(if $(call qstrip,$(CONFIG_CCACHE_DIR)),$(call qstrip,$(CONFIG_CCACHE_DIR)),$(TOPDIR)/.ccache)
+  export CCACHE_COMPILERCHECK:=%compiler% -dumpmachine; %compiler% -dumpversion
 endif
 
 TARGET_CONFIGURE_OPTS = \
