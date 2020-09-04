@@ -8,11 +8,11 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/target.mk
 
 PKG_NAME:=ccache
-PKG_VERSION:=3.7.7
+PKG_VERSION:=3.7.11
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=https://github.com/ccache/ccache/releases/download/v$(PKG_VERSION)
-PKG_HASH:=b7c1d6d6fe42f18e424de92746af863e0bc85794da3d69e44300840c478c98cd
+PKG_HASH:=8d450208099a4d202bd7df87caaec81baee20ce9dd62da91e9ea7b95a9072f68
 
 include $(INCLUDE_DIR)/host-build.mk
 

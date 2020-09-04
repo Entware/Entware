@@ -7,12 +7,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=go-src
-PKG_VERSION:=1.14.3
+PKG_VERSION:=1.15.1
 
 PKG_SOURCE:=go$(PKG_VERSION).src.tar.gz
 PKG_SOURCE_URL:=https://dl.google.com/go
 HOST_BUILD_DIR:=$(STAGING_DIR_HOST)/go
-PKG_HASH:=93023778d4d1797b7bc6a53e86c3a9b150c923953225f8a48a2d5fabc971af56
+PKG_HASH:=d3743752a421881b5cc007c76b4b68becc3ad053e61275567edab1c99e154d30
 
 include $(INCLUDE_DIR)/host-build.mk
 
