@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-import json
+from os import getenv, environ
 from pathlib import Path
-from os import getenv
+from subprocess import run, PIPE
 from sys import argv
+import json
 
 if len(argv) != 2:
     print("JSON info files script requires ouput file as argument")
