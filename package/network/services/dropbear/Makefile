@@ -8,14 +8,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dropbear
-PKG_VERSION:=2019.78
-PKG_RELEASE:=4a
+PKG_VERSION:=2020.80
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:= \
 	http://matt.ucc.asn.au/dropbear/releases/ \
 	https://dropbear.nl/mirror/releases/
-PKG_HASH:=525965971272270995364a0eb01f35180d793182e63dd0b0c3eb0292291644a4
+PKG_HASH:=d927941b91f2da150b2033f1a88b6a47999bf0afb1493a73e9216cffdb5d7949
 
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=LICENSE libtomcrypt/LICENSE libtommath/LICENSE
@@ -31,7 +31,7 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_DROPBEAR_CURVE25519 CONFIG_DROPBEAR_ZLIB \
 	CONFIG_DROPBEAR_ED25519 CONFIG_DROPBEAR_CHACHA20POLY1305 \
 	CONFIG_DROPBEAR_UTMP CONFIG_DROPBEAR_PUTUTLINE \
-	CONFIG_DROPBEAR_DBCLIENT
+	CONFIG_DROPBEAR_DBCLIENT CONFIG_DROPBEAR_SCP
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -108,14 +108,16 @@ define Build/Configure
 	echo '#define DROPBEAR_ED25519 $(if $(CONFIG_DROPBEAR_ED25519),1,0)' >> \
 		$(PKG_BUILD_DIR)/localoptions.h
 
+	echo '#define DROPBEAR_CHACHA20POLY1305 $(if $(CONFIG_DROPBEAR_CHACHA20POLY1305),1,0)' >> \
+		$(PKG_BUILD_DIR)/localoptions.h
+
 	# remove protocol idented software version number
 	$(ESED) 's,^(#define LOCAL_IDENT) .*$$$$,\1 "SSH-2.0-dropbear",g' \
 		$(PKG_BUILD_DIR)/sysoptions.h
 
 	# disable legacy/unsafe methods and unused functionality
 	for OPTION in INETD_MODE DROPBEAR_CLI_NETCAT \
-	DROPBEAR_3DES DROPBEAR_DSS DROPBEAR_ENABLE_CBC_MODE \
-	DROPBEAR_SHA1_96_HMAC DROPBEAR_USE_PASSWORD_ENV; do \
+	DROPBEAR_DSS DROPBEAR_USE_PASSWORD_ENV DO_MOTD ; do \
 		echo "#define $$$$OPTION 0" >> \
 			$(PKG_BUILD_DIR)/localoptions.h; \
 	done
@@ -125,9 +127,6 @@ define Build/Configure
 		$(ESED) 's,^(#define '$$$$OPTION') .*$$$$,\1 $(if $(CONFIG_DROPBEAR_ECC_FULL),1,0),g' \
 		$(PKG_BUILD_DIR)/sysoptions.h; \
 	done
-
-	echo '#define DROPBEAR_CHACHA20POLY1305 $(if $(CONFIG_DROPBEAR_CHACHA20POLY1305),1,0)' >> \
-		$(PKG_BUILD_DIR)/localoptions.h
 
 	# Enforce rebuild of svr-chansession.c
 	rm -f $(PKG_BUILD_DIR)/svr-chansession.o
@@ -140,7 +139,7 @@ endef
 define Build/Compile
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
 		$(TARGET_CONFIGURE_OPTS) \
-		PROGRAMS="dropbear $(if $(CONFIG_DROPBEAR_DBCLIENT),dbclient,) dropbearkey scp" \
+		PROGRAMS="dropbear $(if $(CONFIG_DROPBEAR_DBCLIENT),dbclient,) dropbearkey $(if $(CONFIG_DROPBEAR_SCP),scp,)" \
 		MULTI=1 SCPPROGRESS=1
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
 		$(TARGET_CONFIGURE_OPTS) \

@@ -1,6 +1,6 @@
 --- a/pppd/Makefile.linux
 +++ b/pppd/Makefile.linux
-@@ -191,8 +191,8 @@
+@@ -192,8 +192,8 @@
  
  ifdef FILTER
  ifneq ($(wildcard /usr/include/pcap-bpf.h),)
@@ -11,7 +11,7 @@
  endif
  endif
  
-@@ -200,8 +200,8 @@
+@@ -201,8 +201,8 @@
  PPPDSRCS += pcap_pcc.c
  HEADERS  += pcap_pcc.h
  PPPDOBJS += pcap_pcc.o
