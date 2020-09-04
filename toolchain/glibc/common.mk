@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2006-2016 OpenWrt.org
+# Copyright (C) 2006-2020 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -50,6 +50,9 @@ ifeq ($(ARCH),mips64)
   endif
 endif
 
+# -Os miscompiles w. 2.24 gcc5/gcc6
+# only -O2 tested by upstream changeset
+# "Optimize i386 syscall inlining for GCC 5"
 GLIBC_CONFIGURE:= \
 	unset LD_LIBRARY_PATH; \
 	BUILD_CC="$(HOSTCC)" \
