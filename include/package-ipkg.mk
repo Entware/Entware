@@ -10,14 +10,22 @@ ifndef DUMP
   include $(INCLUDE_DIR)/feeds.mk
 endif
 
-# invoke ipkg-build with some default options
-IPKG_BUILD:= \
-  $(SCRIPT_DIR)/ipkg-build -c -o 0 -g 0
-
 IPKG_REMOVE:= \
   $(SCRIPT_DIR)/ipkg-remove
 
 IPKG_STATE_DIR:=$(TARGET_DIR)/opt/lib/opkg
+
+# Generates a make statement to return a wildcard for candidate ipkg files
+# 1: package name
+define gen_ipkg_wildcard
+  $(1)$$(if $$(filter -%,$$(ABIV_$(1))),,[^a-z-])*
+endef
+
+# 1: package name
+# 2: candidate ipk files
+define remove_ipkg_files
+  $(if $(strip $(2)),$(IPKG_REMOVE) $(1) $(2))
+endef
 
 # 1: package name
 # 2: variable name
@@ -174,6 +182,7 @@ $$(call addfield,Depends,$$(Package/$(1)/DEPENDS)
 )$$(call addfield,LicenseFiles,$(LICENSE_FILES)
 )$$(call addfield,Section,$(SECTION)
 )$$(call addfield,Require-User,$(USERID)
+)$$(call addfield,SourceDateEpoch,$(shell $(TOPDIR)/scripts/get_source_date_epoch.sh $(SOURCE))
 )$(if $(PKG_CPE_ID),CPE-ID: $(PKG_CPE_ID)
 )$(if $(filter hold,$(PKG_FLAGS)),Status: unknown hold not-installed
 )$(if $(filter essential,$(PKG_FLAGS)),Essential: yes
@@ -185,8 +194,10 @@ $(_endef)
     $$(IPKG_$(1)) : export CONTROL=$$(Package/$(1)/CONTROL)
     $$(IPKG_$(1)) : export DESCRIPTION=$$(Package/$(1)/description)
     $$(IPKG_$(1)) : export PATH=$$(TARGET_PATH_PKG)
+    $$(IPKG_$(1)) : export PKG_SOURCE_DATE_EPOCH=$(shell $(TOPDIR)/scripts/get_source_date_epoch.sh $(SOURCE))
     $(PKG_INFO_DIR)/$(1).provides $$(IPKG_$(1)): $(STAMP_BUILT) $(INCLUDE_DIR)/package-ipkg.mk
-	@rm -rf $$(IDIR_$(1)) $$(if $$(call opkg_package_files,$(1)*),; $$(IPKG_REMOVE) $(1) $$(call opkg_package_files,$(1)*))
+	@rm -rf $$(IDIR_$(1)); \
+		$$(call remove_ipkg_files,$(1),$$(call opkg_package_files,$(call gen_ipkg_wildcard,$(1))))
 	mkdir -p $(PACKAGE_DIR) $$(IDIR_$(1))/CONTROL $(PKG_INFO_DIR)
 	$(call Package/$(1)/install,$$(IDIR_$(1)))
 	$(if $(Package/$(1)/install-overlay),mkdir -p $(PACKAGE_DIR) $$(IDIR_$(1))/rootfs-overlay)
@@ -236,11 +247,11 @@ $(_endef)
     endif
 
 	$(INSTALL_DIR) $$(PDIR_$(1))
-	$(IPKG_BUILD) $$(IDIR_$(1)) $$(PDIR_$(1))
+	$(FAKEROOT) $(SCRIPT_DIR)/ipkg-build -m "$(PKG_FILE_MODES)" $$(IDIR_$(1)) $$(PDIR_$(1))
 	@[ -f $$(IPKG_$(1)) ]
 
     $(1)-clean:
-	$$(if $$(call opkg_package_files,$(1)*),$$(IPKG_REMOVE) $(1) $$(call opkg_package_files,$(1)*))
+	$$(call remove_ipkg_files,$(1),$$(call opkg_package_files,$(call gen_ipkg_wildcard,$(1))))
 
     clean: $(1)-clean
 

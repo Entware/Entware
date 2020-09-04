@@ -68,7 +68,7 @@ ifdef CONFIG_COLLECT_KERNEL_DEBUG
 	$(FIND) $(KERNEL_BUILD_DIR)/debug -type f | $(XARGS) $(KERNEL_CROSS)strip --only-keep-debug
 	$(TAR) c -C $(KERNEL_BUILD_DIR) debug \
 		$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
-		| bzip2 -c -9 > $(BIN_DIR)/kernel-debug.tar.bz2
+		| zstd -T0 -f -o $(BIN_DIR)/kernel-debug.tar.zst
   endef
 endif
 
@@ -155,7 +155,7 @@ define BuildKernel
   compile: $(LINUX_DIR)/.modules
 	$(MAKE) -C image compile TARGET_BUILD=
 
-  oldconfig menuconfig nconfig: $(STAMP_PREPARED) $(STAMP_CHECKED) FORCE
+  oldconfig menuconfig nconfig xconfig: $(STAMP_PREPARED) $(STAMP_CHECKED) FORCE
 	rm -f $(LINUX_DIR)/.config.prev
 	rm -f $(STAMP_CONFIGURED)
 	$(LINUX_RECONF_CMD) > $(LINUX_DIR)/.config
