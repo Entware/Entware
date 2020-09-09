@@ -4,6 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+# Entware specific: -DHAVE_UBUS removed from CFLAGS
 
 include $(TOPDIR)/rules.mk
 
@@ -126,7 +127,7 @@ Package/dnsmasq-full/conffiles = $(Package/dnsmasq/conffiles)
 TARGET_CFLAGS += -flto
 TARGET_LDFLAGS += -flto=jobserver
 
-COPTS = -DHAVE_UBUS -DHAVE_POLL_H \
+COPTS = -DHAVE_POLL_H \
 	$(if $(CONFIG_IPV6),,-DNO_IPV6)
 
 ifeq ($(BUILD_VARIANT),nodhcpv6)
