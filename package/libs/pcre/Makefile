@@ -85,41 +85,41 @@ MAKE_FLAGS += \
 	CFLAGS="$(TARGET_CFLAGS)"
 
 define Build/InstallDev
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/pcre-config $(1)/usr/bin/
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/pcre-config $(1)/opt/bin/
 
 	$(INSTALL_DIR) $(2)/bin
-	$(LN) $(STAGING_DIR)/usr/bin/pcre-config $(2)/bin
+	$(LN) $(STAGING_DIR)/opt/bin/pcre-config $(2)/bin
 
-	$(INSTALL_DIR) $(1)/usr/include
-	$(CP) $(PKG_INSTALL_DIR)/usr/include/pcre*.h $(1)/usr/include/
+	$(INSTALL_DIR) $(1)/opt/include
+	$(CP) $(PKG_INSTALL_DIR)/opt/include/pcre*.h $(1)/opt/include/
 
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libpcre*.{a,so*} $(1)/usr/lib/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libpcre*.{a,so*} $(1)/opt/lib/
 
-	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/pkgconfig/libpcre*.pc $(1)/usr/lib/pkgconfig/
+	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/libpcre*.pc $(1)/opt/lib/pkgconfig/
 endef
 
 define Package/libpcre/install
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libpcre{,posix}.so.* $(1)/usr/lib/
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libpcre.so $(1)/usr/lib/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libpcre{,posix}.so.* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libpcre.so $(1)/opt/lib/
 endef
 
 define Package/libpcre16/install
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libpcre16.so* $(1)/usr/lib/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libpcre16.so* $(1)/opt/lib/
 endef
 
 define Package/libpcre32/install
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libpcre32.so* $(1)/usr/lib/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libpcre32.so* $(1)/opt/lib/
 endef
 
 define Package/libpcrecpp/install
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libpcrecpp.so.* $(1)/usr/lib/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libpcrecpp.so.* $(1)/opt/lib/
 endef
 
 $(eval $(call BuildPackage,libpcre))
