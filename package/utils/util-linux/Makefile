@@ -361,7 +361,7 @@ endef
 define Package/more
 $(call Package/util-linux/Default)
   TITLE:=filter for paging through text one screenful at a time
-  DEPENDS:= +libncurses
+  DEPENDS:= +libncurses +libmagic
 endef
 
 define Package/more/description
