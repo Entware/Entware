@@ -30,6 +30,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/ethtool
   SECTION:=net
   CATEGORY:=Network
+  DEPENDS:=@!LINUX_2_6_36
   TITLE:=Display or change ethernet card settings
   URL:=http://www.kernel.org/pub/software/network/ethtool/
 endef
