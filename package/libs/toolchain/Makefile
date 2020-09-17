@@ -11,7 +11,7 @@ PKG_NAME:=toolchain
 PKG_RELEASE:=3
 
 ifeq ($(CONFIG_USE_GLIBC),y)
-        PKG_RELEASE=10
+        PKG_RELEASE=11
 endif
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
