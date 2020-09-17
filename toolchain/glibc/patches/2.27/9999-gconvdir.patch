@@ -5,7 +5,7 @@
  # Where to install the shared object for charset transformation.
  ifndef gconvdir
 -gconvdir = $(libdir)/gconv
-+gconvdir = /opt/lib/gconv1
++gconvdir = /opt/lib/gconv
  endif
 -inst_gconvdir = $(install_root)$(gconvdir)
 +inst_gconvdir = $(install_root)/lib/gconv
