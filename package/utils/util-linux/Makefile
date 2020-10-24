@@ -212,6 +212,16 @@ define Package/eject/description
   or ZIP disk) to be ejected under software control.
 endef
 
+define Package/fallocate
+$(call Package/util-linux/Default)
+  TITLE:=preallocate or deallocate space to a file
+  SUBMENU=Disc
+endef
+
+define Package/fallocate/description
+  fallocate is used to manipulate the allocated disk space for a file
+endef
+
 define Package/fdisk
 $(call Package/util-linux/Default)
   TITLE:=manipulate disk partition table
@@ -670,6 +680,11 @@ define Package/eject/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/eject $(1)/opt/bin/
 endef
 
+define Package/fallocate/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/fallocate $(1)/opt/bin/
+endef
+
 define Package/fdisk/install
 	$(INSTALL_DIR) $(1)/opt/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/fdisk $(1)/opt/sbin/
@@ -851,6 +866,7 @@ $(eval $(call BuildPackage,cfdisk))
 $(eval $(call BuildPackage,column))
 $(eval $(call BuildPackage,dmesg))
 $(eval $(call BuildPackage,eject))
+$(eval $(call BuildPackage,fallocate))
 $(eval $(call BuildPackage,fdisk))
 $(eval $(call BuildPackage,findfs))
 $(eval $(call BuildPackage,flock))
