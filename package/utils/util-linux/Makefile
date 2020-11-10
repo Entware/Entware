@@ -4,7 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-# Entware specific: column, ionice and fsfreeze packages added, add swapon/swapoff binaries
+# Entware specific: column, ionice, fallocate and fsfreeze packages added, add swapon/swapoff binaries
 
 include $(TOPDIR)/rules.mk
 
@@ -215,7 +215,7 @@ endef
 define Package/fallocate
 $(call Package/util-linux/Default)
   TITLE:=preallocate or deallocate space to a file
-  SUBMENU=Disc
+  SUBMENU=Filesystem
 endef
 
 define Package/fallocate/description
