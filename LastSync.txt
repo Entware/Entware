@@ -1,3 +1,6 @@
-commit a38b6efbc1ab1b3ebd1c8a1d11050a7889dcc16f (HEAD -> master, origin/master, origin/HEAD)
-Author: Felix Fietkau <nbd@nbd.name>
-Date:   Fri Sep 4 12:31:17 2020 +0200
+commit 7c114f33dd8c6eea5cebe6cf524f4e16154b623c (HEAD -> master, origin/master, origin/HEAD)
+Author: Paul Spooren <mail@aparcar.org>
+Date:   Tue Nov 24 22:06:37 2020 -1000
+
+    opkg: purge package from cache on hash mismatch
+......
