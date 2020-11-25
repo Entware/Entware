@@ -93,6 +93,7 @@ my $hash_cmd = hash_cmd();
 sub download
 {
 	my $mirror = shift;
+	my $download_filename = shift;
 
 	$mirror =~ s!/$!!;
 
@@ -139,7 +140,7 @@ sub download
 			}
 		};
 	} else {
-		my @cmd = download_cmd("$mirror/$url_filename");
+		my @cmd = download_cmd("$mirror/$download_filename");
 		print STDERR "+ ".join(" ",@cmd)."\n";
 		open(FETCH_FD, '-|', @cmd) or die "Cannot launch curl or wget.\n";
 		$hash_cmd and do {
@@ -244,7 +245,7 @@ foreach my $mirror (@ARGV) {
 			push @mirrors, "ftp://ftp.riken.jp/Linux/kernel.org/$dir";
 			push @mirrors, "ftp://www.mirrorservice.org/sites/ftp.kernel.org/pub/$dir";
 		}
-    } elsif ($mirror =~ /^\@GNOME\/(.+)$/) {
+	} elsif ($mirror =~ /^\@GNOME\/(.+)$/) {
 		push @mirrors, "https://mirror.csclub.uwaterloo.ca/gnome/sources/$1";
 		push @mirrors, "http://ftp.acc.umu.se/pub/GNOME/sources/$1";
 		push @mirrors, "http://ftp.kaist.ac.kr/gnome/sources/$1";
@@ -253,8 +254,7 @@ foreach my $mirror (@ARGV) {
 		push @mirrors, "http://ftp.belnet.be/ftp.gnome.org/sources/$1";
 		push @mirrors, "ftp://ftp.cse.buffalo.edu/pub/Gnome/sources/$1";
 		push @mirrors, "ftp://ftp.nara.wide.ad.jp/pub/X11/GNOME/sources/$1";
-    }
-    else {
+	} else {
 		push @mirrors, $mirror;
 	}
 }
@@ -269,7 +269,10 @@ while (!-f "$target/$filename") {
 	my $mirror = shift @mirrors;
 	$mirror or die "No more mirrors to try - giving up.\n";
 
-	download($mirror);
+	download($mirror, $url_filename);
+	if (!-f "$target/$filename" && $url_filename ne $filename) {
+		download($mirror, $filename);
+	}
 }
 
 $SIG{INT} = \&cleanup;
