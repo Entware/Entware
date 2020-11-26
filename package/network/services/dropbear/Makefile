@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2006-2016 OpenWrt.org
+# Copyright (C) 2006-2020 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -8,14 +8,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dropbear
-PKG_VERSION:=2020.80
-PKG_RELEASE:=2
+PKG_VERSION:=2020.81
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:= \
 	http://matt.ucc.asn.au/dropbear/releases/ \
 	https://dropbear.nl/mirror/releases/
-PKG_HASH:=d927941b91f2da150b2033f1a88b6a47999bf0afb1493a73e9216cffdb5d7949
+PKG_HASH:=48235d10b37775dbda59341ac0c4b239b82ad6318c31568b985730c788aac53b
 
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=LICENSE libtomcrypt/LICENSE libtommath/LICENSE
@@ -25,6 +25,7 @@ PKG_BUILD_PARALLEL:=1
 PKG_ASLR_PIE_REGULAR:=1
 PKG_USE_MIPS16:=0
 PKG_FIXUP:=autoreconf
+PKG_FLAGS:=nonshared
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_TARGET_INIT_PATH CONFIG_DROPBEAR_ECC CONFIG_DROPBEAR_ECC_FULL \

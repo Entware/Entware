@@ -11,12 +11,12 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=wireguard-tools
 
-PKG_VERSION:=1.0.20200513
+PKG_VERSION:=1.0.20200827
 PKG_RELEASE:=2
 
 PKG_SOURCE:=wireguard-tools-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=https://git.zx2c4.com/wireguard-tools/snapshot/
-PKG_HASH:=e73409a9fb8c90506db241d1e1a4e7372a60dbfa400e37f4ab2fd70a92ba495f
+PKG_HASH:=51bc85e33a5b3cf353786ae64b0f1216d7a871447f058b6137f793eb0f53b7fd
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=COPYING
@@ -30,13 +30,22 @@ MAKE_PATH:=src
 MAKE_VARS += PLATFORM=linux
 
 define Package/wireguard-tools
-  $(call Package/wireguard/Default)
+  SECTION:=net
+  CATEGORY:=Network
+  SUBMENU:=VPN
+  URL:=https://www.wireguard.com
+  MAINTAINER:=Jason A. Donenfeld <Jason@zx2c4.com>
   TITLE:=WireGuard userspace control program (wg)
   DEPENDS:=+ip @!LINUX_2_6_36
 endef
 
 define Package/wireguard-tools/description
-  $(call Package/wireguard/Default/description)
+  WireGuard is a novel VPN that runs inside the Linux Kernel and utilizes
+  state-of-the-art cryptography. It aims to be faster, simpler, leaner, and
+  more useful than IPSec, while avoiding the massive headache. It intends to
+  be considerably more performant than OpenVPN.  WireGuard is designed as a
+  general purpose VPN for running on embedded interfaces and super computers
+  alike, fit for many different circumstances. It uses UDP.
 
   This package provides the userspace control program for WireGuard,
   `wg(8)`, a netifd protocol helper, and a re-resolve watchdog script.
