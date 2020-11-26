@@ -30,6 +30,18 @@ define Package/libsepol/description
 	depend upon or use any of the other SELinux components.
 endef
 
+define Package/chkcon
+  SECTION:=utils
+  CATEGORY:=Utilities
+  DEPENDS:=+libsepol
+  TITLE:=libsepol chkcon security context validation tool
+  URL:=http://selinuxproject.org/page/Main_Page
+endef
+
+define Package/chkcon/description
+	chkcon - determine if a security context is valid for a given binary policy
+endef
+
 HOST_MAKE_FLAGS += \
 	PREFIX=$(STAGING_DIR_HOSTPKG) \
 	SHLIBDIR=$(STAGING_DIR_HOSTPKG)/lib
@@ -69,5 +81,11 @@ define Package/libsepol/install
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libsepol.so.* $(1)/opt/lib/
 endef
 
+define Package/chkcon/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/chkcon $(1)/opt/bin/
+endef
+
 $(eval $(call HostBuild))
 $(eval $(call BuildPackage,libsepol))
+$(eval $(call BuildPackage,chkcon))

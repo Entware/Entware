@@ -12,9 +12,9 @@ PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/libnl-tiny.git
-PKG_SOURCE_DATE:=2019-10-29
-PKG_SOURCE_VERSION:=0219008cc8767655d7e747497e8e1133a3e8f840
-PKG_MIRROR_HASH:=b84fab21374c6ddbf992acc4ec1c9c6896b32af97603027ca5c866d69d95780f
+PKG_SOURCE_DATE:=2020-08-05
+PKG_SOURCE_VERSION:=c291088f631d1694f7ba0444b59677b194348da8
+PKG_MIRROR_HASH:=99bcce12701bb34dadb39689d95c2c5cf1e27719d0ecfd645d3957a8947025ac
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=LGPL-2.1
@@ -32,11 +32,6 @@ endef
 define Package/libnl-tiny/description
  This package contains a stripped down version of libnl
 endef
-
-ifeq ($(or $(CONFIG_GCC_USE_VERSION_8),$(CONFIG_GCC_USE_VERSION_9)),y)
-TARGET_CFLAGS += -Wno-error=sign-compare
-endif
-
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig $(1)/opt/include/libnl-tiny
