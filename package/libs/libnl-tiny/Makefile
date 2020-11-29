@@ -4,6 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+# Entware specific: TARGET_CFLAGS += -Wno-error=sign-compare on k2.6 toolchains
 
 include $(TOPDIR)/rules.mk
 
@@ -32,6 +33,10 @@ endef
 define Package/libnl-tiny/description
  This package contains a stripped down version of libnl
 endef
+
+ifeq ($(CONFIG_LINUX_2_6_36),y)
+TARGET_CFLAGS += -Wno-error=sign-compare
+endif
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig $(1)/opt/include/libnl-tiny
