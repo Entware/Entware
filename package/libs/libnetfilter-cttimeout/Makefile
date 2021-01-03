@@ -46,27 +46,27 @@ CONFIGURE_ARGS += \
 	--enable-shared \
 
 define Build/InstallDev
-	$(INSTALL_DIR) $(1)/usr/include/libnetfilter_cttimeout
+	$(INSTALL_DIR) $(1)/opt/include/libnetfilter_cttimeout
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/include/libnetfilter_cttimeout/*.h \
-		$(1)/usr/include/libnetfilter_cttimeout/
+		$(PKG_INSTALL_DIR)/opt/include/libnetfilter_cttimeout/*.h \
+		$(1)/opt/include/libnetfilter_cttimeout/
 
-	$(INSTALL_DIR) $(1)/usr/lib
+	$(INSTALL_DIR) $(1)/opt/lib
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/lib/libnetfilter_cttimeout.{so*,a,la} \
-		$(1)/usr/lib/
+		$(PKG_INSTALL_DIR)/opt/lib/libnetfilter_cttimeout.{so*,a,la} \
+		$(1)/opt/lib/
 
-	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
+	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/lib/pkgconfig/libnetfilter_cttimeout.pc \
-		$(1)/usr/lib/pkgconfig/
+		$(PKG_INSTALL_DIR)/opt/lib/pkgconfig/libnetfilter_cttimeout.pc \
+		$(1)/opt/lib/pkgconfig/
 endef
 
 define Package/libnetfilter-cttimeout/install
-	$(INSTALL_DIR) $(1)/usr/lib
+	$(INSTALL_DIR) $(1)/opt/lib
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/lib/libnetfilter_cttimeout.so.* \
-		$(1)/usr/lib/
+		$(PKG_INSTALL_DIR)/opt/lib/libnetfilter_cttimeout.so.* \
+		$(1)/opt/lib/
 endef
 
 $(eval $(call BuildPackage,libnetfilter-cttimeout))
