@@ -52,8 +52,10 @@ define Package/wireguard-tools/description
 endef
 
 define Package/wireguard-tools/install
+	$(MAKE) -C $(PKG_BUILD_DIR)/src DESTDIR=$(1)/opt WITH_WGQUICK=yes \
+		WITH_SYSTEMDUNITS=yes WITH_BASHCOMPLETION=no install
 	$(INSTALL_DIR) $(1)/opt/bin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/wg $(1)/opt/bin/
+	ln -s /opt/usr/bin/wg $(1)/opt/bin/wg
 	$(INSTALL_BIN) ./files/wireguard_watchdog $(1)/opt/bin/
 	$(INSTALL_DIR) $(1)/opt/lib/netifd/proto/
 	$(INSTALL_BIN) ./files/wireguard.sh $(1)/opt/lib/netifd/proto/
