@@ -1,5 +1,5 @@
---- a/Makefile
-+++ b/Makefile
+--- a/work/Makefile
++++ b/work/Makefile
 @@ -2,7 +2,7 @@
  # Makefile
  #
@@ -9,16 +9,16 @@
  SUBDIRS = mozilla
 
  all:
---- a/sbin/Makefile
-+++ b/sbin/Makefile
+--- a/work/sbin/Makefile
++++ b/work/sbin/Makefile
 @@ -8,4 +8,4 @@
  clean:
  
  install:
 -	install -m755 update-ca-certificates $(DESTDIR)/usr/sbin/
 +	install -m755 update-ca-certificates $(DESTDIR)/opt/sbin/
---- a/sbin/update-ca-certificates
-+++ b/sbin/update-ca-certificates
+--- a/work/sbin/update-ca-certificates
++++ b/work/sbin/update-ca-certificates
 @@ -24,12 +24,12 @@
  verbose=0
  fresh=0
