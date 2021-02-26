@@ -56,7 +56,6 @@ MAKE_FLAGS := \
 	SHLIBDIR=/opt/lib \
 	OS=Linux
 
-
 define Build/Compile
 	$(call Build/Compile/Default,all)
 endef

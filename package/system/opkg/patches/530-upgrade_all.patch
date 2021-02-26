@@ -1,6 +1,6 @@
 --- a/libopkg/opkg_cmd.c
 +++ b/libopkg/opkg_cmd.c
-@@ -529,6 +529,18 @@
+@@ -517,6 +517,18 @@
  					err = -1;
  			}
  		}
@@ -19,7 +19,7 @@
  	}
  
  	if (opkg_configure_packages(NULL))
-@@ -1268,7 +1268,7 @@
+@@ -1333,7 +1333,7 @@
  static opkg_cmd_t cmds[] = {
  	{"update", 0, (opkg_cmd_fun_t) opkg_update_cmd,
  	 PFM_DESCRIPTION | PFM_SOURCE},

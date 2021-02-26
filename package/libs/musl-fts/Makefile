@@ -45,16 +45,16 @@ endef
 
 
 define Build/InstallDev
-	$(INSTALL_DIR) $(1)/opt/include
-	$(CP) $(PKG_INSTALL_DIR)/opt/include/fts.h $(1)/opt/include/
-	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libfts.so* $(1)/opt/lib/
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/musl-fts.pc $(1)/opt/lib/pkgconfig/
+	$(INSTALL_DIR) $(1)/usr/include
+	$(CP) $(PKG_INSTALL_DIR)/usr/include/fts.h $(1)/usr/include/
+	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libfts.so* $(1)/usr/lib/
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/pkgconfig/musl-fts.pc $(1)/usr/lib/pkgconfig/
 endef
 
 define Package/musl-fts/install
-	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libfts.so* $(1)/opt/lib/
+	$(INSTALL_DIR) $(1)/usr/lib
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libfts.so* $(1)/usr/lib/
 endef
 
 $(eval $(call BuildPackage,musl-fts))

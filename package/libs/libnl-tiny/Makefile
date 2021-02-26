@@ -28,6 +28,7 @@ define Package/libnl-tiny
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=netlink socket library
+  ABI_VERSION:=1
 endef
 
 define Package/libnl-tiny/description

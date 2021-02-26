@@ -1,6 +1,6 @@
 --- a/src/opkg-cl.c
 +++ b/src/opkg-cl.c
-@@ -244,7 +244,7 @@
+@@ -250,7 +250,7 @@
  	}
  
  	if (!conf->conf_file && !conf->offline_root)

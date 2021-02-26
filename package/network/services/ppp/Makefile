@@ -4,6 +4,8 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+# Entware specific. We keep this version. New versions are for Kernels > 4.2
+#
 
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk

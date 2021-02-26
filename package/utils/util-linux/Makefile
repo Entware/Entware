@@ -9,12 +9,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=util-linux
-PKG_VERSION:=2.36
+PKG_VERSION:=2.36.1
 PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.36
-PKG_HASH:=9e4b1c67eb13b9b67feb32ae1dc0d50e08ce9e5d82e1cccd0ee771ad2fa9e0b1
+PKG_HASH:=09fac242172cd8ec27f0739d8d192402c69417617091d8c6e974841568f37eed
 PKG_CPE_ID:=cpe:/a:kernel:util-linux
 
 PKG_LICENSE:=GPL-2.0
@@ -371,7 +371,7 @@ endef
 define Package/more
 $(call Package/util-linux/Default)
   TITLE:=filter for paging through text one screenful at a time
-  DEPENDS:= +libncurses +libmagic
+  DEPENDS:= +libncurses
 endef
 
 define Package/more/description
@@ -567,11 +567,18 @@ CONFIGURE_ARGS += \
 	--disable-use-tty-group		\
 	--disable-rpath			\
 	--disable-tls			\
+	--disable-su			\
 	--disable-sulogin		\
 	--disable-makeinstall-chown	\
+	--disable-login 		\
+	--disable-nologin		\
+	--disable-lslogins		\
+	--disable-runuser		\
+	--disable-chfn-chsh		\
 	--without-python		\
 	--without-udev			\
 	--without-readline		\
+	--without-libmagic		\
 	--with-ncursesw
 
 TARGET_CFLAGS += $(FPIC) -std=gnu99
@@ -852,8 +859,11 @@ define Package/wipefs/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/wipefs $(1)/opt/sbin/
 endef
 
+# these lines need to be ordered by dependency because of ABI versioning
+$(eval $(call BuildPackage,libuuid))
 $(eval $(call BuildPackage,libblkid))
 $(eval $(call BuildPackage,libfdisk))
+
 $(eval $(call BuildPackage,libmount))
 $(eval $(call BuildPackage,libsmartcols))
 $(eval $(call BuildPackage,libuuid))

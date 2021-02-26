@@ -11,17 +11,17 @@
  		hp = lookupvar("HOME");
 --- a/shell/hush.c
 +++ b/shell/hush.c
-@@ -10139,8 +10139,8 @@ int hush_main(int argc, char **argv)
- 	/* If we are login shell... */
- 	if (flags & OPT_login) {
+@@ -10275,8 +10275,8 @@
+ 		const char *hp = NULL;
  		HFILE *input;
+ 
 -		debug_printf("sourcing /etc/profile\n");
 -		input = hfopen("/etc/profile");
 +		debug_printf("sourcing /opt/etc/profile\n");
 +		input = hfopen("/opt/etc/profile");
+  run_profile:
  		if (input != NULL) {
  			install_special_sighandlers();
- 			parse_and_run_file(input);
 --- a/loginutils/adduser.c
 +++ b/loginutils/adduser.c
 @@ -227,7 +227,7 @@ int adduser_main(int argc UNUSED_PARAM,
