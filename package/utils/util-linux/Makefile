@@ -60,7 +60,7 @@ endef
 
 define Package/libfdisk
 $(call Package/util-linux/Default)
-  DEPENDS:=+libuuid +libblkid +librt
+  DEPENDS:=+libuuid +libblkid
   TITLE:=partition manipulating library
   SECTION:=libs
   CATEGORY:=Libraries
@@ -73,7 +73,7 @@ endef
 
 define Package/libmount
 $(call Package/util-linux/Default)
-  DEPENDS:=+libblkid +librt
+  DEPENDS:=+libblkid
   TITLE:=mount library
   SECTION:=libs
   CATEGORY:=Libraries
@@ -125,7 +125,6 @@ endef
 
 define Package/blkdiscard
 $(call Package/util-linux/Default)
-  DEPENDS:=+librt
   TITLE:=discard sectors on a device
   SUBMENU=Disc
   DEPENDS:= +libblkid
@@ -248,7 +247,6 @@ endef
 define Package/flock
 $(call Package/util-linux/Default)
   TITLE:=manage locks from shell scripts
-  DEPENDS:= +librt
 endef
 
 define Package/flock/description
@@ -452,7 +450,6 @@ endef
 define Package/script-utils
 $(call Package/util-linux/Default)
   TITLE:=make and replay typescript of terminal session
-  DEPENDS:= +librt
   SUBMENU=Terminal
 endef
 
@@ -507,7 +504,7 @@ endef
 define Package/uuidd
 $(call Package/util-linux/Default)
   TITLE:=UUID generation daemon
-  DEPENDS:= +libuuid +librt
+  DEPENDS:= +libuuid
 endef
 
 define Package/uuidd/description
@@ -866,7 +863,6 @@ $(eval $(call BuildPackage,libfdisk))
 
 $(eval $(call BuildPackage,libmount))
 $(eval $(call BuildPackage,libsmartcols))
-$(eval $(call BuildPackage,libuuid))
 $(eval $(call BuildPackage,agetty))
 $(eval $(call BuildPackage,blkdiscard))
 $(eval $(call BuildPackage,blkid))
