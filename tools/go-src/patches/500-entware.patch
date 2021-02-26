@@ -8,16 +8,6 @@
  	"/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
  	"/etc/pki/tls/certs/ca-bundle.crt",                  // Fedora/RHEL 6
  	"/etc/ssl/ca-bundle.pem",                            // OpenSUSE
---- a/src/crypto/x509/root_unix.go
-+++ b/src/crypto/x509/root_unix.go
-@@ -16,6 +16,7 @@ import (
- // Possible directories with certificate files; stop after successfully
- // reading at least one file from a directory.
- var certDirectories = []string{
-+	"/opt/etc/ssl/certs",           // Entware
- 	"/etc/ssl/certs",               // SLES10/SLES11, https://golang.org/issue/12139
- 	"/system/etc/security/cacerts", // Android
- 	"/usr/local/share/certs",       // FreeBSD
 --- a/src/net/conf.go
 +++ b/src/net/conf.go
 @@ -94,7 +94,7 @@ func initConfVal() {

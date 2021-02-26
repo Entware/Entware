@@ -7,7 +7,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME := firmware-utils
-PKG_RELEASE := 5
+PKG_RELEASE := 7
 
 include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/kernel.mk
@@ -27,6 +27,9 @@ define Host/Compile
 	$(call cc,add_header)
 	$(call cc,addpattern)
 	$(call cc,asustrx)
+	$(call cc,bcm4908asus,-Wall)
+	$(call cc,bcm4908img,-Wall)
+	$(call cc,bcm4908kernel,-Wall)
 	$(call cc,buffalo-enc buffalo-lib,-Wall)
 	$(call cc,buffalo-tag buffalo-lib,-Wall)
 	$(call cc,buffalo-tftp buffalo-lib,-Wall)
@@ -84,6 +87,7 @@ define Host/Compile
 	$(call cc,pc1crypt)
 	$(call cc,ptgen cyg_crc32)
 	$(call cc,seama md5)
+	$(call cc,sign_dlink_ru md5,-Wall)
 	$(call cc,spw303v)
 	$(call cc,srec2bin)
 	$(call cc,tplink-safeloader md5,-Wall --std=gnu99)
