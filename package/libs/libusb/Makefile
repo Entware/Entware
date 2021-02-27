@@ -8,14 +8,20 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libusb
+ifeq ($(CONFIG_LINUX_2_6_36),y)
+PKG_VERSION:=1.0.22
+PKG_RELEASE:=2
+PKG_HASH:=75aeb9d59a4fdb800d329a545c2e6799f732362193b465ea198f2aa275518157
+PATCH_DIR:=
+else
 PKG_VERSION:=1.0.24
 PKG_RELEASE:=$(AUTORELEASE)
-
+PKG_HASH:=7efd2685f7b327326dcfb85cee426d9b871fd70e22caa15bb68d595ce2a2b12a
+endif
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=\
   https://github.com/libusb/libusb/releases/download/v$(PKG_VERSION) \
   @SF/$(PKG_NAME)
-PKG_HASH:=7efd2685f7b327326dcfb85cee426d9b871fd70e22caa15bb68d595ce2a2b12a
 
 PKG_MAINTAINER:= Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=LGPL-2.1-or-later
