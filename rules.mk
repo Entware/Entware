@@ -485,7 +485,8 @@ $(shell \
 )
 endef
 
-abi_version_str = $(subst -,,$(subst _,,$(subst .,,$(1))))
+# ? fix ABI
+#abi_version_str = $(subst -,,$(subst _,,$(subst .,,$(1))))
 
 COMMITCOUNT = $(if $(DUMP),0,$(call commitcount))
 AUTORELEASE = $(if $(DUMP),0,$(call commitcount,1))

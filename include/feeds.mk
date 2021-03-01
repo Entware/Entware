@@ -42,6 +42,7 @@ define FeedSourcesAppend
 endef
 
 # 1: package name
-define GetABISuffix
-$(if $(filter-out kmod-%,$(1)),$(if $(ABIV_$(1)),$(ABIV_$(1)),$(foreach v,$(wildcard $(STAGING_DIR)/pkginfo/$(1).version),$(shell cat $(v)))))
-endef
+# ? fix ABI
+#define GetABISuffix
+#$(if $(filter-out kmod-%,$(1)),$(if $(ABIV_$(1)),$(ABIV_$(1)),$(foreach v,$(wildcard $(STAGING_DIR)/pkginfo/$(1).version),$(shell cat $(v)))))
+#endef
