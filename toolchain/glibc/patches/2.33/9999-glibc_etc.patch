@@ -1,50 +1,50 @@
---- a/nss/nss_compat/compat-grp.c
-+++ b/nss/nss_compat/compat-grp.c
-@@ -106,7 +106,7 @@
- 
-   if (ent->stream == NULL)
-     {
--      ent->stream = fopen ("/etc/group", "rme");
-+      ent->stream = fopen ("/opt/etc/group", "rme");
- 
-       if (ent->stream == NULL)
- 	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
 --- a/nss/nss_compat/compat-initgroups.c
 +++ b/nss/nss_compat/compat-initgroups.c
-@@ -121,7 +121,7 @@
+@@ -123,7 +123,7 @@ internal_setgrent (ent_t *ent)
    else
      ent->blacklist.current = 0;
  
--  ent->stream = fopen ("/etc/group", "rme");
-+  ent->stream = fopen ("/opt/etc/group", "rme");
+-  ent->stream = __nss_files_fopen ("/etc/group");
++  ent->stream = __nss_files_fopen ("/opt/etc/group");
  
    if (ent->stream == NULL)
      status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
---- a/nss/nss_compat/compat-pwd.c
-+++ b/nss/nss_compat/compat-pwd.c
-@@ -221,7 +221,7 @@
+--- a/nss/nss_compat/compat-spwd.c
++++ b/nss/nss_compat/compat-spwd.c
+@@ -180,7 +180,7 @@ internal_setspent (ent_t *ent, int stayo
  
    if (ent->stream == NULL)
      {
--      ent->stream = fopen ("/etc/passwd", "rme");
-+      ent->stream = fopen ("/opt/etc/passwd", "rme");
+-      ent->stream = __nss_files_fopen ("/etc/shadow");
++      ent->stream = __nss_files_fopen ("/opt/etc/shadow");
  
        if (ent->stream == NULL)
  	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
---- a/nss/nss_compat/compat-spwd.c
-+++ b/nss/nss_compat/compat-spwd.c
-@@ -177,7 +177,7 @@
+--- a/nss/nss_compat/compat-pwd.c
++++ b/nss/nss_compat/compat-pwd.c
+@@ -224,7 +224,7 @@ internal_setpwent (ent_t *ent, int stayo
  
    if (ent->stream == NULL)
      {
--      ent->stream = fopen ("/etc/shadow", "rme");
-+      ent->stream = fopen ("/opt/etc/shadow", "rme");
+-      ent->stream = __nss_files_fopen ("/etc/passwd");
++      ent->stream = __nss_files_fopen ("/opt/etc/passwd");
+ 
+       if (ent->stream == NULL)
+ 	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
+--- a/nss/nss_compat/compat-grp.c
++++ b/nss/nss_compat/compat-grp.c
+@@ -109,7 +109,7 @@ internal_setgrent (ent_t *ent, int stayo
+ 
+   if (ent->stream == NULL)
+     {
+-      ent->stream = __nss_files_fopen ("/etc/group");
++      ent->stream = __nss_files_fopen ("/opt/etc/group");
  
        if (ent->stream == NULL)
  	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
 --- a/nss/nss_files/files-grp.c
 +++ b/nss/nss_files/files-grp.c
-@@ -21,6 +21,7 @@
+@@ -24,6 +24,7 @@ NSS_DECLARE_MODULE_FUNCTIONS (files)
  #define STRUCTURE	group
  #define ENTNAME		grent
  #define DATABASE	"group"
@@ -54,9 +54,9 @@
  /* Our parser function is already defined in fgetgrent.c, so use that.
 --- a/nss/nss_files/files-init.c
 +++ b/nss/nss_files/files-init.c
-@@ -21,10 +21,10 @@
- #include <string.h>
- #include <nscd/nscd.h>
+@@ -24,10 +24,10 @@
+ 
+ NSS_DECLARE_MODULE_FUNCTIONS (files)
  
 -#define PWD_FILENAME "/etc/passwd"
 +#define PWD_FILENAME "/opt/etc/passwd"
@@ -69,18 +69,18 @@
  #define HST_FILENAME "/etc/hosts"
 --- a/nss/nss_files/files-initgroups.c
 +++ b/nss/nss_files/files-initgroups.c
-@@ -31,7 +31,7 @@
+@@ -35,7 +35,7 @@ _nss_files_initgroups_dyn (const char *u
  			   long int *size, gid_t **groupsp, long int limit,
  			   int *errnop)
  {
--  FILE *stream = fopen ("/etc/group", "rce");
-+  FILE *stream = fopen ("/opt/etc/group", "rce");
+-  FILE *stream = __nss_files_fopen ("/etc/group");
++  FILE *stream = __nss_files_fopen ("/opt/etc/group");
    if (stream == NULL)
      {
        *errnop = errno;
 --- a/nss/nss_files/files-pwd.c
 +++ b/nss/nss_files/files-pwd.c
-@@ -21,6 +21,7 @@
+@@ -24,6 +24,7 @@ NSS_DECLARE_MODULE_FUNCTIONS (files)
  #define STRUCTURE	passwd
  #define ENTNAME		pwent
  #define DATABASE	"passwd"
@@ -90,7 +90,7 @@
  /* Our parser function is already defined in fgetpwent_r.c, so use that
 --- a/nss/nss_files/files-sgrp.c
 +++ b/nss/nss_files/files-sgrp.c
-@@ -21,6 +21,7 @@
+@@ -24,6 +24,7 @@ NSS_DECLARE_MODULE_FUNCTIONS (files)
  #define STRUCTURE	sgrp
  #define ENTNAME		sgent
  #define DATABASE	"gshadow"
@@ -100,7 +100,7 @@
  /* Our parser function is already defined in sgetspent_r.c, so use that
 --- a/nss/nss_files/files-spwd.c
 +++ b/nss/nss_files/files-spwd.c
-@@ -21,6 +21,7 @@
+@@ -24,6 +24,7 @@ NSS_DECLARE_MODULE_FUNCTIONS (files)
  #define STRUCTURE	spwd
  #define ENTNAME		spent
  #define DATABASE	"shadow"
@@ -110,7 +110,7 @@
  /* Our parser function is already defined in sgetspent_r.c, so use that
 --- a/nss/nss_files/files-XXX.c
 +++ b/nss/nss_files/files-XXX.c
-@@ -38,7 +38,11 @@
+@@ -39,7 +39,11 @@
  
  #define ENTNAME_r	CONCAT(ENTNAME,_r)
  

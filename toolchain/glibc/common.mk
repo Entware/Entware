@@ -8,10 +8,10 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=glibc
 PKG_VERSION:=$(call qstrip,$(CONFIG_GLIBC_VERSION))
+PKG_RELEASE:=1
 
 PKG_SOURCE_URL:=@GNU/glibc
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-GLIBC_PATH:=
 
 ifeq ($(PKG_VERSION),2.23)
   PKG_HASH:=f39f068ce7d749608ff15182b7da28627dd129eaba2687e28bec876d26135629
@@ -21,15 +21,14 @@ ifeq ($(PKG_VERSION),2.27)
   PKG_HASH:=e49c919c83579984f7c2442243861d04227e8dc831a08d7bf60cdacfdcd08797
 endif
 
-ifeq ($(PKG_VERSION),2.32)
-  PKG_HASH:=6d34d8ba95e714dbede304dad8bf8931bf3950293f8c14ab57167ae141aad68a
+ifeq ($(PKG_VERSION),2.33)
+  PKG_HASH:=4d7aa859d9152a4b243821eb604c0f1fee14c10d6341c2b9628d454cddd0f22e
 endif
-
-PATCH_DIR:=$(PATH_PREFIX)/patches/$(PKG_VERSION)
 
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 HOST_BUILD_DIR:=$(BUILD_DIR_TOOLCHAIN)/$(PKG_SOURCE_SUBDIR)
 CUR_BUILD_DIR:=$(HOST_BUILD_DIR)-$(VARIANT)
+PATCH_DIR:=$(PATH_PREFIX)/patches/$(PKG_VERSION)
 
 include $(INCLUDE_DIR)/toolchain-build.mk
 
@@ -57,7 +56,7 @@ GLIBC_CONFIGURE:= \
 	unset LD_LIBRARY_PATH; \
 	BUILD_CC="$(HOSTCC)" \
 	$(TARGET_CONFIGURE_OPTS) \
-	CFLAGS="-O2 $(filter-out -Os,$(call qstrip,$(TARGET_CFLAGS)))" \
+	CFLAGS="-O2 $(filter-out -O%,$(call qstrip,$(TARGET_CFLAGS)))" \
 	libc_cv_slibdir="/lib" \
 	use_ldconfig=no \
 	$(HOST_BUILD_DIR)/$(GLIBC_PATH)configure \
@@ -70,9 +69,12 @@ GLIBC_CONFIGURE:= \
 		--without-gd \
 		--without-cvs \
 		--enable-add-ons \
-		--enable-obsolete-rpc \
-		$(if $(CONFIG_GLIBC_USE_VERSION_2_31)$(CONFIG_GLIBC_USE_VERSION_2_27),--enable-obsolete-nsl,) \
-		--$(if $(CONFIG_SOFT_FLOAT),without,with)-fp
+		--$(if $(CONFIG_SOFT_FLOAT),without,with)-fp \
+		  $(if $(CONFIG_PKG_CC_STACKPROTECTOR_REGULAR),--enable-stack-protector=yes) \
+		  $(if $(CONFIG_PKG_CC_STACKPROTECTOR_STRONG),--enable-stack-protector=strong) \
+		  $(if $(or $(CONFIG_GLIBC_USE_VERSION_2_23),\
+			    $(CONFIG_GLIBC_USE_VERSION_2_27)),--enable-obsolete-rpc) \
+		  $(if $(CONFIG_GLIBC_USE_VERSION_2_27),--enable-obsolete-nsl)
 
 export libc_cv_ssp=no
 export libc_cv_ssp_strong=no
@@ -88,7 +90,7 @@ endef
 
 define Host/Configure
 	[ -f $(HOST_BUILD_DIR)/.autoconf ] || { \
-		cd $(HOST_BUILD_DIR)/$(GLIBC_PATH); \
+		cd $(HOST_BUILD_DIR)/; \
 		autoconf --force && \
 		touch $(HOST_BUILD_DIR)/.autoconf; \
 	}

@@ -12,7 +12,7 @@ choice
 	config GLIBC_USE_VERSION_2_27
 		bool "glibc 2.27"
 
-	config GLIBC_USE_VERSION_2_31
-		bool "glibc 2.31"
+	config GLIBC_USE_VERSION_2_33
+		bool "glibc 2.33"
 
 endchoice

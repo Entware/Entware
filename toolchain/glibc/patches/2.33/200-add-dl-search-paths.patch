@@ -6,8 +6,8 @@ add /usr/lib to default search path for the dynamic linker
  default-rpath = $(libdir)
  endif
  
-+# Add /usr/lib to default search path for the dynamic linker
-+user-defined-trusted-dirs := /usr/lib
++# Add /opt/lib to default search path for the dynamic linker
++user-defined-trusted-dirs := /opt/lib
 +
  ifndef link-extra-libs
  link-extra-libs = $(LDLIBS-$(@F))

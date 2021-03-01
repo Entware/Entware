@@ -1,0 +1,11 @@
+--- a/elf/readlib.c
++++ b/elf/readlib.c
+@@ -47,7 +47,7 @@ struct known_names
+ 
+ static struct known_names interpreters[] =
+ {
+-  { "/lib/" LD_SO, FLAG_ELF_LIBC6 },
++  { "/opt/lib/" LD_SO, FLAG_ELF_LIBC6 },
+ #ifdef SYSDEP_KNOWN_INTERPRETER_NAMES
+   SYSDEP_KNOWN_INTERPRETER_NAMES
+ #endif

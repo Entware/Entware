@@ -1,15 +1,15 @@
---- a/elf/ldconfig.c	2016-10-31 16:43:27.000000000 +0300
-+++ b/elf/ldconfig.c	2016-12-23 14:48:51.000000000 +0300
-@@ -51,7 +51,7 @@
- #endif
+--- a/elf/ldconfig.c
++++ b/elf/ldconfig.c
+@@ -57,7 +57,7 @@
+ #define TLS_HWCAP_BIT 63
  
  #ifndef LD_SO_CONF
 -# define LD_SO_CONF SYSCONFDIR "/ld.so.conf"
-+# define LD_SO_CONF "/opt" SYSCONFDIR "/ld.so.conf"
++# define LD_SO_CONF "/opt/etc/ld.so.conf"
  #endif
  
  /* Get libc version number.  */
-@@ -1384,9 +1384,7 @@
+@@ -1477,9 +1477,7 @@ main (int argc, char **argv)
        parse_conf (config_file, true);
  
        /* Always add the standard search paths.  */
@@ -20,9 +20,9 @@
      }
  
    const char *aux_cache_file = _PATH_LDCONFIG_AUX_CACHE;
---- a/elf/Makefile	2016-02-18 20:54:00.000000000 +0300
-+++ b/elf/Makefile	2016-12-23 14:50:09.000000000 +0300
-@@ -566,7 +566,7 @@
+--- a/elf/Makefile
++++ b/elf/Makefile
+@@ -609,7 +609,7 @@ endif
  $(objpfx)trusted-dirs.h: $(objpfx)trusted-dirs.st; @:
  $(objpfx)trusted-dirs.st: Makefile $(..)Makeconfig
  	$(make-target-directory)
@@ -31,9 +31,9 @@
  	| $(AWK) -f gen-trusted-dirs.awk > ${@:st=T};
  	echo '#define DL_DST_LIB "$(notdir $(slibdir))"' >> ${@:st=T}
  	$(move-if-change) ${@:st=T} ${@:st=h}
---- a/elf/rtld.c	2016-10-31 16:43:27.000000000 +0300
-+++ b/elf/rtld.c	2016-12-23 14:49:35.000000000 +0300
-@@ -1703,7 +1703,7 @@
+--- a/elf/rtld.c
++++ b/elf/rtld.c
+@@ -1842,7 +1842,7 @@ dl_main (const ElfW(Phdr) *phdr,
       open().  So we do this first.  If it succeeds we do almost twice
       the work but this does not matter, since it is not for production
       use.  */
@@ -42,8 +42,8 @@
    if (__glibc_unlikely (__access (preload_file, R_OK) == 0))
      {
        /* Read the contents of the file.  */
---- a/sysdeps/unix/sysv/linux/arm/ldconfig.h	2016-02-18 20:54:00.000000000 +0300
-+++ b/sysdeps/unix/sysv/linux/arm/ldconfig.h	2016-12-23 15:16:04.000000000 +0300
+--- a/sysdeps/unix/sysv/linux/arm/ldconfig.h
++++ b/sysdeps/unix/sysv/linux/arm/ldconfig.h
 @@ -18,8 +18,7 @@
  #include <sysdeps/generic/ldconfig.h>
  
@@ -54,8 +54,8 @@
  #define SYSDEP_KNOWN_LIBRARY_NAMES \
    { "libc.so.6", FLAG_ELF_LIBC6 },	\
    { "libm.so.6", FLAG_ELF_LIBC6 },
---- a/sysdeps/unix/sysv/linux/i386/ldconfig.h	2016-02-18 20:54:00.000000000 +0300
-+++ b/sysdeps/unix/sysv/linux/i386/ldconfig.h	2016-12-23 15:15:37.000000000 +0300
+--- a/sysdeps/unix/sysv/linux/i386/ldconfig.h
++++ b/sysdeps/unix/sysv/linux/i386/ldconfig.h
 @@ -18,7 +18,7 @@
  #include <sysdeps/generic/ldconfig.h>
  
@@ -65,8 +65,8 @@
  #define SYSDEP_KNOWN_LIBRARY_NAMES \
    { "libc.so.5", FLAG_ELF_LIBC5 },	\
    { "libm.so.5", FLAG_ELF_LIBC5 },
---- a/sysdeps/unix/sysv/linux/x86_64/ldconfig.h	2016-02-18 20:54:00.000000000 +0300
-+++ b/sysdeps/unix/sysv/linux/x86_64/ldconfig.h	2016-12-23 14:39:05.000000000 +0300
+--- a/sysdeps/unix/sysv/linux/x86_64/ldconfig.h
++++ b/sysdeps/unix/sysv/linux/x86_64/ldconfig.h
 @@ -18,9 +18,7 @@
  #include <sysdeps/generic/ldconfig.h>
  
@@ -80,12 +80,12 @@
    { "libm.so.6", FLAG_ELF_LIBC6 },
 --- a/sysdeps/generic/dl-cache.h
 +++ b/sysdeps/generic/dl-cache.h
-@@ -28,7 +28,7 @@
+@@ -35,7 +35,7 @@
  #endif
  
  #ifndef LD_SO_CACHE
 -# define LD_SO_CACHE SYSCONFDIR "/ld.so.cache"
-+# define LD_SO_CACHE "/opt" SYSCONFDIR "/ld.so.cache"
++# define LD_SO_CACHE "/opt/etc/ld.so.cache"
  #endif
  
  #ifndef add_system_dir
