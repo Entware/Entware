@@ -1,10 +1,6 @@
-# Makefile for OpenWrt
+# SPDX-License-Identifier: GPL-2.0-only
 #
 # Copyright (C) 2007 OpenWrt.org
-#
-# This is free software, licensed under the GNU General Public License v2.
-# See /LICENSE for more information.
-#
 
 TOPDIR:=${CURDIR}
 LC_ALL:=C
@@ -18,7 +14,7 @@ $(if $(findstring $(space),$(TOPDIR)),$(error ERROR: The path to the Entware dir
 
 world:
 
-DISTRO_PKG_CONFIG:=$(shell which -a pkg-config | grep -E '\/usr' | head -n 1)
+DISTRO_PKG_CONFIG:=$(shell command -pv pkg-config | grep -E '\/usr' | head -n 1)
 export PATH:=$(TOPDIR)/staging_dir/host/bin:$(PATH)
 
 ifneq ($(OPENWRT_BUILD),1)
@@ -64,7 +60,7 @@ dirclean: clean
 
 cacheclean:
 ifneq ($(CONFIG_CCACHE),)
-	rm -rf $(if $(call qstrip,$(CONFIG_CCACHE_DIR)),$(call qstrip,$(CONFIG_CCACHE_DIR)),$(TOPDIR)/.ccache)
+	$(STAGING_DIR_HOST)/bin/ccache -C
 endif
 
 ifndef DUMP_TARGET_DB
