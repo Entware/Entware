@@ -70,7 +70,7 @@ CONFIGURE_ARGS += \
 	--enable-pcre32 \
 	$(if $(CONFIG_PCRE_JIT_ENABLED),--enable-jit,--disable-jit) \
 	--with-match-limit-recursion=16000 \
-	-disable-cpp
+	--disable-cpp
 
 MAKE_FLAGS += \
 	CFLAGS="$(TARGET_CFLAGS)"
