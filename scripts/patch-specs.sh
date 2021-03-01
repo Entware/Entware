@@ -35,10 +35,10 @@ patch_specs() {
 				echo -n "Patching specs ... "
 				STAGING_DIR="$DIR" "$CPP" -dumpspecs | awk '
 					mode ~ "link" {
-						sub(/(%@?\{L.\})/, "& -L %:getenv(STAGING_DIR /usr/lib) -rpath-link %:getenv(STAGING_DIR /usr/lib)")
+						sub(/(%@?\{L.\})/, "& -L %:getenv(STAGING_DIR /opt/lib) -rpath-link %:getenv(STAGING_DIR /opt/lib)")
 					}
 					mode ~ "cpp" {
-						$0 = $0 " -idirafter %:getenv(STAGING_DIR /usr/include)"
+						$0 = $0 " -idirafter %:getenv(STAGING_DIR /opt/include)"
 					}
 					{
 						print $0
