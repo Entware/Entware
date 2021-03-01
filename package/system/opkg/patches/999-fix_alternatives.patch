@@ -1,0 +1,11 @@
+--- a/libopkg/pkg_alternatives.c
++++ b/libopkg/pkg_alternatives.c
+@@ -35,7 +35,7 @@ struct alternative_provider {
+ static const struct alternative_provider providers[] = {
+ 	{
+ 		.name = "busybox",
+-		.altpath = "/bin/busybox",
++		.altpath = "/opt/bin/busybox",
+ 	},
+ };
+ 
