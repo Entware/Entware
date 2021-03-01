@@ -251,7 +251,7 @@ config USE_GLIBC
 	bool
 
 config SSP_SUPPORT
-	default y if USE_MUSL || GCC_LIBSSP
+	default y if !PKG_CC_STACKPROTECTOR_NONE && GCC_LIBSSP
 	bool
 
 config USE_EXTERNAL_LIBC
