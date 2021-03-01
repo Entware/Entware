@@ -271,6 +271,7 @@ menu "Global build settings"
 			help
 			  PIE is activated for all applications
 	endchoice
+
 # Entware specific -> no STACKPROTECTOR
 #	choice
 #		prompt "User space Stack-Smashing Protection"
@@ -284,19 +285,19 @@ menu "Global build settings"
 #		config PKG_CC_STACKPROTECTOR_STRONG
 #			bool "Strong"
 #	endchoice
-
-	choice
-		prompt "Kernel space Stack-Smashing Protection"
-		default KERNEL_CC_STACKPROTECTOR_REGULAR
-		help
-		  Enable GCC Stack-Smashing Protection (SSP) for the kernel
-		config KERNEL_CC_STACKPROTECTOR_NONE
-			bool "None"
-		config KERNEL_CC_STACKPROTECTOR_REGULAR
-			bool "Regular"
-		config KERNEL_CC_STACKPROTECTOR_STRONG
-			bool "Strong"
-	endchoice
+#
+#	choice
+#		prompt "Kernel space Stack-Smashing Protection"
+#		default KERNEL_CC_STACKPROTECTOR_REGULAR
+#		help
+#		  Enable GCC Stack-Smashing Protection (SSP) for the kernel
+#		config KERNEL_CC_STACKPROTECTOR_NONE
+#			bool "None"
+#		config KERNEL_CC_STACKPROTECTOR_REGULAR
+#			bool "Regular"
+#		config KERNEL_CC_STACKPROTECTOR_STRONG
+#			bool "Strong"
+#	endchoice
 
 	config KERNEL_STACKPROTECTOR
 		bool
