@@ -20,25 +20,19 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
     BUILD_ISL = y
   endif
 endif
-ifneq ($(CONFIG_SDK)$(CONFIG_PACKAGE_kmod-b43)$(CONFIG_PACKAGE_b43legacy-firmware)$(CONFIG_BRCMSMAC_USE_FW_FROM_WL),)
-  BUILD_B43_TOOLS = y
-endif
 
-tools-$(BUILD_TOOLCHAIN) += gmp mpfr mpc libelf expat
-tools-y += m4 libtool autoconf autoconf-archive automake flex bison pkgconf mklibs zlib zstd
-tools-y += sstrip
-tools-y += quilt
-tools-y += mm-macros missing-macros cmake bc fakeroot findutils gengetopt patchelf
-tools-y += mtools
-tools-y += lzma zip
+tools-y += autoconf autoconf-archive automake bc bison cmake dosfstools
+tools-y += e2fsprogs fakeroot findutils flex gengetopt
+tools-y += go-bootstrap go-src
+tools-y += libtool lzma m4 missing-macros
+tools-y += mklibs mm-macros mtools
+tools-y += patchelf pkgconf quilt sstrip zip zlib zstd
 tools-$(BUILD_ISL) += isl
-tools-y += go-src
-tools-y += go-bootstrap
+tools-$(BUILD_TOOLCHAIN) += expat gmp libelf mpc mpfr
 
 # builddir dependencies
 $(curdir)/autoconf/compile := $(curdir)/m4/compile
 $(curdir)/automake/compile := $(curdir)/m4/compile $(curdir)/autoconf/compile $(curdir)/pkgconf/compile $(curdir)/xz/compile
-$(curdir)/b43-tools/compile := $(curdir)/bison/compile
 $(curdir)/bc/compile := $(curdir)/bison/compile $(curdir)/libtool/compile
 $(curdir)/bison/compile := $(curdir)/flex/compile
 $(curdir)/dosfstools/compile := $(curdir)/autoconf/compile $(curdir)/automake/compile
@@ -48,9 +42,9 @@ $(curdir)/findutils/compile := $(curdir)/bison/compile
 $(curdir)/flex/compile := $(curdir)/libtool/compile
 $(curdir)/gengetopt/compile := $(curdir)/libtool/compile
 $(curdir)/gmp/compile := $(curdir)/libtool/compile
+$(curdir)/go-src/compile := $(curdir)/go-bootstrap/compile
 $(curdir)/isl/compile := $(curdir)/gmp/compile
 $(curdir)/libelf/compile := $(curdir)/libtool/compile
-$(curdir)/libressl/compile := $(curdir)/pkgconf/compile
 $(curdir)/libtool/compile := $(curdir)/m4/compile $(curdir)/autoconf/compile $(curdir)/automake/compile $(curdir)/missing-macros/compile
 $(curdir)/missing-macros/compile := $(curdir)/autoconf/compile
 $(curdir)/mklibs/compile := $(curdir)/libtool/compile
@@ -61,12 +55,11 @@ $(curdir)/patchelf/compile := $(curdir)/libtool/compile
 $(curdir)/quilt/compile := $(curdir)/autoconf/compile $(curdir)/findutils/compile
 $(curdir)/zlib/compile := $(curdir)/cmake/compile
 $(curdir)/zstd/compile := $(curdir)/cmake/compile
-$(curdir)/go-src/compile := $(curdir)/go-bootstrap/compile
 
 tools-y += coreutils
 
 ifneq ($(CONFIG_CCACHE)$(CONFIG_SDK),)
-$(foreach tool, $(filter-out xz zstd patch pkgconf libressl cmake,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/ccache/compile))
+$(foreach tool, $(filter-out xz zstd patch pkgconf cmake,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/ccache/compile))
 tools-y += ccache
 $(curdir)/ccache/compile := $(curdir)/zstd/compile
 endif
