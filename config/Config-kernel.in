@@ -374,6 +374,9 @@ config KERNEL_AIO
 config KERNEL_IO_URING
 	bool "Compile the kernel with io_uring support"
 	default y if !SMALL_FLASH
+	depends on LINUX_5_4
+	help
+	  Entware uses old kernels.
 
 config KERNEL_FHANDLE
 	bool "Compile the kernel with support for fhandle syscalls"
@@ -680,7 +683,7 @@ if KERNEL_CGROUPS
 		bool "Memory Resource Controller for Control Groups"
 		default y
 		select KERNEL_FREEZER
-		depends on KERNEL_RESOURCE_COUNTERS || !LINUX_3_18
+		depends on KERNEL_RESOURCE_COUNTERS || !(LINUX_2_6_36||LINUX_3_2||LINUX_3_4||LINUX_3_10)
 		help
 		  Provides a memory resource controller that manages both anonymous
 		  memory and page cache. (See Documentation/cgroups/memory.txt)
@@ -922,11 +925,12 @@ config KERNEL_POSIX_MQUEUE
 
 config KERNEL_SECCOMP_FILTER
 	bool
+	depends on !(LINUX_2_6_36||LINUX_3_2||LINUX_3_4||LINUX_3_10)
 	default y if !SMALL_FLASH
 
 config KERNEL_SECCOMP
 	bool "Enable seccomp support"
-		depends on !(TARGET_uml)
+		depends on !(TARGET_uml||LINUX_2_6_36||LINUX_3_2||LINUX_3_4||LINUX_3_10)
 		select KERNEL_SECCOMP_FILTER
 		default y if !SMALL_FLASH
 		help
@@ -1128,6 +1132,7 @@ config KERNEL_SQUASHFS_XATTR
 #
 choice
 	prompt "Compiler optimization level"
+	depends on !(LINUX_2_6_36||LINUX_3_2||LINUX_3_4||LINUX_3_10)
 	default KERNEL_CC_OPTIMIZE_FOR_SIZE if SMALL_FLASH
 
 config KERNEL_CC_OPTIMIZE_FOR_PERFORMANCE
