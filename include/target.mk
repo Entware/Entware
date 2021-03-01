@@ -10,12 +10,30 @@ __target_inc=1
 DEVICE_TYPE?=router
 
 # Default packages - the really basic set
-DEFAULT_PACKAGES:=libc libgcc busybox dropbear
+DEFAULT_PACKAGES:=\
+	dropbear \
+	libc \
+	libgcc \
+	opkg
+
+ifneq ($(CONFIG_SELINUX),)
+DEFAULT_PACKAGES+=busybox-selinux procd-selinux
+else
+DEFAULT_PACKAGES+=busybox
+endif
+
+# For the basic set
+DEFAULT_PACKAGES.basic:=
 # For nas targets
-DEFAULT_PACKAGES.nas:=libc libgcc busybox dropbear
+DEFAULT_PACKAGES.nas:=\
+	block-mount \
+	fdisk \
+	lsblk \
+	mdadm
 # For router targets
-DEFAULT_PACKAGES.router:=libc libgcc busybox dropbear
-DEFAULT_PACKAGES.bootloader:=
+DEFAULT_PACKAGES.router:=\
+	entware-opt \
+	entware-release
 
 ifneq ($(DUMP),)
   all: dumpinfo
@@ -155,7 +173,7 @@ LINUX_RECONF_DIFF = $(SCRIPT_DIR)/kconfig.pl - '>' $(call __linux_confcmd,$(filt
 ifeq ($(DUMP),1)
   BuildTarget=$(BuildTargets/DumpCurrent)
 
-  CPU_CFLAGS = -Os -pipe
+  CPU_CFLAGS = -O2 -pipe
   ifneq ($(findstring mips,$(ARCH)),)
     ifneq ($(findstring mips64,$(ARCH)),)
       CPU_TYPE ?= mips64
