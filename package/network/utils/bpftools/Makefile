@@ -165,4 +165,3 @@ endef
 $(eval $(call BuildPackage,libbpf))
 $(eval $(call BuildPackage,bpftool-full))
 $(eval $(call BuildPackage,bpftool-minimal))
-
