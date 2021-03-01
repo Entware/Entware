@@ -126,7 +126,7 @@ endef
 # Entware specific: one more place to disable kernel modules building
 define Kernel/CompileModules/Default
 	rm -f $(LINUX_DIR)/vmlinux $(LINUX_DIR)/System.map
-#	+$(KERNEL_MAKE) modules
+#	+$(KERNEL_MAKE) $(if $(KERNELNAME),$(KERNELNAME),all) modules
 endef
 
 OBJCOPY_STRIP = -R .reginfo -R .notes -R .note -R .comment -R .mdebug -R .note.gnu.build-id
