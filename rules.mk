@@ -75,7 +75,7 @@ IS_PACKAGE_BUILD := $(if $(filter package/%,$(BUILD_SUBDIR)),1)
 
 OPTIMIZE_FOR_CPU=$(subst i386,i486,$(ARCH))
 
-ifeq ($(ARCH),powerpc)
+ifneq (,$(findstring $(ARCH) , aarch64 aarch64_be powerpc ))
   FPIC:=-fPIC
 else
   FPIC:=-fpic
@@ -144,7 +144,7 @@ endif
 #  ifeq ($(CONFIG_GCC_USE_IREMAP),y)
 #    iremap = -iremap$(1):$(2)
 #  else
-#    iremap = -ffile-prefix-map=$(1)=$(2)
+#    iremap = -f$(if $(CONFIG_REPRODUCIBLE_DEBUG_INFO),file,macro)-prefix-map=$(1)=$(2)
 #  endif
 #endif
 
@@ -175,8 +175,6 @@ TARGET_CXXFLAGS = $(TARGET_CFLAGS)
 TARGET_ASFLAGS_DEFAULT = $(TARGET_CFLAGS)
 TARGET_ASFLAGS = $(TARGET_ASFLAGS_DEFAULT)
 TARGET_GCCGOFLAGS = -g1 -O2
-TARGET_CPPFLAGS:=-I$(STAGING_DIR)/opt/include
-TARGET_LDFLAGS:=-L$(STAGING_DIR)/opt/lib -Wl,-rpath,/opt/lib -Wl,-rpath-link=$(STAGING_DIR)/opt/lib
 ifneq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
 LIBGCC_S_PATH=$(realpath $(wildcard $(call qstrip,$(CONFIG_LIBGCC_ROOT_DIR))/$(call qstrip,$(CONFIG_LIBGCC_FILE_SPEC))))
 LIBGCC_S=$(if $(LIBGCC_S_PATH),-L$(dir $(LIBGCC_S_PATH)) -lgcc_s)
@@ -184,10 +182,6 @@ LIBGCC_A=$(realpath $(lastword $(wildcard $(dir $(LIBGCC_S_PATH))/gcc/*/*/libgcc
 else
 LIBGCC_A=$(lastword $(wildcard $(TOOLCHAIN_DIR)/lib/gcc/*/*/libgcc.a))
 LIBGCC_S=$(if $(wildcard $(TOOLCHAIN_DIR)/lib/libgcc_s.so),-L$(TOOLCHAIN_DIR)/lib -lgcc_s,$(LIBGCC_A))
-endif
-
-ifeq ($(LIBC),uClibc)
-DYNLINKER=ld-uClibc.so.0
 endif
 
 ifeq  ($(LIBC),glibc)
@@ -200,18 +194,45 @@ ifeq  ($(LIBC),glibc)
   ifeq ($(ARCH),i386)
     DYNLINKER=ld-linux.so.2
   endif
-  ifeq ($(ARCH),x86_64)
-    DYNLINKER=ld-linux-x86-64.so.2
+  ifeq ($(ARCH),mips)
+    DYNLINKER=ld.so.1
   endif
   ifeq ($(ARCH),mipsel)
     DYNLINKER=ld.so.1
   endif
-  ifeq ($(ARCH),mips)
-    DYNLINKER=ld.so.1
+  ifeq ($(ARCH),x86_64)
+    DYNLINKER=ld-linux-x86-64.so.2
   endif
 endif
-TARGET_LDFLAGS+= -Wl,--dynamic-linker=/opt/lib/$(DYNLINKER)
-TARGET_GCCGOFLAGS+= -Wl,--dynamic-linker=/opt/lib/$(DYNLINKER) -Wl,-rpath=/opt/lib
+
+ifeq ($(ARCH),aarch64)
+    GOARCH=arm64
+endif
+ifeq ($(ARCH),arm)
+    GOARCH=arm
+  ifeq ($(ARCH_SUFFIX),_cortex-a9)
+    GOARM=GOARM=7
+  else
+    GOARM=GOARM=5
+  endif
+endif
+ifeq ($(ARCH),i386)
+    GOARCH=386
+endif
+ifeq ($(ARCH),mips)
+    GOARCH=mips
+    GOMIPS=GOMIPS=softfloat
+endif
+ifeq ($(ARCH),mipsel)
+    GOARCH=mipsle
+    GOMIPS=GOMIPS=softfloat
+endif
+ifeq ($(ARCH),x86_64)
+    GOARCH=amd64
+endif
+
+TARGET_LDFLAGS:= -Wl,--dynamic-linker=/opt/lib/$(DYNLINKER) -Wl,-rpath=/opt/lib
+TARGET_GCCGOFLAGS:= -Wl,--dynamic-linker=/opt/lib/$(DYNLINKER) -Wl,-rpath=/opt/lib
 
 ifeq ($(CONFIG_ARCH_64BIT),y)
   LIB_SUFFIX:=64
@@ -276,32 +297,6 @@ PKG_CONFIG:=$(STAGING_DIR_HOST)/bin/pkg-config
 export PKG_CONFIG
 
 export GOROOT:=$(STAGING_DIR_HOST)/go
-
-ifeq ($(ARCH),mips)
-    GOARCH=mips
-    GOMIPS=GOMIPS=softfloat
-endif
-ifeq ($(ARCH),mipsel)
-    GOARCH=mipsle
-    GOMIPS=GOMIPS=softfloat
-endif
-ifeq ($(ARCH),aarch64)
-    GOARCH=arm64
-endif
-ifeq ($(ARCH),arm)
-    GOARCH=arm
-   ifeq ($(ARCH_SUFFIX),_cortex-a9)
-	GOARM=GOARM=7
-   else
-	GOARM=GOARM=5
-   endif
-endif
-ifeq ($(ARCH),x86_64)
-    GOARCH=amd64
-endif
-ifeq ($(ARCH),i386)
-    GOARCH=386
-endif
 
 HOSTCC:=gcc
 HOSTCXX:=g++
