@@ -362,7 +362,7 @@ EOF
 		next if @{$target->{subtargets}} > 0;
 		print "\tdefault \"".$target->{cflags}."\" if TARGET_".$target->{conf}."\n";
 	}
-	print "\tdefault \"-Os -pipe -funit-at-a-time\"\n";
+	print "\tdefault \"-O2 -pipe -funit-at-a-time\"\n";
 	print <<EOF;
 
 config CPU_TYPE
