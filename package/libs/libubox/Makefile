@@ -68,17 +68,16 @@ endef
 
 TARGET_CFLAGS += -I$(STAGING_DIR)/opt/include
 CMAKE_OPTIONS = \
-	-DLUAPATH=/opt/lib/lua \
-	-DABIVERSION="$(PKG_ABI_VERSION)"
+	-DLUAPATH=/opt/lib/lua
 
 define Package/libubox/install
 	$(INSTALL_DIR) $(1)/opt/lib/
-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/libubox.so.* $(1)/opt/lib/
+	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/libubox.so $(1)/opt/lib/
 endef
 
 define Package/libblobmsg-json/install
 	$(INSTALL_DIR) $(1)/opt/lib/
-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/libblobmsg_json.so.* $(1)/opt/lib/
+	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/libblobmsg_json.so $(1)/opt/lib/
 endef
 
 define Package/jshn/install
@@ -89,7 +88,7 @@ endef
 
 define Package/libjson-script/install
 	$(INSTALL_DIR) $(1)/opt/lib/
-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/libjson_script.so.* $(1)/opt/lib/
+	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/libjson_script.so $(1)/opt/lib/
 endef
 
 define Package/libubox-lua/install
