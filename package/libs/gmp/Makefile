@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gmp
 PKG_VERSION:=6.2.1
-PKG_RELEASE:=1
+PKG_RELEASE:=1a
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)$(PKG_REVISION).tar.xz
 PKG_SOURCE_URL:=@GNU/gmp/
@@ -38,7 +38,7 @@ define Package/libgmp/description
 	signed integers, rational numbers, and floating point numbers.
 endef
 
-TARGET_CFLAGS += $(FPIC)
+TARGET_CFLAGS += -DPIC $(FPIC)
 CONFIGURE_VARS += CC="$(TARGET_CROSS)gcc"
 CONFIGURE_ARGS += \
 	--enable-shared \
