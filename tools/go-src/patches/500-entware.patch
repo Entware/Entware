@@ -29,7 +29,7 @@
  	"/usr/share/lib/zoneinfo/",
  	"/usr/lib/locale/TZ/",
  	runtime.GOROOT() + "/lib/time/zoneinfo.zip",
-@@ -34,7 +35,7 @@
+@@ -36,7 +37,7 @@
  	tz, ok := syscall.Getenv("TZ")
  	switch {
  	case !ok:
