@@ -5,6 +5,7 @@
 # See /LICENSE for more information.
 #
 # Entware specific: OPENSSL_OPTIONS += -DOPENSSL_RAND_SEED_DEVRANDOM_SHM_ID=-1
+# openssl.cnf: optional 'engines=engines'
 
 include $(TOPDIR)/rules.mk
 
@@ -382,6 +383,9 @@ endef
 define Package/libopenssl-conf/install
 	$(INSTALL_DIR) $(1)/opt/etc/ssl
 	$(CP) $(PKG_INSTALL_DIR)/opt/etc/ssl/openssl.cnf $(1)/opt/etc/ssl/
+ifndef CONFIG_OPENSSL_ENGINE
+	$(SED) 's|engines=engines|#engines=engines|g'  $(1)/opt/etc/ssl/openssl.cnf
+endif
 endef
 
 define Package/openssl-util/install
