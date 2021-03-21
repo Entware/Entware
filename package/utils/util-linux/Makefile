@@ -5,7 +5,7 @@
 # See /LICENSE for more information.
 #
 # Entware specific: column, ionice, fallocate and fsfreeze packages added, add swapon/swapoff binaries
-
+# disable nsenter for k2.6 based targets
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=util-linux
@@ -408,6 +408,7 @@ endef
 
 define Package/nsenter
 $(call Package/util-linux/Default)
+  DEPENDS:=@!LINUX_2_6_36
   TITLE:=enter a namespace
 endef
 
