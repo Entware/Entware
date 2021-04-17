@@ -14,7 +14,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ncurses
 PKG_VERSION:=6.2
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@GNU/$(PKG_NAME)
@@ -142,7 +142,19 @@ ifneq ($(HOST_OS),FreeBSD)
 			mv $$$$dir $$$$(echo -ne "\x$$$$dir"); \
 		done \
 	)
-	for file in a/ansi d/dumb l/linux r/rxvt r/rxvt-unicode s/screen s/screen-256color v/vt100 v/vt102 x/xterm x/xterm-color x/xterm-256color x/xterm-utf8; do \
+	for file in \
+		a/ansi \
+		d/dumb \
+		l/linux \
+		r/rxvt \
+		r/rxvt-unicode \
+		s/screen \
+		s/screen-256color \
+		v/vt100 \
+		v/vt102 \
+		x/xterm \
+		x/xterm-color \
+		x/xterm-256color; do \
 		$(INSTALL_DIR) $(1)/opt/share/terminfo/`dirname $$$$file`; \
 		$(CP) $(PKG_INSTALL_DIR)/opt/share/terminfo/$$$$file \
 			$(1)/opt/share/terminfo/$$$$file; \

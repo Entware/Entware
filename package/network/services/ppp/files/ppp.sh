@@ -234,7 +234,7 @@ proto_pppoe_setup() {
 	json_get_var padi_timeout padi_timeout
 
 	ppp_generic_setup "$config" \
-		plugin rp-pppoe.so \
+		plugin pppoe.so \
 		${ac:+rp_pppoe_ac "$ac"} \
 		${service:+rp_pppoe_service "$service"} \
 		${host_uniq:+host-uniq "$host_uniq"} \
