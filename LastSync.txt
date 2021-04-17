@@ -1,6 +1,3 @@
-commit 8078d89a5357d13dc3f2e2055fd9d663c4f1bd04 (HEAD -> master, origin/master, origin/HEAD)
-Author: Rafał Miłecki <rafal@milecki.pl>
-Date:   Thu Feb 25 20:45:02 2021 +0100
-
-    bcm53xx: backport more upstream dts stuff from kernel 5.11
-......
+commit 28623cab32c0ca4e709375f80288471d5ca06ee0 (HEAD -> master, origin/master, origin/HEAD)
+Author: David Bauer <mail@david-bauer.net>
+Date:   Tue Apr 6 22:50:51 2021 +0200
