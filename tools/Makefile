@@ -21,14 +21,14 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
   endif
 endif
 
-tools-y += autoconf autoconf-archive automake bc bison cmake dosfstools
+tools-y += autoconf autoconf-archive automake bc bison cmake cpio dosfstools
 tools-y += e2fsprogs fakeroot findutils flex gengetopt
 tools-y += go-bootstrap go-src
 tools-y += libtool lzma m4 missing-macros
 tools-y += mklibs mm-macros mtools
-tools-y += patchelf pkgconf quilt sstrip zip zlib zstd
+tools-y += patchelf pkgconf quilt sstrip xxd zip zlib zstd
 tools-$(BUILD_ISL) += isl
-tools-$(BUILD_TOOLCHAIN) += expat gmp libelf mpc mpfr
+tools-$(BUILD_TOOLCHAIN) += expat gmp mpc mpfr
 
 # builddir dependencies
 $(curdir)/autoconf/compile := $(curdir)/m4/compile
@@ -44,7 +44,6 @@ $(curdir)/gengetopt/compile := $(curdir)/libtool/compile
 $(curdir)/gmp/compile := $(curdir)/libtool/compile
 $(curdir)/go-src/compile := $(curdir)/go-bootstrap/compile
 $(curdir)/isl/compile := $(curdir)/gmp/compile
-$(curdir)/libelf/compile := $(curdir)/libtool/compile
 $(curdir)/libtool/compile := $(curdir)/m4/compile $(curdir)/autoconf/compile $(curdir)/automake/compile $(curdir)/missing-macros/compile
 $(curdir)/missing-macros/compile := $(curdir)/autoconf/compile
 $(curdir)/mklibs/compile := $(curdir)/libtool/compile
