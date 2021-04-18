@@ -89,11 +89,9 @@ define Build/InstallDev
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/libpsx.a $(1)/opt/lib/
 	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/libcap.pc $(1)/opt/lib/pkgconfig/
-	$(SED) 's,exec_prefix=,exec_prefix=/opt,g' $(1)/opt/lib/pkgconfig/libcap.pc
 	$(SED) 's,/opt/lib,$$$${exec_prefix}/lib,g' $(1)/opt/lib/pkgconfig/libcap.pc
 	$(SED) 's,/opt/include,$$$${prefix}/include,g' $(1)/opt/lib/pkgconfig/libcap.pc
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/libpsx.pc $(1)/opt/lib/pkgconfig/
-	$(SED) 's,exec_prefix=,exec_prefix=/opt,g' $(1)/opt/lib/pkgconfig/libpsx.pc
 	$(SED) 's,/opt/lib,$$$${exec_prefix}/lib,g' $(1)/opt/lib/pkgconfig/libpsx.pc
 	$(SED) 's,/opt/include,$$$${prefix}/include,g' $(1)/opt/lib/pkgconfig/libpsx.pc
 endef
