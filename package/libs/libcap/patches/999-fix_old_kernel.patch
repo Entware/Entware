@@ -1,0 +1,33 @@
+--- a/libcap/include/sys/capability.h
++++ b/libcap/include/sys/capability.h
+@@ -14,6 +14,10 @@
+ extern "C" {
+ #endif
+ 
++#ifndef LINUX_VERSION_CODE
++#include <linux/version.h>
++#endif
++
+ /*
+  * This file complements the kernel file by providing prototype
+  * information for the user library.
+@@ -123,12 +127,19 @@ extern int     cap_iab_set_vector(cap_ia
+ extern int     cap_iab_fill(cap_iab_t, cap_iab_vector_t, cap_t, cap_flag_t);
+ 
+ /* libcap/cap_file.c */
++#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,36)
+ extern cap_t   cap_get_fd(int);
+ extern cap_t   cap_get_file(const char *);
+ extern uid_t   cap_get_nsowner(cap_t);
+ extern int     cap_set_fd(int, cap_t);
+ extern int     cap_set_file(const char *, cap_t);
+ extern int     cap_set_nsowner(cap_t, uid_t);
++#else
++extern cap_t   cap_get_fd(int);
++extern cap_t   cap_get_file(const char *);
++extern int     cap_set_fd(int, cap_t);
++extern int     cap_set_file(const char *, cap_t);
++#endif
+ 
+ /* libcap/cap_proc.c */
+ extern cap_t   cap_get_proc(void);
