@@ -155,7 +155,7 @@ ifneq ($(HOST_OS),FreeBSD)
 		x/xterm \
 		x/xterm-color \
 		x/xterm-256color \
-		x/xtrem-utf8; do \
+		x/xterm-utf8; do \
 		$(INSTALL_DIR) $(1)/opt/share/terminfo/`dirname $$$$file`; \
 		$(CP) $(PKG_INSTALL_DIR)/opt/share/terminfo/$$$$file \
 			$(1)/opt/share/terminfo/$$$$file; \
