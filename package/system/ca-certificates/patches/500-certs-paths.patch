@@ -3,15 +3,15 @@
 @@ -2,7 +2,7 @@
  # Makefile
  #
-
+ 
 -CERTSDIR = /usr/share/ca-certificates
 +CERTSDIR = /opt/share/ca-certificates
  SUBDIRS = mozilla
-
+ 
  all:
 --- a/work/sbin/Makefile
 +++ b/work/sbin/Makefile
-@@ -8,4 +8,4 @@
+@@ -8,4 +8,4 @@ all:
  clean:
  
  install:
