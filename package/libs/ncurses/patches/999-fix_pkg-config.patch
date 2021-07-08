@@ -1,0 +1,11 @@
+--- a/misc/gen-pkgconfig.in	2020-02-12 03:09:26.000000000 +0300
++++ b/misc/gen-pkgconfig.in	2020-04-02 17:01:24.014049411 +0300
+@@ -190,7 +190,7 @@
+ Version: \${version}
+ ${USEURL}URL: https://invisible-island.net/ncurses
+ Requires.private: $reqs
+-Libs: $lib_flags $LIBS
++Libs: -L\${libdir} $LIBS
+ Libs.private: @LIBS@ $main_libs
+ Cflags: $CFLAGS
+ EOF

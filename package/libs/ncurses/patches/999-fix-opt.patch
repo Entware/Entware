@@ -1,6 +1,6 @@
 --- a/include/tic.h
 +++ b/include/tic.h
-@@ -241,7 +241,7 @@
+@@ -257,7 +257,7 @@ struct user_table_entry
  #define MAX_TERMINFO_LENGTH	4096
  
  #ifndef TERMINFO
@@ -11,7 +11,7 @@
  #ifdef NCURSES_TERM_ENTRY_H_incl
 --- a/ncurses/tinfo/comp_scan.c
 +++ b/ncurses/tinfo/comp_scan.c
-@@ -54,7 +54,7 @@
+@@ -55,7 +55,7 @@ MODULE_ID("$Id: comp_scan.c,v 1.109 2020
  
  /*
   * Maximum length of string capability we'll accept before raising an error.
@@ -22,7 +22,7 @@
  
 --- a/ncurses/tinfo/read_termcap.c
 +++ b/ncurses/tinfo/read_termcap.c
-@@ -801,12 +801,12 @@
+@@ -802,12 +802,12 @@ _nc_tgetent(char *bp, char **sourcename,
  
      /*
       * TERMCAP can have one of two things in it.  It can be the name of a file
@@ -37,7 +37,7 @@
       */
      _nc_str_init(&desc, pathbuf, sizeof(pathbuf));
      if (cp == NULL) {
-@@ -1005,7 +1005,7 @@
+@@ -1011,7 +1011,7 @@ _nc_read_termcap_entry(const char *const
       * of reading a termcap file.  If it does begin with a slash, the string is
       * used as a path name of the termcap file to search.  If TERMCAP does not
       * begin with a slash and name is different from TERM, tgetent() searches
@@ -46,7 +46,7 @@
       * unless the environment variable TERMPATH exists, in which case it
       * specifies a list of file pathnames (separated by spaces or colons) to be
       * searched instead.
-@@ -1073,7 +1073,7 @@
+@@ -1077,7 +1077,7 @@ _nc_read_termcap_entry(const char *const
      }
  
      /*
@@ -55,7 +55,7 @@
       * Avoid reading the same file twice.
       */
  #if HAVE_LINK
-@@ -1165,7 +1165,7 @@
+@@ -1171,7 +1171,7 @@ _nc_read_termcap_entry(const char *const
  		 * be very fast.
  		 *
  		 * Disadvantage:  After the first time a termcap type is loaded
@@ -64,10 +64,9 @@
  		 * TERMCAP, or in a local ~/.termcap, will be ineffective
  		 * unless the terminfo entry is explicitly removed.
  		 */
-
 --- a/progs/tic.c
 +++ b/progs/tic.c
-@@ -386,7 +386,7 @@
+@@ -389,7 +389,7 @@ open_tempfile(char *filename)
  {
      FILE *result = 0;
  
@@ -76,7 +75,7 @@
  #if HAVE_MKSTEMP
      {
  	int oldmask = (int) umask(077);
-@@ -900,7 +900,7 @@
+@@ -902,7 +902,7 @@ main(int argc, char *argv[])
      } else {
  	if (infodump == TRUE) {
  	    /* captoinfo's no-argument case */
@@ -87,7 +86,7 @@
  		if (access(termcap, F_OK) == 0) {
 --- a/progs/tset.c
 +++ b/progs/tset.c
-@@ -558,7 +558,7 @@
+@@ -559,7 +559,7 @@ get_termcap_entry(int fd, char *userarg)
  #if HAVE_GETTTYNAM
  	/*
  	 * We have the 4.3BSD library call getttynam(3); that means
@@ -96,7 +95,7 @@
  	 * Try ttyname(3); check for dialup or other mapping.
  	 */
  	if ((t = getttynam(p))) {
-@@ -566,8 +566,8 @@
+@@ -567,8 +567,8 @@ get_termcap_entry(int fd, char *userarg)
  	    goto map;
  	}
  #else
@@ -107,7 +106,7 @@
  	    char buffer[BUFSIZ];
  	    char *s, *t, *d;
  
-@@ -598,7 +598,7 @@
+@@ -599,7 +599,7 @@ get_termcap_entry(int fd, char *userarg)
  
      /*
       * If not a path, remove TERMCAP from the environment so we get a

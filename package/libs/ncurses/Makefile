@@ -14,7 +14,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ncurses
 PKG_VERSION:=6.2
-PKG_RELEASE:=2
+PKG_RELEASE:=2a
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@GNU/$(PKG_NAME)
@@ -185,6 +185,8 @@ define Package/libncurses-dev/install
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/*.a $(1)/opt/lib/
 	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/*.pc $(1)/opt/lib/pkgconfig/
+	# XXX
+	$(SED) 's,$(TOOLCHAIN_DIR),/opt,g' $(1)/opt/bin/ncursesw6-config
 endef
 
 define Package/libncurses/install
@@ -201,6 +203,8 @@ define Package/ncurses-bin/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(CP) $(PKG_INSTALL_DIR)/opt/bin/* $(1)/opt/bin
 	$(RM) $(1)/opt/bin/ncurses6-config
+	# XXX
+	$(SED) 's,$(TOOLCHAIN_DIR),/opt,g' $(1)/opt/bin/ncursesw6-config
 endef
 
 define Build/InstallDev
