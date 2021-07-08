@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lua
 PKG_VERSION:=5.3.5
-PKG_RELEASE:=4
+PKG_RELEASE:=4a
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.lua.org/ftp/ \
@@ -85,6 +85,7 @@ define Build/Compile
 		RANLIB="$(TARGET_CROSS)ranlib" \
 		INSTALL_ROOT=/opt \
 		CFLAGS="$(TARGET_CPPFLAGS) $(TARGET_CFLAGS)" \
+		MYLDFLAGS="$(TARGET_LDFLAGS) $(if $(CONFIG_USE_GLIBC),-lm -ldl)" \
 		PKG_VERSION=$(PKG_VERSION) \
 		linux
 	rm -rf $(PKG_INSTALL_DIR)
