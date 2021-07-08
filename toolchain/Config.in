@@ -99,6 +99,7 @@ menuconfig EXTERNAL_TOOLCHAIN
 	choice TOOLCHAIN_LIBC_TYPE
 		prompt "Toolchain libc"  if DEVEL
 		depends on EXTERNAL_TOOLCHAIN && !NATIVE_TOOLCHAIN
+		default EXTERNAL_TOOLCHAIN_LIBC_USE_GLIBC
 		help
 		  Specify the libc type used by the external toolchain. The given value
 		  is passed as -m flag to all gcc and g++ invocations. This is mainly
@@ -246,6 +247,14 @@ config GDB
 	default y if !EXTERNAL_TOOLCHAIN
 	help
 	  Enable if you want to build the gdb.
+
+config GDB_PYTHON
+	bool
+	depends on GDB
+	prompt "Build gdb with python binding"
+	
+	help
+	  Enable the python bindings for GDB to allow using python in the gdb shell.
 
 config USE_GLIBC
 	bool
