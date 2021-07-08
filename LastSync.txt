@@ -1,3 +1,9 @@
-commit 28623cab32c0ca4e709375f80288471d5ca06ee0 (HEAD -> master, origin/master, origin/HEAD)
-Author: David Bauer <mail@david-bauer.net>
-Date:   Tue Apr 6 22:50:51 2021 +0200
+commit 64ce35bfafb14a0d0e86990037be5c437babead0
+Author: Ansuel Smith <ansuelsmth@gmail.com>
+Date:   Tue Jul 6 00:59:40 2021 +0200
+
+    scripts: check if dl directory exist in dl_cleanup script
+    
+    Check if the provided dl directory exist and return on error.
+    
+    Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
