@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=kexec-tools
 PKG_VERSION:=2.0.21
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/utils/kernel/kexec
@@ -93,7 +93,6 @@ define Package/kexec/install
 # make a link for compatability with other distros
 #	$(INSTALL_DIR) $(1)/sbin
 #	$(LN) ../usr/sbin/kexec $(1)/sbin/kexec
-
 endef
 
 $(eval $(call BuildPackage,kexec-tools))
