@@ -15,7 +15,7 @@ PKG_HASH:=75aeb9d59a4fdb800d329a545c2e6799f732362193b465ea198f2aa275518157
 PATCH_DIR:=
 else
 PKG_VERSION:=1.0.24
-PKG_RELEASE:=$(AUTORELEASE)
+PKG_RELEASE:=10
 PKG_HASH:=7efd2685f7b327326dcfb85cee426d9b871fd70e22caa15bb68d595ce2a2b12a
 endif
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -52,12 +52,17 @@ CONFIGURE_ARGS += \
 	--disable-log
 
 define Build/InstallDev
-	$(CP) $(PKG_INSTALL_DIR)/* $(1)/
+	$(INSTALL_DIR) $(1)/opt/include/libusb-1.0
+	$(CP) $(PKG_INSTALL_DIR)/opt/include/libusb-1.0/libusb.h $(1)/opt/include/libusb-1.0/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libusb-1.0.* $(1)/opt/lib/
+	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/libusb-1.0.pc $(1)/opt/lib/pkgconfig/
 endef
 
 define Package/libusb-1.0/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libusb*.so.* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libusb-1.0.so.* $(1)/opt/lib/
 endef
 
 $(eval $(call BuildPackage,libusb-1.0))
