@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=uqmi
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/uqmi.git
@@ -12,8 +12,6 @@ PKG_MAINTAINER:=Matti Laakso <malaakso@elisanet.fi>
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=
-
-PKG_BUILD_PARALLEL:=1
 
 PKG_FLAGS:=nonshared
 
@@ -44,7 +42,7 @@ CMAKE_OPTIONS += \
 define Package/uqmi/install
 	$(INSTALL_DIR) $(1)/opt/sbin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uqmi $(1)/opt/sbin/
-#	$(CP) ./files/* $(1)/opt
+#	$(CP) ./files/* $(1)/
 endef
 
 $(eval $(call BuildPackage,uqmi))
