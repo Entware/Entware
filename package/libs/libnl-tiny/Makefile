@@ -9,7 +9,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libnl-tiny
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/libnl-tiny.git
@@ -48,7 +48,7 @@ endef
 
 define Package/libnl-tiny/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_BUILD_DIR)/libnl-tiny.so $(1)/opt/lib/
+	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/libnl-tiny.so $(1)/opt/lib/
 endef
 
 $(eval $(call BuildPackage,libnl-tiny))
