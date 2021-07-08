@@ -1,6 +1,6 @@
 --- a/libopkg/opkg_install.c
 +++ b/libopkg/opkg_install.c
-@@ -213,8 +213,7 @@
+@@ -213,8 +213,7 @@ static int verify_pkg_installable(pkg_t
  			root_dir = pkg->dest->root_dir;
  	}
  

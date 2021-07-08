@@ -1,6 +1,6 @@
 --- a/libopkg/opkg_conf.h
 +++ b/libopkg/opkg_conf.h
-@@ -29,7 +29,7 @@
+@@ -29,7 +29,7 @@ extern opkg_conf_t *conf;
  #include "pkg_dest_list.h"
  #include "nv_pair_list.h"
  

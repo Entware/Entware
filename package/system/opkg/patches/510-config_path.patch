@@ -1,6 +1,6 @@
 --- a/src/opkg-cl.c
 +++ b/src/opkg-cl.c
-@@ -250,7 +250,7 @@
+@@ -256,7 +256,7 @@ static int args_parse(int argc, char *ar
  	}
  
  	if (!conf->conf_file && !conf->offline_root)

@@ -1,5 +1,5 @@
---- a/CMakeLists.txt	2020-06-10 15:30:44.647556078 +0000
-+++ b/CMakeLists.txt	2020-06-10 15:32:00.120024334 +0000
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
 @@ -10,6 +10,7 @@ SET(LOCK_FILE "/var/lock/opkg.lock" CACH
  SET(PATH_SPEC "/usr/sbin:/usr/bin:/sbin:/bin" CACHE STRING "Override default PATH value")
  SET(VERSION "" CACHE STRING "Override version")
@@ -8,8 +8,8 @@
  OPTION(STATIC_UBOX "Statically link libubox" OFF)
  OPTION(BUILD_TESTS "Build test programs" ON)
  OPTION(ENABLE_USIGN "Enable usign support" ON)
---- a/src/CMakeLists.txt	2020-06-10 15:30:53.979613990 +0000
-+++ b/src/CMakeLists.txt	2020-06-10 15:32:56.116371610 +0000
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
 @@ -2,12 +2,18 @@ cmake_minimum_required(VERSION 2.6)
  
  PROJECT(opkg-cl C)
