@@ -289,10 +289,6 @@ else
   OPENSSL_OPTIONS += no-engine
 endif
 
-ifndef CONFIG_OPENSSL_WITH_GOST
-  OPENSSL_OPTIONS += no-gost
-endif
-
 ifndef CONFIG_OPENSSL_WITH_DTLS
   OPENSSL_OPTIONS += no-dtls
 endif
@@ -327,7 +323,7 @@ endif
 
 OPENSSL_TARGET:=linux-$(call qstrip,$(CONFIG_ARCH))-openwrt
 
-STAMP_CONFIGURED := $(STAMP_CONFIGURED)_$(shell echo $(OPENSSL_OPTIONS) | mkhash md5)
+STAMP_CONFIGURED := $(STAMP_CONFIGURED)_$(shell echo $(OPENSSL_OPTIONS) | $(MKHASH) md5)
 
 define Build/Configure
 	(cd $(PKG_BUILD_DIR); \
@@ -384,7 +380,7 @@ define Package/libopenssl-conf/install
 	$(INSTALL_DIR) $(1)/opt/etc/ssl
 	$(CP) $(PKG_INSTALL_DIR)/opt/etc/ssl/openssl.cnf $(1)/opt/etc/ssl/
 ifndef CONFIG_OPENSSL_ENGINE
-	$(SED) 's|engines=engines|#engines=engines|g'  $(1)/opt/etc/ssl/openssl.cnf
+	$(SED) 's|engines=engines|#engines=engines|g' $(1)/opt/etc/ssl/openssl.cnf
 endif
 endef
 
