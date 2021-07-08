@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ebtables
 PKG_SOURCE_DATE:=2018-06-27
-PKG_RELEASE:=1a
+PKG_RELEASE:=1b
 
 PKG_SOURCE_URL:=https://git.netfilter.org/ebtables
 PKG_SOURCE_PROTO:=git
@@ -66,6 +66,8 @@ define Package/ebtables-utils/install
 	$(INSTALL_DIR) $(1)/opt/sbin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ebtables-save $(1)/opt/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ebtables-restore $(1)/opt/sbin/
+	# Entware specific: fix exec path in scripts
+	$(SED) 's,^#!.*perl,#!/opt/bin/perl,' $(1)/opt/sbin/ebtables-save
 endef
 
 $(eval $(call BuildPackage,ebtables))
