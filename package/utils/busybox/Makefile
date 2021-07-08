@@ -1,22 +1,20 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Copyright (C) 2006-2020 OpenWrt.org
-#
-# This is free software, licensed under the GNU General Public License v2.
-# See /LICENSE for more information.
+# Copyright (C) 2006-2021 OpenWrt.org
 #
 # Entware specific: postinst/prerm
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=busybox
-PKG_VERSION:=1.33.0
-PKG_RELEASE:=2
+PKG_VERSION:=1.33.1
+PKG_RELEASE:=1
 PKG_FLAGS:=essential
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=https://www.busybox.net/downloads \
 		http://sources.buildroot.net
-PKG_HASH:=d568681c91a85edc6710770cebc1e80e042ad74d305b5c2e6d57a5f3de3b8fbd
+PKG_HASH:=12cec6bd2b16d8a9446dd16130f2b92982f1819f6e1c5f5887b6db03f5660d28
 
 PKG_BUILD_DEPENDS:=BUSYBOX_CONFIG_PAM:libpam
 PKG_BUILD_PARALLEL:=1
@@ -39,7 +37,7 @@ endif
 include $(INCLUDE_DIR)/package.mk
 
 ifeq ($(DUMP),)
-  STAMP_CONFIGURED:=$(strip $(STAMP_CONFIGURED))_$(shell grep '^CONFIG_BUSYBOX_' $(TOPDIR)/.config | mkhash md5)
+  STAMP_CONFIGURED:=$(strip $(STAMP_CONFIGURED))_$(shell grep '^CONFIG_BUSYBOX_' $(TOPDIR)/.config | $(MKHASH) md5)
 endif
 
 # All files provided by busybox will serve as fallback alternatives by opkg.
@@ -77,25 +75,33 @@ define Package/busybox/config
 	source "$(SOURCE)/Config.in"
 endef
 
-ifdef CONFIG_BUSYBOX_CONFIG_FEATURE_SYSLOG
-define Package/busybox/conffiles
+ifneq ($(CONFIG_BUSYBOX_$(BUSYBOX_SYM)_FEATURE_SYSLOG)$(CONFIG_BUSYBOX_$(BUSYBOX_SYM)_FEATURE_SYSLOGD_CFG),)
+define Package/busybox/conffiles/syslog
 /opt/etc/syslog.conf
+endef
+endif
+
+ifneq ($(CONFIG_BUSYBOX_$(BUSYBOX_SYM)_CROND),)
+define Package/busybox/conffiles/crond
+/opt/etc/crontabs/
+endef
+endif
+
+define Package/busybox/conffiles
+$(Package/busybox/conffiles/syslog)
+$(Package/busybox/conffiles/crond)
 endef
 
 Package/busybox-selinux/conffiles = $(Package/busybox/conffiles)
-endif
-
-# don't create a version string containing the actual timestamp
-export KCONFIG_NOTIMESTAMP=1
-
 
 ifndef CONFIG_USE_MUSL
 LDLIBS:=m crypt
 endif
 
 LDLIBS += $(call BUSYBOX_IF_ENABLED,PAM,pam pam_misc pthread)
+
 ifeq ($(CONFIG_USE_GLIBC),y)
-  LDLIBS += $(call BUSYBOX_IF_ENABLED,NSLOOKUP_OPENWRT,resolv)
+  LDLIBS += $(call BUSYBOX_IF_ENABLED,NSLOOKUP,resolv)
 endif
 
 ifeq ($(BUILD_VARIANT),selinux)
@@ -144,7 +150,6 @@ define Package/busybox/install
 	(cd $(PKG_INSTALL_DIR); \
 	    find ./opt -lname "*" | sed "s|^./opt/||g" > $(1)/opt/share/busybox_applets.lst.dist)
 endef
-
 
 # The postinst & prerm scripts will work only when busybox has readlink applet.
 # We cannot use readlink directly, it is not yet installed and use 'busybox readlink' instead.
