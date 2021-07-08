@@ -46,13 +46,8 @@ HOST_MAKE_FLAGS += \
 	PREFIX=$(STAGING_DIR_HOSTPKG) \
 	SHLIBDIR=$(STAGING_DIR_HOSTPKG)/lib
 
-
-MAKE_FLAGS := \
-        $(TARGET_CONFIGURE_OPTS) \
-        CFLAGS="$(TARGET_CFLAGS) $(TARGET_CPPFLAGS)" \
-        LDFLAGS="$(TARGET_LDFLAGS)" \
-        COPTS="$(COPTS)" \
-        PREFIX="/opt" \
+MAKE_FLAGS += \
+	PREFIX=/opt \
 	SHLIBDIR=/opt/lib \
 	OS=Linux
 
