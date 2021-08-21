@@ -1,9 +1,6 @@
-commit 64ce35bfafb14a0d0e86990037be5c437babead0
-Author: Ansuel Smith <ansuelsmth@gmail.com>
-Date:   Tue Jul 6 00:59:40 2021 +0200
+commit 0d3f3323a2fc58598e4036a84624ad57586f6538 (HEAD -> master, origin/master, origin/HEAD)
+Author: Daniel Golle <daniel@makrotopia.org>
+Date:   Sat Aug 21 04:34:15 2021 +0100
 
-    scripts: check if dl directory exist in dl_cleanup script
+    mediatek: mt7623: enable more hardware features
     
-    Check if the provided dl directory exist and return on error.
-    
-    Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
