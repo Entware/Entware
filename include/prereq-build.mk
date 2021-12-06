@@ -161,18 +161,24 @@ $(eval $(call SetupHostCommand,python2,Please install Python 2.7, \
 	python2.7 -V 2>&1 | grep 'Python 2'))
 
 $(eval $(call SetupHostCommand,python,Please install Python >= 3.6, \
+	python3.10 -V 2>&1 | grep 'Python 3', \
 	python3.9 -V 2>&1 | grep 'Python 3', \
 	python3.8 -V 2>&1 | grep 'Python 3', \
 	python3.7 -V 2>&1 | grep 'Python 3', \
 	python3.6 -V 2>&1 | grep 'Python 3', \
-	python3 -V 2>&1 | grep -E 'Python 3\.[6-9]\.?'))
+	python3 -V 2>&1 | grep -E 'Python 3\.([6-9]|10)\.?'))
 
 $(eval $(call SetupHostCommand,python3,Please install Python >= 3.6, \
+	python3.10 -V 2>&1 | grep 'Python 3', \
 	python3.9 -V 2>&1 | grep 'Python 3', \
 	python3.8 -V 2>&1 | grep 'Python 3', \
 	python3.7 -V 2>&1 | grep 'Python 3', \
 	python3.6 -V 2>&1 | grep 'Python 3', \
-	python3 -V 2>&1 | grep -E 'Python 3\.[6-9]\.?'))
+	python3 -V 2>&1 | grep -E 'Python 3\.([6-9]|10)\.?'))
+
+$(eval $(call TestHostCommand,python3-distutils, \
+	Please install the Python3 distutils module, \
+	$(STAGING_DIR_HOST)/bin/python3 -c 'import distutils'))
 
 $(eval $(call SetupHostCommand,git,Please install Git (git-core) >= 1.7.12.2, \
 	git --exec-path | xargs -I % -- grep -q -- --recursive %/git-submodule))
@@ -184,7 +190,9 @@ $(eval $(call SetupHostCommand,rsync,Please install 'rsync', \
 	rsync --version </dev/null))
 
 $(eval $(call SetupHostCommand,which,Please install 'which', \
-	which which | grep which))
+	/usr/bin/which which, \
+	/bin/which which, \
+	which which))
 
 $(STAGING_DIR_HOST)/bin/mkhash: $(SCRIPT_DIR)/mkhash.c
 	mkdir -p $(dir $@)
@@ -194,5 +202,4 @@ prereq: $(STAGING_DIR_HOST)/bin/mkhash
 
 # Install ldconfig stub
 $(eval $(call TestHostCommand,ldconfig-stub,Failed to install stub, \
-	touch $(STAGING_DIR_HOST)/bin/ldconfig && \
-	chmod +x $(STAGING_DIR_HOST)/bin/ldconfig))
+	$(LN) /bin/true $(STAGING_DIR_HOST)/bin/ldconfig))
