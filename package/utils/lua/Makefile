@@ -134,8 +134,12 @@ define Host/Install
 		INSTALL_TOP="$(STAGING_DIR_HOSTPKG)" \
 		install
 
-	$(LN) $(STAGING_DIR_HOSTPKG)/bin/lua5.1 $(STAGING_DIR_HOSTPKG)/bin/lua
-	$(LN) $(STAGING_DIR_HOSTPKG)/bin/luac5.1 $(STAGING_DIR_HOSTPKG)/bin/luac
+	$(INSTALL_DIR) $(STAGING_DIR_HOSTPKG)/lib/pkgconfig
+	$(CP) $(HOST_BUILD_DIR)/etc/lua.pc $(STAGING_DIR_HOSTPKG)/lib/pkgconfig/lua5.1.pc
+
+	$(LN) lua5.1 $(STAGING_DIR_HOSTPKG)/bin/lua
+	$(LN) luac5.1 $(STAGING_DIR_HOSTPKG)/bin/luac
+	$(LN) lua5.1.pc $(STAGING_DIR_HOSTPKG)/lib/pkgconfig/lua.pc
 endef
 
 define Build/InstallDev
@@ -148,8 +152,8 @@ define Build/InstallDev
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/liblua.{a,so*} $(1)/opt/lib/
 	$(LN) liblua.so.$(PKG_VERSION) $(1)/opt/lib/liblualib.so
 	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
-	$(SED) 's,/usr/local,/opt,g' $(PKG_BUILD_DIR)/etc/lua.pc
 	$(CP) $(PKG_BUILD_DIR)/etc/lua.pc $(1)/opt/lib/pkgconfig/
+	$(SED) 's,/usr/local,/opt,g' $(1)/opt/lib/pkgconfig/lua.pc
 endef
 
 define Package/liblua/install
