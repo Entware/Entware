@@ -24,8 +24,8 @@ endif
 tools-y += autoconf autoconf-archive automake bc bison cmake cpio dosfstools
 tools-y += e2fsprogs fakeroot findutils flex gengetopt
 tools-y += go-bootstrap go-src
-tools-y += libtool lzma m4 missing-macros
-tools-y += mklibs mm-macros mtools ninja
+tools-y += libtool lzma m4 meson missing-macros
+tools-y += mklibs mtools ninja
 tools-y += patchelf pkgconf quilt sstrip xxd zip zlib zstd
 tools-$(BUILD_ISL) += isl
 tools-$(BUILD_TOOLCHAIN) += expat gmp mpc mpfr
@@ -59,7 +59,7 @@ $(curdir)/zstd/compile := $(curdir)/cmake/compile
 tools-y += coreutils
 
 ifneq ($(CONFIG_CCACHE)$(CONFIG_SDK),)
-$(foreach tool, $(filter-out xz zstd patch pkgconf ninja cmake,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/ccache/compile))
+$(foreach tool, $(filter-out xz zstd pkgconf patch ninja meson cmake,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/ccache/compile))
 tools-y += ccache
 $(curdir)/ccache/compile := $(curdir)/zstd/compile
 endif
@@ -98,9 +98,12 @@ define PrepareStaging
 		$(if $(QUIET),,set -x;) \
 		mkdir -p "$$dir"; \
 		cd "$$dir"; \
-		mkdir -p bin lib stamp; \
+		mkdir -p bin lib stamp usr/include usr/lib; \
 	); done
 endef
+
+$(BIN_DIR):
+	mkdir -p $@
 
 # preparatory work
 $(STAGING_DIR)/.prepared: $(TMP_DIR)/.build
@@ -122,8 +125,8 @@ endif
 
 endif
 
-$(curdir)//prepare = $(STAGING_DIR)/.prepared $(STAGING_DIR_HOST)/.prepared
-$(curdir)//compile = $(STAGING_DIR)/.prepared $(STAGING_DIR_HOST)/.prepared
+$(curdir)//prepare = $(STAGING_DIR)/.prepared $(STAGING_DIR_HOST)/.prepared $(BIN_DIR)
+$(curdir)//compile = $(STAGING_DIR)/.prepared $(STAGING_DIR_HOST)/.prepared $(BIN_DIR)
 
 # prerequisites for the individual targets
 $(curdir)/ := .config prereq
