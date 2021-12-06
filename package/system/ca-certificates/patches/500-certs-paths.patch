@@ -11,12 +11,15 @@
  all:
 --- a/work/sbin/Makefile
 +++ b/work/sbin/Makefile
-@@ -8,4 +8,4 @@ all:
- clean:
+@@ -3,7 +3,7 @@
+ #
+ #
  
- install:
--	install -m755 update-ca-certificates $(DESTDIR)/usr/sbin/
-+	install -m755 update-ca-certificates $(DESTDIR)/opt/sbin/
+-SBINDIR = /usr/sbin
++SBINDIR = /opt/sbin
+ 
+ all:
+ 
 --- a/work/sbin/update-ca-certificates
 +++ b/work/sbin/update-ca-certificates
 @@ -24,12 +24,12 @@
@@ -28,7 +31,7 @@
 -LOCALCERTSDIR=/usr/local/share/ca-certificates
 +CERTSCONF=/opt/etc/ca-certificates.conf
 +CERTSDIR=/opt/share/ca-certificates
-+LOCALCERTSDIR=/opt/local/share/ca-certificates
++LOCALCERTSDIR=/opt/share/ca-certificates
  CERTBUNDLE=ca-certificates.crt
 -ETCCERTSDIR=/etc/ssl/certs
 -HOOKSDIR=/etc/ca-certificates/update.d
