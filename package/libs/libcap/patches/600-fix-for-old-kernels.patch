@@ -11,7 +11,7 @@
  /*
   * This file complements the kernel file by providing prototype
   * information for the user library.
-@@ -123,12 +127,19 @@ extern int     cap_iab_set_vector(cap_ia
+@@ -127,12 +131,19 @@ extern int     cap_iab_set_vector(cap_ia
  extern int     cap_iab_fill(cap_iab_t, cap_iab_vector_t, cap_t, cap_flag_t);
  
  /* libcap/cap_file.c */
