@@ -6,6 +6,7 @@
 #
 # Entware specific: column, ionice, fallocate and fsfreeze packages added, add swapon/swapoff binaries
 # disable nsenter for k2.6 based targets
+
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=util-linux
@@ -127,7 +128,7 @@ define Package/blkdiscard
 $(call Package/util-linux/Default)
   TITLE:=discard sectors on a device
   SUBMENU=Disc
-  DEPENDS:= +libblkid
+  DEPENDS:=libblkid
 endef
 
 define Package/blkdiscard/description
@@ -214,7 +215,7 @@ endef
 define Package/fallocate
 $(call Package/util-linux/Default)
   TITLE:=preallocate or deallocate space to a file
-  SUBMENU=Filesystem
+  SUBMENU:=Filesystem
 endef
 
 define Package/fallocate/description
