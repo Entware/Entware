@@ -1,6 +1,52 @@
-commit 0d3f3323a2fc58598e4036a84624ad57586f6538 (HEAD -> master, origin/master, origin/HEAD)
-Author: Daniel Golle <daniel@makrotopia.org>
-Date:   Sat Aug 21 04:34:15 2021 +0100
+commit 7e89421a7c3855d66a20350a5bf9ca4cc7a2caf9 (HEAD -> master, origin/master, origin/HEAD)
+Author: Sergey Ryazanov <ryazanov.s.a@gmail.com>
+Date:   Tue Nov 16 13:10:25 2021 +0300
 
-    mediatek: mt7623: enable more hardware features
+    ramips: add support for Zbtlink ZBT-WG1602
     
+    Zbtlink ZBT-WG1602 is a Wi-Fi router intendent to use with WWAN
+    (UMTS/LTE/3G/4G) modems. The router board offsers a couple of miniPCIe
+    slots with USB and SIM only and another one pure miniPCIe slot as well
+    as five Gigabit Ethernet ports (4xLAN + WAN).
+    
+    Specification:
+    
+    * SoC: MT7621A
+    * RAM: 256/512 MiB
+    * Flash: 16/32 MiB (SPI NOR)
+    * external watchdog (looks like Torexsemi XC6131B)
+    * Eth: 10/100/1000 Mbps Ethernet x5 ports (4xLAN + WAN)
+    * WLAN 2GHz: MT7603EN (.11n, MIMO 2x2)
+    * WLAN 5GHz: MT7612EN (.11ac, MIMO 2x2)
+    * WLAN Ants: detachable x2, shared by 2GHz & 5GHz radios
+    * miniPCIe: 2x slots with USB&SIM + 1x slot with regular PCIe bus
+    * WWAN Ants: detachable x4
+    * External storage: microSD (SDXC) slot
+    * USB: 2.0 Type-A port
+    * LED: 11 (5 per Eth phy, 3 SoC controlled, 2 WLAN 2/5 controlled, 1
+           power indicator)
+    * Button: 1 (reset)
+    * UART: console (115200 baud)
+    * Power: DC jack (12 V / 2.5 A)
+    
+    Additional HW information:
+    
+    * SoC USB port #1 is shared by internal miniPCIe slot and external
+      Type-A USB port, USB D+/D- lines are toggled between ports using a
+      GPIO controlled DPDT switch.
+    * Power of the USB enabled miniPCIe slots can be individually controlled
+      using dedicated GPIO lines.
+    * Vendor firmware feeds the external watchdog with 1s pulses. GPIO
+      watchdog driver is able to either generate a 1us pulses or toggle the
+      output line. 1us is not enough for the external watchod timer, so
+      the line toggling driver mode is utilized.
+    
+    Installation:
+    
+    Vendor's firmware is OpenWrt (LEDE) based, so the sysupgrade image can
+    be directly used to install OpenWrt. Firmware must be upgraded using the
+    'force' and 'do not save configuration' command line options (or
+    correspondig web interface checkboxes) since the vendor firmware is from
+    the pre-DSA era.
+    
+    Signed-off-by: Sergey Ryazanov <ryazanov.s.a@gmail.com>
