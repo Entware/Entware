@@ -12,6 +12,8 @@ DEVICE_TYPE?=router
 # Default packages - the really basic set
 DEFAULT_PACKAGES:=\
 	dropbear \
+	entware-opt \
+	entware-release \
 	libc \
 	libgcc \
 	opkg
@@ -22,6 +24,18 @@ else
 DEFAULT_PACKAGES+=busybox
 endif
 
+# Entware specific: unused
+# include ujail on systems with enough storage
+#ifeq ($(CONFIG_SMALL_FLASH),)
+#DEFAULT_PACKAGES+=procd-ujail
+#endif
+
+# Entware specific: unused
+# include seccomp ld-preload hooks if kernel supports it
+#ifneq ($(CONFIG_SECCOMP),)
+#DEFAULT_PACKAGES+=procd-seccomp
+#endif
+
 # For the basic set
 DEFAULT_PACKAGES.basic:=
 # For nas targets
@@ -31,9 +45,7 @@ DEFAULT_PACKAGES.nas:=\
 	lsblk \
 	mdadm
 # For router targets
-DEFAULT_PACKAGES.router:=\
-	entware-opt \
-	entware-release
+DEFAULT_PACKAGES.router:=
 
 ifneq ($(DUMP),)
   all: dumpinfo
