@@ -51,6 +51,7 @@ $(curdir)/mklibs/compile := $(curdir)/libtool/compile
 $(curdir)/mm-macros/compile := $(curdir)/libtool/compile
 $(curdir)/mpc/compile := $(curdir)/mpfr/compile $(curdir)/gmp/compile
 $(curdir)/mpfr/compile := $(curdir)/gmp/compile
+$(curdir)/pkgconf/compile := $(curdir)/meson/compile
 $(curdir)/patchelf/compile := $(curdir)/libtool/compile
 $(curdir)/quilt/compile := $(curdir)/autoconf/compile $(curdir)/findutils/compile
 $(curdir)/zlib/compile := $(curdir)/cmake/compile
