@@ -1,6 +1,6 @@
 --- a/include/libbb.h
 +++ b/include/libbb.h
-@@ -123,16 +123,16 @@
+@@ -127,16 +127,16 @@
  #endif
  /* Just in case libc doesn't define some of these... */
  #ifndef _PATH_PASSWD
