@@ -1,6 +1,6 @@
 --- a/src/crypto/x509/root_linux.go
 +++ b/src/crypto/x509/root_linux.go
-@@ -6,6 +6,7 @@ package x509
+@@ -6,6 +6,7 @@
  
  // Possible certificate files; stop after finding one.
  var certFiles = []string{
@@ -8,6 +8,14 @@
  	"/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
  	"/etc/pki/tls/certs/ca-bundle.crt",                  // Fedora/RHEL 6
  	"/etc/ssl/ca-bundle.pem",                            // OpenSUSE
+@@ -17,6 +18,7 @@
+ // Possible directories with certificate files; stop after successfully
+ // reading at least one file from a directory.
+ var certDirectories = []string{
++	"/opt/etc/ssl/certs",           // Entware
+ 	"/etc/ssl/certs",               // SLES10/SLES11, https://golang.org/issue/12139
+ 	"/etc/pki/tls/certs",           // Fedora/RHEL
+ 	"/system/etc/security/cacerts", // Android
 --- a/src/net/conf.go
 +++ b/src/net/conf.go
 @@ -94,7 +94,7 @@ func initConfVal() {
