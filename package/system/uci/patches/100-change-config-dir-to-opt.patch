@@ -1,0 +1,13 @@
+index b385e2b..8c98e8b 100644
+--- a/uci.h
++++ b/uci.h
+@@ -36,7 +36,7 @@ extern "C" {
+ #include <stdint.h>
+ #include <stddef.h>
+
+-#define UCI_CONFDIR "/etc/config"
++#define UCI_CONFDIR "/opt/etc/config"
+ #define UCI_SAVEDIR "/tmp/.uci"
+ #define UCI_DIRMODE 0700
+ #define UCI_FILEMODE 0600
+

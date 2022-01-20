@@ -50,36 +50,36 @@ define Package/libuci-lua
   TITLE:=Lua plugin for UCI
 endef
 
-TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include
-TARGET_LDFLAGS += -L$(STAGING_DIR)/usr/lib
+TARGET_CFLAGS += -I$(STAGING_DIR)/opt/include
+TARGET_LDFLAGS += -L$(STAGING_DIR)/opt/lib
 
 CMAKE_OPTIONS += \
-	-DLUAPATH=/usr/lib/lua \
+	-DLUAPATH=/opt/lib/lua \
 	$(if $(DEBUG),-DUCI_DEBUG=ON)
 
 define Package/libuci/install
-	$(INSTALL_DIR) $(1)/lib
-	$(CP) $(PKG_BUILD_DIR)/libuci.so* $(1)/lib/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_BUILD_DIR)/libuci.so* $(1)/opt/lib/
 endef
 
 define Package/libuci-lua/install
-	$(INSTALL_DIR) $(1)/usr/lib/lua
-	$(CP) $(PKG_BUILD_DIR)/lua/uci.so $(1)/usr/lib/lua/
+	$(INSTALL_DIR) $(1)/opt/lib/lua
+	$(CP) $(PKG_BUILD_DIR)/lua/uci.so $(1)/opt/lib/lua/
 endef
 
 define Package/uci/install
-	$(INSTALL_DIR) $(1)/etc/uci-defaults
-	$(INSTALL_DIR) $(1)/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uci $(1)/sbin/
-	$(CP) ./files/* $(1)/
+	$(INSTALL_DIR) $(1)/opt/etc/uci-defaults
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uci $(1)/opt/sbin/
+	$(CP) ./files/* $(1)/opt
 endef
 
 define Build/InstallDev
-	$(INSTALL_DIR) $(1)/usr/include
-	$(CP) $(PKG_BUILD_DIR)/uci{,_config,_blob,map}.h $(1)/usr/include
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_BUILD_DIR)/libuci.so* $(1)/usr/lib
-	$(CP) $(PKG_BUILD_DIR)/libucimap.a $(1)/usr/lib
+	$(INSTALL_DIR) $(1)/opt/include
+	$(CP) $(PKG_BUILD_DIR)/uci{,_config,_blob,map}.h $(1)/opt/include
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_BUILD_DIR)/libuci.so* $(1)/opt/lib
+	$(CP) $(PKG_BUILD_DIR)/libucimap.a $(1)/opt/lib
 endef
 
 $(eval $(call BuildPackage,libuci))
