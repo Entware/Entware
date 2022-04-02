@@ -5,7 +5,7 @@
 mainmenu "Entware Configuration"
 
 config MODULES
-	option modules
+	modules
 	bool
 	default y
 
