@@ -20,6 +20,9 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
     BUILD_ISL = y
   endif
 endif
+ifneq ($(CONFIG_SDK)$(CONFIG_PACKAGE_kmod-b43)$(CONFIG_PACKAGE_b43legacy-firmware)$(CONFIG_BRCMSMAC_USE_FW_FROM_WL),)
+  BUILD_B43_TOOLS = y
+endif
 
 tools-y += autoconf autoconf-archive automake bc bison cmake cpio dosfstools
 tools-y += e2fsprogs fakeroot findutils flex gengetopt
@@ -37,6 +40,7 @@ $(curdir)/bc/compile := $(curdir)/bison/compile $(curdir)/libtool/compile
 $(curdir)/bison/compile := $(curdir)/flex/compile
 $(curdir)/cmake/compile += $(curdir)/ninja/compile
 $(curdir)/dosfstools/compile := $(curdir)/autoconf/compile $(curdir)/automake/compile
+$(curdir)/expat/compile := $(curdir)/cmake/compile
 $(curdir)/e2fsprogs/compile := $(curdir)/libtool/compile
 $(curdir)/fakeroot/compile := $(curdir)/libtool/compile
 $(curdir)/findutils/compile := $(curdir)/bison/compile
@@ -55,14 +59,17 @@ $(curdir)/patchelf/compile := $(curdir)/libtool/compile
 $(curdir)/pkgconf/compile := $(curdir)/meson/compile
 $(curdir)/quilt/compile := $(curdir)/autoconf/compile $(curdir)/findutils/compile
 $(curdir)/zlib/compile := $(curdir)/cmake/compile
-$(curdir)/zstd/compile := $(curdir)/cmake/compile
+$(curdir)/zstd/compile := $(curdir)/meson/compile
 
 tools-y += coreutils
+ifeq ($(HOST_OS),Darwin)
+  tools-y += bash
+endif
 
 ifneq ($(CONFIG_CCACHE)$(CONFIG_SDK),)
 $(foreach tool, $(filter-out xz zstd pkgconf patch ninja meson cmake,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/ccache/compile))
 tools-y += ccache
-$(curdir)/ccache/compile := $(curdir)/zstd/compile
+$(curdir)/ccache/compile := $(curdir)/cmake/compile $(curdir)/zstd/compile
 endif
 
 # in case there is no patch tool on the host we need to make patch tool a
