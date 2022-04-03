@@ -10,12 +10,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=util-linux
-PKG_VERSION:=2.37
-PKG_RELEASE:=1
+PKG_VERSION:=2.37.3
+PKG_RELEASE:=3
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.37
-PKG_HASH:=bd07b7e98839e0359842110525a3032fdb8eaf3a90bedde3dd1652d32d15cce5
+PKG_HASH:=590c592e58cd6bf38519cb467af05ce6a1ab18040e3e3418f24bcfb2f55f9776
 PKG_CPE_ID:=cpe:/a:kernel:util-linux
 
 PKG_LICENSE:=GPL-2.0-only
@@ -248,6 +248,7 @@ endef
 define Package/flock
 $(call Package/util-linux/Default)
   TITLE:=manage locks from shell scripts
+  ALTERNATIVES:=200:/opt/bin/flock:/opt/bin/util-linux-flock
 endef
 
 define Package/flock/description
@@ -316,9 +317,22 @@ define Package/ionice/description
  This program sets or gets the io scheduling class and priority for a program. If no arguments or just -p is given, ionice will query the current io scheduling class and priority for that process. 
 endef
 
+define Package/ipcs
+$(call Package/util-linux/Default)
+  TITLE:=show information on IPC facilities
+endef
+
+define Package/ipcs/description
+  ipcs shows information on the inter-process communication facilities for
+  which the calling process has read access. By default it shows information
+  about all three resources: shared memory segments, message queues, and
+  semaphore arrays.
+endef
+
 define Package/logger
 $(call Package/util-linux/Default)
   TITLE:=a shell command interface to the syslog system log module
+  ALTERNATIVES:=200:/opt/bin/logger:/opt/bin/util-linux-logger
 endef
 
 define Package/logger/description
@@ -365,6 +379,26 @@ endef
 
 define Package/lscpu/description
  lscpu displays information about the CPU architecture
+endef
+
+define Package/lslocks
+$(call Package/util-linux/Default)
+  TITLE:=list local system locks
+  DEPENDS:= +libmount +libsmartcols
+endef
+
+define Package/lslocks/description
+ lslocks lists information about all the currently held file locks in a Linux system
+endef
+
+define Package/lsns
+$(call Package/util-linux/Default)
+  TITLE:=list system namespaces
+  DEPENDS:= +libblkid +libmount +libsmartcols
+endef
+
+define Package/lsns/description
+ lsns lists information about all namespaces and their processes
 endef
 
 define Package/more
@@ -494,6 +528,15 @@ define Package/swap-utils/description
  contains: mkswap, swaplabel, swapon, swapoff
 endef
 
+define Package/taskset
+$(call Package/util-linux/Default)
+  TITLE:=set or retrieve a process's CPU affinity
+endef
+
+define Package/taskset/description
+ contains: taskset
+endef
+
 define Package/unshare
 $(call Package/util-linux/Default)
   TITLE:=unshare userspace tool
@@ -574,6 +617,7 @@ CONFIGURE_ARGS += \
 	--disable-lslogins		\
 	--disable-runuser		\
 	--disable-chfn-chsh		\
+	--disable-raw			\
 	--without-python		\
 	--without-udev			\
 	--without-readline		\
@@ -713,7 +757,7 @@ endef
 
 define Package/flock/install
 	$(INSTALL_DIR) $(1)/opt/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/flock $(1)/opt/bin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/flock $(1)/opt/bin/util-linux-flock
 endef
 
 define Package/fsfreeze/install
@@ -731,11 +775,6 @@ define Package/getopt/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/getopt $(1)/opt/bin/
 endef
 
-define Package/ionice/install
-	$(INSTALL_DIR) $(1)/opt/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/ionice $(1)/opt/bin/
-endef
-
 define Package/hardlink/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/hardlink $(1)/opt/bin/
@@ -746,9 +785,19 @@ define Package/hwclock/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/hwclock $(1)/opt/sbin/
 endef
 
+define Package/ionice/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/ionice $(1)/opt/bin/
+endef
+
+define Package/ipcs/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/ipcs $(1)/opt/bin/
+endef
+
 define Package/logger/install
 	$(INSTALL_DIR) $(1)/opt/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/logger $(1)/opt/bin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/logger $(1)/opt/bin/util-linux-logger
 endef
 
 define Package/look/install
@@ -769,6 +818,16 @@ endef
 define Package/lscpu/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/lscpu $(1)/opt/bin/
+endef
+
+define Package/lslocks/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/lslocks $(1)/opt/bin/
+endef
+
+define Package/lsns/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/lsns $(1)/opt/bin/
 endef
 
 define Package/more/install
@@ -838,6 +897,11 @@ define Package/swap-utils/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/swap{on,off} $(1)/opt/sbin/
 endef
 
+define Package/taskset/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/taskset $(1)/opt/bin/
+endef
+
 define Package/unshare/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/unshare $(1)/opt/bin/
@@ -892,13 +956,16 @@ $(eval $(call BuildPackage,fsfreeze))
 $(eval $(call BuildPackage,fstrim))
 $(eval $(call BuildPackage,getopt))
 $(eval $(call BuildPackage,hardlink))
-$(eval $(call BuildPackage,ionice))
 $(eval $(call BuildPackage,hwclock))
+$(eval $(call BuildPackage,ionice))
+$(eval $(call BuildPackage,ipcs))
 $(eval $(call BuildPackage,logger))
 $(eval $(call BuildPackage,look))
 $(eval $(call BuildPackage,losetup))
 $(eval $(call BuildPackage,lsblk))
 $(eval $(call BuildPackage,lscpu))
+$(eval $(call BuildPackage,lslocks))
+$(eval $(call BuildPackage,lsns))
 $(eval $(call BuildPackage,more))
 $(eval $(call BuildPackage,mcookie))
 $(eval $(call BuildPackage,mount-utils))
@@ -911,6 +978,7 @@ $(eval $(call BuildPackage,script-utils))
 $(eval $(call BuildPackage,setterm))
 $(eval $(call BuildPackage,sfdisk))
 $(eval $(call BuildPackage,swap-utils))
+$(eval $(call BuildPackage,taskset))
 $(eval $(call BuildPackage,unshare))
 $(eval $(call BuildPackage,uuidd))
 $(eval $(call BuildPackage,uuidgen))
