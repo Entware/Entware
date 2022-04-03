@@ -1,6 +1,6 @@
 --- a/libopkg/opkg_cmd.c
 +++ b/libopkg/opkg_cmd.c
-@@ -533,6 +533,18 @@ static int opkg_upgrade_cmd(int argc, ch
+@@ -536,6 +536,18 @@ static int opkg_upgrade_cmd(int argc, ch
  					err = -1;
  			}
  		}
@@ -19,7 +19,7 @@
  	}
  
  	if (opkg_configure_packages(NULL))
-@@ -1347,7 +1359,7 @@ static int opkg_print_architecture_cmd(i
+@@ -1350,7 +1362,7 @@ static int opkg_print_architecture_cmd(i
  static opkg_cmd_t cmds[] = {
  	{"update", 0, (opkg_cmd_fun_t) opkg_update_cmd,
  	 PFM_DESCRIPTION | PFM_SOURCE},
