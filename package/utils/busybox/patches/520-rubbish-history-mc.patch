@@ -1,6 +1,6 @@
 --- a/libbb/lineedit.c
 +++ b/libbb/lineedit.c
-@@ -1629,6 +1629,8 @@ static void remember_in_history(char *st
+@@ -1668,6 +1668,8 @@ static void remember_in_history(char *st
  # endif
  	}
  	/* i <= state->max_history-1 */
@@ -9,7 +9,7 @@
  	state->history[i++] = xstrdup(str);
  	/* i <= state->max_history */
  	state->cur_history = i;
-@@ -1637,6 +1639,7 @@ static void remember_in_history(char *st
+@@ -1676,6 +1678,7 @@ static void remember_in_history(char *st
  	save_history(str);
  # endif
  }
