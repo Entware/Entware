@@ -14,7 +14,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ncurses
 PKG_VERSION:=6.3
-PKG_RELEASE:=1
+PKG_RELEASE:=1a
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@GNU/$(PKG_NAME)
@@ -193,11 +193,11 @@ endef
 
 define Package/libncurses/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	ln -s libncurses.so.6.2 $(1)/opt/lib/libcurses.so
+	ln -s libncurses.so.6.3 $(1)/opt/lib/libcurses.so
 	for lib in ncurses panel menu form; do \
 		ln -s lib$$$${lib}w.so $(1)/opt/lib/lib$$$${lib}.so; \
 		ln -s lib$$$${lib}w.so.6 $(1)/opt/lib/lib$$$${lib}.so.6; \
-		ln -s lib$$$${lib}w.so.6.2 $(1)/opt/lib/lib$$$${lib}.so.6.2; \
+		ln -s lib$$$${lib}w.so.6.3 $(1)/opt/lib/lib$$$${lib}.so.6.3; \
 	done
 endef
 
