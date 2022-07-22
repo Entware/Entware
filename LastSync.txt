@@ -1,5 +1,5 @@
-commit 72b93b77a5b406d0a32740d3a000218e19451460 (HEAD -> master, origin/master, origin/HEAD)
-Author: Felix Fietkau <nbd@nbd.name>
-Date:   Fri Mar 25 12:14:40 2022 +0100
+commit a0b7fef0ffe4cd9cca39a652a37e4f3ce8f0a681 (HEAD -> master, origin/master, origin/HEAD)
+Author: David Bauer <mail@david-bauer.net>
+Date:   Fri May 27 17:48:06 2022 +0200
 
-    bpf-headers: support CONFIG_HZ=300
+    ramips: add support for ZyXEL NWA50AX / NWA55AXE
