@@ -14,9 +14,9 @@ PKG_RELEASE:=2
 PKG_HASH:=75aeb9d59a4fdb800d329a545c2e6799f732362193b465ea198f2aa275518157
 PATCH_DIR:=
 else
-PKG_VERSION:=1.0.24
-PKG_RELEASE:=10
-PKG_HASH:=7efd2685f7b327326dcfb85cee426d9b871fd70e22caa15bb68d595ce2a2b12a
+PKG_VERSION:=1.0.26
+PKG_RELEASE:=1
+PKG_HASH:=12ce7a61fc9854d1d2a1ffe095f7b5fac19ddba095c259e6067a46500381b5a5
 endif
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=\
@@ -36,7 +36,7 @@ define Package/libusb-1.0
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=A library for accessing Linux USB devices
-  DEPENDS:=+libpthread +librt
+  DEPENDS:=+libpthread +librt +libatomic
   URL:=http://libusb.info/
   ABI_VERSION:=0
 endef
