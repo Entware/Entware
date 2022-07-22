@@ -64,6 +64,9 @@ $(curdir)/zstd/compile := $(curdir)/meson/compile
 tools-y += coreutils
 ifeq ($(HOST_OS),Darwin)
   tools-y += bash
+else
+  $(curdir)/elfutils/compile := $(curdir)/m4/compile $(curdir)/zlib/compile
+  tools-y += elfutils
 endif
 
 ifneq ($(CONFIG_CCACHE)$(CONFIG_SDK),)
