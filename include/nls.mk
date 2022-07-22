@@ -11,10 +11,10 @@ ifeq ($(CONFIG_BUILD_NLS),y)
 	INTL_FULL:=1
 
 else
-	ICONV_PREFIX:=$(STAGING_DIR)/opt/lib/libiconv-stub
+	ICONV_PREFIX:=
 	ICONV_FULL:=
 
-	INTL_PREFIX:=$(STAGING_DIR)/opt/lib/libintl-stub
+	INTL_PREFIX:=
 	INTL_FULL:=
 endif
 
