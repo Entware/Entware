@@ -30,7 +30,7 @@ define Package/bridger
   SECTION:=utils
   CATEGORY:=Base system
   TITLE:=Bridge forwarding accelerator
-  DEPENDS:=+libbpf +libubox +libubus +libnl-tiny +kmod-sched-core +kmod-sched-flower +kmod-sched-bpf +kmod-sched-act-vlan $(BPF_DEPENDS)
+#  DEPENDS:=+libbpf +libubox +libubus +libnl-tiny +kmod-sched-core +kmod-sched-flower +kmod-sched-bpf +kmod-sched-act-vlan $(BPF_DEPENDS)
 endef
 
 TARGET_CFLAGS += \
