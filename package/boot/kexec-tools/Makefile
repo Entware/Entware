@@ -49,6 +49,17 @@ define Package/kexec/description
  The kexec utility allows to load and boot another kernel.
 endef
 
+define Package/kdump
+  $(call Package/kexec-tools/Default)
+  TITLE:=Kernel crash analysis
+  DEPENDS:=+kexec @(i386||x86_64||arm) @KERNEL_CRASH_DUMP
+endef
+
+define Package/kdump/description
+ The kdump package allows to automatically boot into a
+ special kernel for analyzing kernel crashes using kdump.
+endef
+
 define Package/kexec/config
 	source "$(SOURCE)/Config.in"
 endef
@@ -95,5 +106,11 @@ define Package/kexec/install
 #	$(LN) ../usr/sbin/kexec $(1)/sbin/kexec
 endef
 
+define Package/kdump/install
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/vmcore-dmesg $(1)/usr/sbin
+endef
+
 $(eval $(call BuildPackage,kexec-tools))
 $(eval $(call BuildPackage,kexec))
+$(eval $(call BuildPackage,kdump))
