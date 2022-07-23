@@ -60,7 +60,7 @@ LIBSELINUX_ALTS := \
 	selinuxenabled \
 	setenforce
 
-$(eval $(foreach a,$(LIBSELINUX_ALTS),ALTS_$(a):=300:/usr/sbin/$(a):/usr/sbin/libselinux-$(a)$(newline)))
+$(eval $(foreach a,$(LIBSELINUX_ALTS),ALTS_$(a):=300:/opt/sbin/$(a):/opt/sbin/libselinux-$(a)$(newline)))
 
 define Package/libselinux/Default
   TITLE:=Runtime SELinux library
@@ -71,7 +71,7 @@ define Package/libselinux
   $(call Package/libselinux/Default)
   SECTION:=libs
   CATEGORY:=Libraries
-  DEPENDS:=+libsepol +libpcre +USE_MUSL:musl-fts
+  DEPENDS:=+libsepol +libpcre +USE_MUSL:musl-fts @SELINUX
 endef
 
 define Package/libselinux/description
@@ -92,7 +92,7 @@ define GenUtilPkg
    DEPENDS:=+libselinux
    CATEGORY:=Utilities
    SUBMENU:=libselinux tools
-#   ALTERNATIVES:=$(ALTS_$(2))
+   ALTERNATIVES:=$(ALTS_$(2))
  endef
 
  define Package/$(1)/description
