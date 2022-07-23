@@ -11,7 +11,7 @@ ARCH:=arm
 BOARD:=armv7-3.2
 BOARDNAME:=Entware (armv7, soft float, kernel-3.2)
 FEATURES:=gpio usb audio pci
-KERNEL_PATCHVER:=3.2.40
+KERNEL_PATCHVER:=3.2
 CPU_TYPE:=cortex-a9
 DEFAULT_PACKAGES := toolchain
 
