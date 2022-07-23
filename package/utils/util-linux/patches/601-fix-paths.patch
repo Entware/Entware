@@ -1,0 +1,19 @@
+--- a/meson.build
++++ b/meson.build
+@@ -20,12 +20,12 @@ sbindir = join_paths(prefixdir, get_opti
+ sysconfstaticdir = join_paths(prefixdir, 'lib')
+ docdir = join_paths(prefixdir, get_option('datadir'), 'doc', 'util-linux')
+ mandir = join_paths(prefixdir, get_option('mandir'))
+-runstatedir = '/run'
+-execprefixdir = '/usr'
++runstatedir = '/opt/var/run'
++execprefixdir = '/opt'
+ usrbin_exec_dir = join_paths(execprefixdir, 'bin')
+ usrsbin_exec_dir = join_paths(execprefixdir, 'sbin')
+-sysconfdir = '/etc'
+-localstatedir = '/var'
++sysconfdir = '/opt/etc'
++localstatedir = '/opt/var'
+ bash_completion = dependency('bash-completion', required : get_option('build-bash-completion'))
+ 
+ vendordir = get_option('vendordir')

@@ -1,0 +1,27 @@
+# XXX syscall `sched_attr` since Linux 3.14
+
+--- a/meson.build
++++ b/meson.build
+@@ -2731,14 +2731,14 @@ exe3 = executable(
+   install : opt,
+   build_by_default : opt)
+ 
+-exe4 = executable(
+-  'uclampset',
+-  'schedutils/uclampset.c',
+-  include_directories : includes,
+-  link_with : lib_common,
+-  install_dir : usrbin_exec_dir,
+-  install : opt,
+-  build_by_default : opt)
++#exe4 = executable(
++#  'uclampset',
++#  'schedutils/uclampset.c',
++#  include_directories : includes,
++#  link_with : lib_common,
++#  install_dir : usrbin_exec_dir,
++#  install : opt,
++#  build_by_default : opt)
+ 
+ if opt and not is_disabler(exe)
+   exes += [exe, exe2, exe3, exe4]

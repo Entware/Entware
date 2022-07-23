@@ -6,6 +6,7 @@
 #
 # Entware specific: column, ionice, fallocate and fsfreeze packages added, add swapon/swapoff binaries
 # disable nsenter for k2.6 based targets
+# -Dlibutil/-Dbuild-fallocate enabled
 
 include $(TOPDIR)/rules.mk
 
@@ -605,7 +606,7 @@ MESON_ARGS += \
 	-Dsystemd=disabled \
 	-Dtinfo=disabled \
 	-Dcryptsetup=disabled \
-	-Dlibutil=enabled \
+	-Dlibutil=$(if $(CONFIG_USE_GLIBC),en,dis)abled \
 	-Dlibutempter=disabled \
 	-Dlibpcre2-posix=disabled \
 	-Dlibuser=disabled \
@@ -660,20 +661,10 @@ MESON_ARGS += \
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/blkid.pc $(1)/opt/lib/pkgconfig
-	$(SED) 's,/opt/include,$$$${prefix}/include,g' $(1)/opt/lib/pkgconfig/blkid.pc
-	$(SED) 's,/opt/lib,$$$${exec_prefix}/lib,g' $(1)/opt/lib/pkgconfig/blkid.pc
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/fdisk.pc $(1)/opt/lib/pkgconfig
-	$(SED) 's,/opt/include,$$$${prefix}/include,g' $(1)/opt/lib/pkgconfig/fdisk.pc
-	$(SED) 's,/opt/lib,$$$${exec_prefix}/lib,g' $(1)/opt/lib/pkgconfig/fdisk.pc
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/mount.pc $(1)/opt/lib/pkgconfig
-	$(SED) 's,/opt/include,$$$${prefix}/include,g' $(1)/opt/lib/pkgconfig/mount.pc
-	$(SED) 's,/opt/lib,$$$${exec_prefix}/lib,g' $(1)/opt/lib/pkgconfig/mount.pc
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/smartcols.pc $(1)/opt/lib/pkgconfig
-	$(SED) 's,/opt/include,$$$${prefix}/include,g' $(1)/opt/lib/pkgconfig/smartcols.pc
-	$(SED) 's,/opt/lib,$$$${exec_prefix}/lib,g' $(1)/opt/lib/pkgconfig/smartcols.pc
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/uuid.pc $(1)/opt/lib/pkgconfig
-	$(SED) 's,/opt/include,$$$${prefix}/include,g' $(1)/opt/lib/pkgconfig/uuid.pc
-	$(SED) 's,/opt/lib,$$$${exec_prefix}/lib,g' $(1)/opt/lib/pkgconfig/uuid.pc
 
 	$(INSTALL_DIR) $(1)/opt/include/blkid
 	$(CP) $(PKG_INSTALL_DIR)/opt/include/blkid/blkid.h $(1)/opt/include/blkid
@@ -692,12 +683,6 @@ define Build/InstallDev
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libmount.so* $(1)/opt/lib
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libuuid.so* $(1)/opt/lib
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libsmartcols.so* $(1)/opt/lib
-
-	$(LN) libblkid.so.1 $(1)/opt/lib/libblkid.so
-	$(LN) libfdisk.so.1 $(1)/opt/lib/libfdisk.so
-	$(LN) libmount.so.1 $(1)/opt/lib/libmount.so
-	$(LN) libuuid.so.1 $(1)/opt/lib/libuuid.so
-	$(LN) libsmartcols.so.1 $(1)/opt/lib/libsmartcols.so
 endef
 
 
