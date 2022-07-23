@@ -20,9 +20,9 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
     BUILD_ISL = y
   endif
 endif
-ifneq ($(CONFIG_SDK)$(CONFIG_PACKAGE_kmod-b43)$(CONFIG_PACKAGE_b43legacy-firmware)$(CONFIG_BRCMSMAC_USE_FW_FROM_WL),)
-  BUILD_B43_TOOLS = y
-endif
+#ifneq ($(CONFIG_SDK)$(CONFIG_PACKAGE_kmod-b43)$(CONFIG_PACKAGE_b43legacy-firmware)$(CONFIG_BRCMSMAC_USE_FW_FROM_WL),)
+#  BUILD_B43_TOOLS = y
+#endif
 
 tools-y += autoconf autoconf-archive automake bc bison cmake cpio dosfstools
 tools-y += e2fsprogs fakeroot findutils flex gengetopt
@@ -32,6 +32,7 @@ tools-y += mklibs mtools ninja
 tools-y += patchelf pkgconf quilt sstrip xxd zip zlib zstd
 tools-$(BUILD_ISL) += isl
 tools-$(BUILD_TOOLCHAIN) += expat gmp mpc mpfr
+tools-$(CONFIG_USE_LLVM_BUILD) += llvm-bpf
 
 # builddir dependencies
 $(curdir)/autoconf/compile := $(curdir)/m4/compile
@@ -50,6 +51,7 @@ $(curdir)/gmp/compile := $(curdir)/libtool/compile
 $(curdir)/go-src/compile := $(curdir)/go-bootstrap/compile
 $(curdir)/isl/compile := $(curdir)/gmp/compile
 $(curdir)/libtool/compile := $(curdir)/m4/compile $(curdir)/autoconf/compile $(curdir)/automake/compile $(curdir)/missing-macros/compile
+$(curdir)/llvm-bpf/compile := $(curdir)/cmake/compile
 $(curdir)/meson/compile := $(curdir)/ninja/compile
 $(curdir)/missing-macros/compile := $(curdir)/autoconf/compile
 $(curdir)/mklibs/compile := $(curdir)/libtool/compile
@@ -61,11 +63,16 @@ $(curdir)/quilt/compile := $(curdir)/autoconf/compile $(curdir)/findutils/compil
 $(curdir)/zlib/compile := $(curdir)/cmake/compile
 $(curdir)/zstd/compile := $(curdir)/meson/compile
 
-tools-y += coreutils
+#ifneq ($(HOST_OS),Linux)
+#  $(curdir)/squashfskit4/compile += $(curdir)/coreutils/compile
+  tools-y += coreutils
+#endif
 ifeq ($(HOST_OS),Darwin)
   tools-y += bash
 else
+  $(curdir)/dwarves/compile += $(curdir)/elfutils/compile
   $(curdir)/elfutils/compile := $(curdir)/m4/compile $(curdir)/zlib/compile
+  tools-$(CONFIG_DWARVES) += dwarves
   tools-y += elfutils
 endif
 
