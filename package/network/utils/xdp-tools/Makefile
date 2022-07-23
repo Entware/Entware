@@ -11,7 +11,7 @@ PKG_ABI_VERSION:=$(call abi_version_str,$(PKG_VERSION))
 
 PKG_MAINTAINER:=Daniel Golle <daniel@makrotopia.org>
 
-PKG_BUILD_DEPENDS:=bpf-headers
+#PKG_BUILD_DEPENDS:=bpf-headers
 PKG_FLAGS:=nonshared
 
 include $(INCLUDE_DIR)/package.mk
@@ -28,7 +28,7 @@ define Package/libxdp
   LICENSE:=LGPL-2.1 OR BSD-2-Clause
   ABI_VERSION:=$(PKG_ABI_VERSION)
   URL:=https://github.com/xdp-project/xdp-tools/
-  DEPENDS:=+libbpf $(BPF_DEPENDS)
+#  DEPENDS:=+libbpf $(BPF_DEPENDS)
 endef
 
 define Package/libxdp/description
