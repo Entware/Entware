@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=pcre
 PKG_VERSION:=8.45
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=@SF/$(PKG_NAME)
@@ -67,9 +67,8 @@ HOST_CONFIGURE_ARGS += \
 	--enable-unicode-properties \
 	--enable-pcre16 \
 	--with-match-limit-recursion=16000 \
-	--enable-cpp
-
-TARGET_CFLAGS += $(FPIC)
+	--enable-cpp \
+	--with-pic
 
 CONFIGURE_ARGS += \
 	--enable-utf8 \
@@ -78,7 +77,8 @@ CONFIGURE_ARGS += \
 	--enable-pcre32 \
 	$(if $(CONFIG_PCRE_JIT_ENABLED),--enable-jit,--disable-jit) \
 	--with-match-limit-recursion=16000 \
-	--$(if $(CONFIG_PACKAGE_libpcrecpp),en,dis)able-cpp
+	--$(if $(CONFIG_PACKAGE_libpcrecpp),en,dis)able-cpp \
+	--with-pic
 
 MAKE_FLAGS += \
 	CFLAGS="$(TARGET_CFLAGS)"
