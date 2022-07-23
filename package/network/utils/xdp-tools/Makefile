@@ -28,7 +28,7 @@ define Package/libxdp
   LICENSE:=LGPL-2.1 OR BSD-2-Clause
   ABI_VERSION:=$(PKG_ABI_VERSION)
   URL:=https://github.com/xdp-project/xdp-tools/
-#  DEPENDS:=+libbpf $(BPF_DEPENDS)
+  DEPENDS:=+libbpf $(BPF_DEPENDS)
 endef
 
 define Package/libxdp/description
@@ -129,7 +129,7 @@ define Package/libxdp/install
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/bpf/*.o $(1)/usr/lib/bpf
 endef
 
-$(eval $(call BuildPackage,libxdp))
-$(eval $(call BuildPackage,xdp-filter))
-$(eval $(call BuildPackage,xdp-loader))
-$(eval $(call BuildPackage,xdpdump))
+#$(eval $(call BuildPackage,libxdp))
+#$(eval $(call BuildPackage,xdp-filter))
+#$(eval $(call BuildPackage,xdp-loader))
+#$(eval $(call BuildPackage,xdpdump))
