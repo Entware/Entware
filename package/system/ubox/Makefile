@@ -1,13 +1,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ubox
-PKG_RELEASE:=2
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/ubox.git
-PKG_SOURCE_DATE:=2021-08-03
-PKG_SOURCE_VERSION:=205defb597295a4a8966db3e618cfe41a29bed99
-PKG_MIRROR_HASH:=22da1601424c13af8751424b4216f32910a26da49408b6f309158ed8cee93034
+PKG_SOURCE_DATE:=2022-07-17
+PKG_SOURCE_VERSION:=46a33b8be298e1e700e56f05b5ba4f06daf83efa
+PKG_MIRROR_HASH:=551560cc481dd5d12e1dc81f368af8be29027891ce091ba71fee8fe5d9afcb87
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=GPL-2.0
@@ -33,6 +33,10 @@ define Package/ubox
     100:/sbin/modprobe:/sbin/kmodloader
 endef
 
+define Package/ubox/conffiles
+/etc/modules.conf
+endef
+
 define Package/getrandom
   SECTION:=base
   CATEGORY:=Base system
@@ -53,10 +57,11 @@ define Package/getrandom/install
 endef
 
 define Package/ubox/install
-	$(INSTALL_DIR) $(1)/sbin $(1)/usr/sbin $(1)/lib $(1)/usr/bin
+	$(INSTALL_DIR) $(1)/sbin $(1)/usr/sbin $(1)/lib $(1)/usr/bin $(1)/etc
 
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/{kmodloader,validate_data} $(1)/sbin/
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libvalidate.so $(1)/lib
+	$(INSTALL_DATA) ./files/modules.conf $(1)/etc/modules.conf
 endef
 
 define Package/logd/install
