@@ -3,6 +3,7 @@
 # Copyright (C) 2006-2021 OpenWrt.org
 #
 # Entware specific: static linkage against libubox, opkg upgrade (all) support
+# no MENU, no DEPENDS
 
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
@@ -12,7 +13,7 @@ PKG_RELEASE:=1
 #PKG_FLAGS:=essential
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(PROJECT_GIT)/project/opkg-lede.git
+PKG_SOURCE_URL:=$(PROJECT_GIT)/project/opkg-lede.git
 PKG_SOURCE_DATE:=2022-02-24
 PKG_SOURCE_VERSION:=d038e5b6d155784575f62a66a8bb7e874173e92e
 PKG_MIRROR_HASH:=e5ec4ae93f6529f7f0b9acc22a9a63c1b2f27d3b30b4a82041fcd58b9bc7cdf3
@@ -38,9 +39,8 @@ define Package/opkg
   SECTION:=base
   CATEGORY:=Base system
   TITLE:=opkg package manager
-  DEPENDS:=+libpthread
   URL:=$(PKG_SOURCE_URL)
-  MENU:=1
+  PKG_DEFAULT_DEPENDS:=
 endef
 
 define Package/opkg/description
