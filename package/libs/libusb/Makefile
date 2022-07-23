@@ -10,9 +10,8 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=libusb
 ifeq ($(CONFIG_LINUX_2_6_36),y)
 PKG_VERSION:=1.0.22
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 PKG_HASH:=75aeb9d59a4fdb800d329a545c2e6799f732362193b465ea198f2aa275518157
-PATCH_DIR:=
 else
 PKG_VERSION:=1.0.26
 PKG_RELEASE:=1
@@ -62,7 +61,7 @@ endef
 
 define Package/libusb-1.0/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libusb-1.0.so.* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libusb-1.0.so* $(1)/opt/lib/
 endef
 
 $(eval $(call BuildPackage,libusb-1.0))
