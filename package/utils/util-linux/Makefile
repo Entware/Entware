@@ -10,12 +10,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=util-linux
-PKG_VERSION:=2.37.3
-PKG_RELEASE:=3
+PKG_VERSION:=2.38
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.37
-PKG_HASH:=590c592e58cd6bf38519cb467af05ce6a1ab18040e3e3418f24bcfb2f55f9776
+PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.38
+PKG_HASH:=6d111cbe4d55b336db2f1fbeffbc65b89908704c01136371d32aa9bec373eb64
 PKG_CPE_ID:=cpe:/a:kernel:util-linux
 
 PKG_LICENSE:=GPL-2.0-only
@@ -27,14 +27,10 @@ PKG_LICENSE_FILES:=	COPYING					\
 			libuuid/COPYING				\
 			Documentation/licenses/COPYING.BSD-3
 
-PKG_BUILD_PARALLEL:=1
-
-PKG_FIXUP:=autoreconf
 PKG_INSTALL:=1
 
-DISABLE_NLS:=--disable-nls
-
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/meson.mk
 
 define Package/util-linux/Default
   SECTION:=utils
@@ -605,26 +601,61 @@ define Package/wipefs/description
  libblkid.
 endef
 
-CONFIGURE_ARGS += \
-	--disable-use-tty-group		\
-	--disable-rpath			\
-	--disable-tls			\
-	--disable-su			\
-	--disable-sulogin		\
-	--disable-makeinstall-chown	\
-	--disable-login 		\
-	--disable-nologin		\
-	--disable-lslogins		\
-	--disable-runuser		\
-	--disable-chfn-chsh		\
-	--disable-raw			\
-	--without-python		\
-	--without-udev			\
-	--without-readline		\
-	--without-libmagic		\
-	--with-ncursesw
-
-TARGET_CFLAGS += $(FPIC) -std=gnu99
+MESON_ARGS += \
+	-Dsystemd=disabled \
+	-Dtinfo=disabled \
+	-Dcryptsetup=disabled \
+	-Dlibutil=enabled \
+	-Dlibutempter=disabled \
+	-Dlibpcre2-posix=disabled \
+	-Dlibuser=disabled \
+	-Duse-tty-group=false \
+	-Duse-tls=false \
+	-Dbuild-python=disabled \
+	-Dbuild-zramctl=disabled \
+	-Dbuild-fsck=disabled \
+	-Dbuild-wipefs=disabled \
+	-Dbuild-fallocate=enabled \
+	-Dbuild-setpriv=disabled \
+	-Dbuild-hardlink=disabled \
+	-Dbuild-cramfs=disabled \
+	-Dbuild-bfs=disabled \
+	-Dbuild-minix=disabled \
+	-Dbuild-fdformat=disabled \
+	-Dbuild-lslogins=disabled \
+	-Dbuild-wdctl=disabled \
+	-Dbuild-cal=disabled \
+	-Dbuild-switch_root=disabled \
+	-Dbuild-pivot_root=disabled \
+	-Dbuild-lsmem=disabled \
+	-Dbuild-lsirq=disabled \
+	-Dbuild-irqtop=disabled \
+	-Dbuild-chmem=disabled \
+	-Dbuild-ipcrm=disabled \
+	-Dbuild-rfkill=disabled \
+	-Dbuild-tunelp=disabled \
+	-Dbuild-kill=disabled \
+	-Dbuild-last=disabled \
+	-Dbuild-utmpdump=disabled \
+	-Dbuild-line=disabled \
+	-Dbuild-mesg=disabled \
+	-Dbuild-raw=disabled \
+	-Dbuild-vipw=disabled \
+	-Dbuild-newgrp=disabled \
+	-Dbuild-chfn-chsh=disabled \
+	-Dbuild-login=disabled \
+	-Dbuild-nologin=disabled \
+	-Dbuild-sulogin=disabled \
+	-Dbuild-su=disabled \
+	-Dbuild-runuser=disabled \
+	-Dbuild-ul=disabled \
+	-Dbuild-pg=disabled \
+	-Dbuild-write=disabled \
+	-Dbuild-bash-completion=disabled \
+	-Dbuild-pylibmount=disabled \
+	-Dreadline=disabled \
+	-Dmagic=disabled \
+	-Dncursesw=enabled
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
