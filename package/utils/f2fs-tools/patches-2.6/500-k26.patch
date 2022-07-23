@@ -1,11 +1,11 @@
 --- a/tools/f2fscrypt.c
 +++ b/tools/f2fscrypt.c
-@@ -44,6 +44,7 @@
- #include <linux/fs.h>
+@@ -48,6 +48,7 @@
+ #else
+ typedef unsigned char uuid_t[16];
  #endif
- #include <uuid.h>
 +#include <linux/types.h>
-
+ 
  #if !defined(HAVE_ADD_KEY) || !defined(HAVE_KEYCTL)
  #include <sys/syscall.h>
 --- a/tools/sha512.c
