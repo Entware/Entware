@@ -61,7 +61,7 @@ endef
 define Package/libwolfssl
 $(call Package/libwolfssl/Default)
   TITLE:=wolfSSL library
-  PKGFLAGS:=nonshared
+#  PKGFLAGS:=nonshared
   MENU:=1
   PROVIDES:=libcyassl
 #  DEPENDS:=+WOLFSSL_HAS_DEVCRYPTO:kmod-cryptodev +WOLFSSL_HAS_AFALG:kmod-crypto-user
@@ -98,7 +98,6 @@ TARGET_LDFLAGS += -flto
 
 # --enable-stunnel needed for OpenSSL API compatibility bits
 CONFIGURE_ARGS += \
-	--enable-heapmath \
 	--enable-reproducible-build \
 	--enable-lighty \
 	--enable-opensslall \
