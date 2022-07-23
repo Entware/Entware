@@ -1,6 +1,6 @@
 --- a/default_options.h
 +++ b/default_options.h
-@@ -21,10 +21,10 @@
+@@ -21,10 +21,10 @@ IMPORTANT: Some options will require "ma
  /* Default hostkey paths - these can be specified on the command line.
   * Homedir is prepended if path begins with ~/
   */
@@ -15,7 +15,7 @@
  
  /* Set NON_INETD_MODE if you require daemon functionality (ie Dropbear listens
   * on chosen ports and keeps accepting connections. This is the default.
-@@ -206,7 +206,7 @@
+@@ -206,7 +206,7 @@ group1 in Dropbear server too */
  
  /* Whether to print the message of the day (MOTD). */
  #define DO_MOTD 1
@@ -24,7 +24,7 @@
  
  /* Authentication Types - at least one required.
     RFC Draft requires pubkey auth, and recommends password */
-@@ -260,7 +260,7 @@
+@@ -260,7 +260,7 @@ group1 in Dropbear server too */
  
  /* Set this to use PRNGD or EGD instead of /dev/urandom */
  #define DROPBEAR_USE_PRNGD 0
@@ -33,7 +33,7 @@
  
  /* Specify the number of clients we will allow to be connected but
   * not yet authenticated. After this limit, connections are rejected */
-@@ -285,11 +285,11 @@
+@@ -285,11 +285,11 @@ group1 in Dropbear server too */
   * scripts etc. This can be overridden with the -P flag.
   * Homedir is prepended if path begins with ~/
   */
@@ -47,7 +47,7 @@
  
  
  /* If you want to enable running an sftp server (such as the one included with
-@@ -298,11 +298,11 @@
+@@ -298,11 +298,11 @@ group1 in Dropbear server too */
   * Homedir is prepended if path begins with ~/
   */
  #define DROPBEAR_SFTPSERVER 1
@@ -61,13 +61,13 @@
  
  /* Whether to log commands executed by a client. This only logs the 
   * (single) command sent to the server, not what a user did in a 
-@@ -338,7 +338,7 @@
+@@ -338,7 +338,7 @@ be overridden at runtime with -I. 0 disa
  #define DEFAULT_IDLE_TIMEOUT 0
  
  /* The default path. This will often get replaced by the shell */
 -#define DEFAULT_PATH "/usr/bin:/bin"
 -#define DEFAULT_ROOT_PATH "/usr/sbin:/usr/bin:/sbin:/bin"
-+#define DEFAULT_PATH "/opt/bin:/opt/sbin:/usr/bin:/bin"
-+#define DEFAULT_ROOT_PATH "/opt/bin:/opt/sbin:/usr/sbin:/usr/bin:/sbin:/bin"
++#define DEFAULT_PATH "/opt/usr/bin:/opt/bin:/usr/bin:/bin"
++#define DEFAULT_ROOT_PATH "/opt/usr/sbin:/opt/usr/bin:/opt/sbin:/opt/bin:/usr/sbin:/usr/bin:/sbin:/bin"
  
  #endif /* DROPBEAR_DEFAULT_OPTIONS_H_ */

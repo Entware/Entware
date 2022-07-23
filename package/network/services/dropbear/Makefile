@@ -55,12 +55,12 @@ define Package/dropbear
   CATEGORY:=Base system
   TITLE:=Small SSH2 client/server
   DEPENDS:= +DROPBEAR_ZLIB:zlib
-#  ALTERNATIVES:=
-#  $(if $(CONFIG_DROPBEAR_SCP),ALTERNATIVES+= \
-#	  100:/usr/bin/scp:/usr/sbin/dropbear,)
-#  $(if $(CONFIG_DROPBEAR_DBCLIENT),ALTERNATIVES+= \
-#	  100:/usr/bin/ssh:/usr/sbin/dropbear,)
-#
+  ALTERNATIVES:=
+  $(if $(CONFIG_DROPBEAR_SCP),ALTERNATIVES+= \
+	  100:/opt/bin/scp:/opt/sbin/dropbear,)
+  $(if $(CONFIG_DROPBEAR_DBCLIENT),ALTERNATIVES+= \
+	  100:/opt/bin/ssh:/opt/sbin/dropbear,)
+
 endef
 
 define Package/dropbear/description
@@ -192,12 +192,11 @@ define Package/dropbear/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(if $(CONFIG_DROPBEAR_DBCLIENT),$(LN) ../sbin/dropbear $(1)/opt/bin/dbclient,)
 	$(LN) ../sbin/dropbear $(1)/opt/bin/dropbearkey
-	$(LN) ../sbin/dropbear $(1)/opt/bin/scp
-	$(LN) ../sbin/dropbear $(1)/opt/bin/ssh
 	$(INSTALL_DIR) $(1)/opt/etc/config
 	$(INSTALL_CONF) ./files/dropbear.conf $(1)/opt/etc/config
 	$(INSTALL_DIR) $(1)/opt/etc/init.d
 	$(INSTALL_BIN) ./files/S51dropbear $(1)/opt/etc/init.d
+	$(INSTALL_DIR) $(1)/opt/lib/opkg/info
 	$(INSTALL_DIR) $(1)/opt/etc/dropbear
 endef
 
