@@ -1,0 +1,17 @@
+--- a/apps/openssl.cnf
++++ b/apps/openssl.cnf
+@@ -25,12 +25,10 @@ oid_section		= new_oids
+ openssl_conf=openssl_conf
+ 
+ [openssl_conf]
+-engines=engines
++#engines=engines
+ 
+ [engines]
+-.include /var/etc/ssl/engines.cnf
+-
+-.include /etc/ssl/engines.cnf.d
++.include /opt/etc/ssl/engines.cnf.d
+ 
+ [ new_oids ]
+ 
