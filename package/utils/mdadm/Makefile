@@ -72,4 +72,4 @@ define Package/mdadm/install
 	$(INSTALL_CONF) ./files/mdadm.config $(1)/etc/config/mdadm
 endef
 
-$(eval $(call BuildPackage,mdadm))
+#$(eval $(call BuildPackage,mdadm))
