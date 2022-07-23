@@ -6,15 +6,12 @@ ifdef CONFIG_TESTING_KERNEL
   KERNEL_PATCHVER:=$(KERNEL_TESTING_PATCHVER)
 endif
 
-LINUX_VERSION-2.6.36 = .4
-LINUX_VERSION-3.2 = .40
-LINUX_VERSION-3.4 = .112
-LINUX_VERSION-3.10 = .108
+KERNEL_DETAILS_FILE=$(INCLUDE_DIR)/kernel-$(KERNEL_PATCHVER)
+ifeq ($(wildcard $(KERNEL_DETAILS_FILE)),)
+  $(error Missing kernel version/hash file for $(KERNEL_PATCHVER). Please create $(KERNEL_DETAILS_FILE))
+endif
 
-LINUX_KERNEL_HASH-2.6.36.4 = 70d124743041974e1220fb39465627ded1df0fdd46da6cd74f6e3da414194d03
-LINUX_KERNEL_HASH-3.2.40 = b630dd6e22806effd0395a4943191140908217db5f75226b167b6755e5240df5
-LINUX_KERNEL_HASH-3.4.112 = 29c8370c4c6e639ad5e38e6eb052058d5f45add3167f2aa4cc08e6569f024181
-LINUX_KERNEL_HASH-3.10.108 = 3849ea8119517f605f9d53c57dd6c539af8d584c2f1d9031f4f56283af3409a5
+include $(KERNEL_DETAILS_FILE)
 
 remove_uri_prefix=$(subst git://,,$(subst http://,,$(subst https://,,$(1))))
 sanitize_uri=$(call qstrip,$(subst @,_,$(subst :,_,$(subst .,_,$(subst -,_,$(subst /,_,$(1)))))))
