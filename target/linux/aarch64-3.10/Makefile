@@ -11,7 +11,7 @@ ARCH:=aarch64
 BOARD:=aarch64-3.10
 BOARDNAME:=Entware (aarch64,kernel-3.10)
 FEATURES:=gpio usb audio pci
-KERNEL_PATCHVER:=3.10.108
+KERNEL_PATCHVER:=3.10
 CPU_TYPE:=cortex-a53
 DEFAULT_PACKAGES := toolchain
 
