@@ -169,7 +169,6 @@ TARGET_CFLAGS:=$(TARGET_OPTIMIZATION)$(if $(CONFIG_DEBUG), -g3) $(call qstrip,$(
 TARGET_CXXFLAGS = $(TARGET_CFLAGS)
 TARGET_ASFLAGS_DEFAULT = $(TARGET_CFLAGS)
 TARGET_ASFLAGS = $(TARGET_ASFLAGS_DEFAULT)
-TARGET_GCCGOFLAGS = -g1 -O2
 ifneq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
 LIBGCC_S_PATH=$(realpath $(wildcard $(call qstrip,$(CONFIG_LIBGCC_ROOT_DIR))/$(call qstrip,$(CONFIG_LIBGCC_FILE_SPEC))))
 LIBGCC_S=$(if $(LIBGCC_S_PATH),-L$(dir $(LIBGCC_S_PATH)) -lgcc_s)
@@ -200,34 +199,7 @@ ifeq  ($(LIBC),glibc)
   endif
 endif
 
-ifeq ($(ARCH),aarch64)
-    GOARCH=arm64
-endif
-ifeq ($(ARCH),arm)
-    GOARCH=arm
-  ifeq ($(ARCH_SUFFIX),_cortex-a9)
-    GOARM=GOARM=7
-  else
-    GOARM=GOARM=5
-  endif
-endif
-ifeq ($(ARCH),i386)
-    GOARCH=386
-endif
-ifeq ($(ARCH),mips)
-    GOARCH=mips
-    GOMIPS=GOMIPS=softfloat
-endif
-ifeq ($(ARCH),mipsel)
-    GOARCH=mipsle
-    GOMIPS=GOMIPS=softfloat
-endif
-ifeq ($(ARCH),x86_64)
-    GOARCH=amd64
-endif
-
 TARGET_LDFLAGS:= -Wl,--dynamic-linker=/opt/lib/$(DYNLINKER) -Wl,-rpath=/opt/lib
-TARGET_GCCGOFLAGS:= -Wl,--dynamic-linker=/opt/lib/$(DYNLINKER) -Wl,-rpath=/opt/lib
 
 ifeq ($(CONFIG_ARCH_64BIT),y)
   LIB_SUFFIX:=64
@@ -271,10 +243,8 @@ ifeq ($(CONFIG_SOFT_FLOAT),y)
   SOFT_FLOAT_CONFIG_OPTION:=--with-float=soft
   ifeq ($(CONFIG_arm),y)
     TARGET_CFLAGS+= -mfloat-abi=soft
-    TARGET_GCCGOFLAGS+= -mfloat-abi=soft
   else
     TARGET_CFLAGS+= -msoft-float
-    TARGET_GCCGOFLAGS+= -msoft-float
   endif
 else
   SOFT_FLOAT_CONFIG_OPTION:=
