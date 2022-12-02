@@ -1,77 +1,99 @@
 # Strip is not recommended for go binaries. It may make binaries unusable
 RSTRIP:="/bin/true"
 
-# Template for GO package 
-define Package/gopackage/Default
-	SUBMENU:=Go
-	SECTION:=lang
-	CATEGORY:=Languages
-	MAINTAINER:=Entware team, https://entware.net
-endef
+GO_BIN:=$(GOROOT)/bin/go
+GO_SRC_DIR:=$(PKG_BUILD_DIR)/src/$(PKG_GOGET)
 
-# use `go get -d` to retrieve  GO package sources when PKG_SOURCE is undefined, patch if patches dir present
+GO_INSTALL_DIR:=$(PKG_BUILD_DIR)/bin/
+#GO_LDFLAGS:=
+GO_TARGET ?= .
+GO_VARS:=
 
-ifeq ($(PKG_SOURCE),)
- ifeq ($(PKG_COMMIT),)
-  define Build/Prepare
-		$(INSTALL_DIR) $(PKG_BUILD_DIR)
-		GOPATH=$(PKG_BUILD_DIR) $(GOROOT)/bin/go get -d -x $(PKG_GOGET)
-		$(Build/Patch)
-  endef
+GO_LDFLAGS = -s -w
+
+ifeq ($(PKG_CGO_ENABLED),1)
+GO_LDFLAGS += -I /opt/lib/$(DYNLINKER)
+GO_VARS += \
+	CGO_ENABLED=1 \
+	CC=$(TARGET_CC) \
+	CXX=$(TARGET_CXX)
+else
+GO_VARS += \
+	CGO_ENABLED=0
+endif
+
+GO_VARS += GOOS=linux
+
+ifeq ($(ARCH),aarch64)
+GOARCH:=arm64
+endif
+
+ifeq ($(ARCH),arm)
+GOARCH:=arm
+  ifeq ($(ARCH_SUFFIX),_cortex-a9)
+    ifeq ($(BUILD_VARIANT),nohf)
+	GO_VARS += GOARM=5
+    else
+	GO_VARS += GOARM=7
+    endif
   else
-   define Build/Prepare
-		$(INSTALL_DIR) $(PKG_BUILD_DIR)
-		mkdir -p $(PKG_BUILD_DIR)/src/$(PKG_GOGET)
-		( \
-			cd $(PKG_BUILD_DIR)/src/$(PKG_GOGET)/..; \
-			git clone https://$(PKG_GOGET); \
-			cd $(PKG_BUILD_DIR)/src/$(PKG_GOGET); \
-			git checkout $(PKG_COMMIT); \
-		)
-		$(Build/Patch)
-  endef
- endif
+	GO_VARS += GOARM=5
+  endif
 endif
 
-# use standard procedure to download and unpack GO package sources (stored in https://src.entware.net).
-# Do not patch. This allows to fix version
-
-ifneq ($(PKG_SOURCE),)
-PKG_SOURCE_URL:=https://src.entware.net
-PKG_UNPACK=$(TAR) -C $(PKG_BUILD_DIR) -xf $(DL_DIR)/$(PKG_SOURCE)
- define Build/Patch
- endef
- define Build/Prepare
-		$(call Build/Prepare/Default)
- endef
+ifeq ($(ARCH),i386)
+GOARCH:=386
 endif
 
-# pack the GO package sources retrieved by go get when PKG_SOURCE is undefined.
-# Upload them to https://src.entware.net manually!
-
-ifeq ($(PKG_SOURCE),)
- define Build/Configure
-	(cd $(PKG_BUILD_DIR); \
-		rm -f $(DL_DIR)/$(GOPKG_SOURCE) ; \
-		rm -rf `find . -type d -name .git` ; \
-		tar cjf $(DL_DIR)/$(GOPKG_SOURCE) ./src ; \
-	)
- endef
+ifeq ($(ARCH),mips)
+GOARCH:=mips
+GO_VARS += GOMIPS=softfloat
 endif
 
-# Do nothing if PKG_SOURCE is defined
-ifneq ($(PKG_SOURCE),)
- define Build/Configure
- endef
+ifeq ($(ARCH),mipsel)
+GOARCH:=mipsle
+GO_VARS += GOMIPS=softfloat
 endif
 
-# Compile with gccgo using special patched ego version of go
+ifeq ($(ARCH),x86_64)
+GOARCH:=amd64
+endif
 
-define Build/Compile
+GO_VARS += \
+	GOARCH=$(GOARCH) \
+	GOPATH=$(TMP_DIR)/go-build
+
+GO_BUILD_CMD ?= $(GO_VARS) $(GO_BIN) build
+# -some1 -some2
+GO_BUILD_CMD += $(if $(GO_BUILD_ARGS),$(GO_BUILD_ARGS))
+# $(PKG_BUILD_DIR)/bin/ $(PKG_INSTALL_DIR)
+GO_BUILD_CMD += -o $(GO_INSTALL_DIR)
+# -X '$(PKG_GOGET).some1=some2'
+GO_BUILD_CMD += -ldflags="$(GO_LDFLAGS)"
+# -tags=some
+GO_BUILD_CMD += $(if $(GO_TAGS),$(GO_TAGS))
+# ./cmd/... ./dir/path1 ./dir/path2
+GO_BUILD_CMD += $(GO_TARGET)
+
+define Build/Prepare
+	$(INSTALL_DIR) $(GO_SRC_DIR)
+	$(HOST_TAR) -C $(GO_SRC_DIR) -xf $(DL_DIR)/$(PKG_SOURCE) --strip-components=1
+	$(Build/Patch)
+endef
+
+define Build/Configure/Go
+endef
+
+define Build/Compile/Go
 	( \
-		cd $(PKG_BUILD_DIR); \
-		mkdir -p bin; \
-		cd bin; \
-		CGO_ENABLED=0 GOOS=linux GOARCH=$(GOARCH) $(GOARM) $(GOMIPS) GOPATH=$(PKG_BUILD_DIR) $(GOROOT)/bin/go build -ldflags="-s -w" -x -v $(PKG_GOGET) ; \
+		cd $(GO_SRC_DIR)$(if $(GO_SRC_SUBDIR),/$(GO_SRC_SUBDIR)); \
+		$(GO_BUILD_CMD); \
 	)
 endef
+
+define Build/Install/Go
+endef
+
+Build/Configure=$(call Build/Configure/Go)
+Build/Compile=$(call Build/Compile/Go)
+Build/Install=$(call Build/Install/Go)
