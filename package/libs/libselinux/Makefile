@@ -17,6 +17,7 @@ HOST_BUILD_DEPENDS:=libsepol/host pcre/host
 PKG_LICENSE:=libselinux-1.0
 PKG_LICENSE_FILES:=LICENSE
 PKG_MAINTAINER:=Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+PKG_CPE_ID:=cpe:/a:selinuxproject:libselinux
 
 HOST_BUILD_DEPENDS:=libsepol/host musl-fts/host pcre/host
 
@@ -71,7 +72,7 @@ define Package/libselinux
   $(call Package/libselinux/Default)
   SECTION:=libs
   CATEGORY:=Libraries
-  DEPENDS:=+libsepol +libpcre +USE_MUSL:musl-fts @SELINUX
+  DEPENDS:=+libsepol +libpcre +USE_MUSL:musl-fts
 endef
 
 define Package/libselinux/description
