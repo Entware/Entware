@@ -1,6 +1,6 @@
 --- a/src/crypto/x509/root_linux.go
 +++ b/src/crypto/x509/root_linux.go
-@@ -6,6 +6,7 @@
+@@ -6,6 +6,7 @@ package x509
  
  // Possible certificate files; stop after finding one.
  var certFiles = []string{
@@ -8,9 +8,9 @@
  	"/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
  	"/etc/pki/tls/certs/ca-bundle.crt",                  // Fedora/RHEL 6
  	"/etc/ssl/ca-bundle.pem",                            // OpenSUSE
-@@ -17,6 +18,7 @@
- // Possible directories with certificate files; stop after successfully
- // reading at least one file from a directory.
+@@ -16,6 +17,7 @@ var certFiles = []string{
+ 
+ // Possible directories with certificate files; all will be read.
  var certDirectories = []string{
 +	"/opt/etc/ssl/certs",           // Entware
  	"/etc/ssl/certs",               // SLES10/SLES11, https://golang.org/issue/12139
@@ -18,7 +18,7 @@
  	"/system/etc/security/cacerts", // Android
 --- a/src/net/conf.go
 +++ b/src/net/conf.go
-@@ -94,7 +94,7 @@ func initConfVal() {
+@@ -113,7 +113,7 @@ func initConfVal() {
  	}
  
  	if runtime.GOOS != "openbsd" {
@@ -29,15 +29,15 @@
  	confVal.resolv = dnsReadConfig("/etc/resolv.conf")
 --- a/src/time/zoneinfo_unix.go
 +++ b/src/time/zoneinfo_unix.go
-@@ -20,6 +20,7 @@
+@@ -18,6 +18,7 @@ import (
+ // Many systems use /usr/share/zoneinfo, Solaris 2 has
  // /usr/share/lib/zoneinfo, IRIX 6 has /usr/lib/locale/TZ.
- var zoneSources = []string{
+ var platformZoneSources = []string{
++	"/opt/share/zoneinfo/",		// Entware
  	"/usr/share/zoneinfo/",
-+	"/opt/share/zoneinfo/",
  	"/usr/share/lib/zoneinfo/",
  	"/usr/lib/locale/TZ/",
- 	runtime.GOROOT() + "/lib/time/zoneinfo.zip",
-@@ -36,7 +37,7 @@
+@@ -34,7 +35,7 @@ func initLocal() {
  	tz, ok := syscall.Getenv("TZ")
  	switch {
  	case !ok:
@@ -46,3 +46,12 @@
  		if err == nil {
  			localLoc = *z
  			localLoc.name = "Local"
+@@ -47,7 +48,7 @@ func initLocal() {
+ 		if tz != "" && tz[0] == '/' {
+ 			if z, err := loadLocation(tz, []string{""}); err == nil {
+ 				localLoc = *z
+-				if tz == "/etc/localtime" {
++				if tz == "/opt/etc/localtime" {
+ 					localLoc.name = "Local"
+ 				} else {
+ 					localLoc.name = tz

@@ -1,24 +1,27 @@
 #
-# Copyright (C) 2016-2019 Entware
+# Copyright (C) 2016-2022 Entware
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=go-src
-PKG_VERSION:=1.18.4
+PKG_VERSION:=1.19.3
+PKG_RELEASE:=1
 
 PKG_SOURCE:=go$(PKG_VERSION).src.tar.gz
 PKG_SOURCE_URL:=https://dl.google.com/go
+PKG_HASH:=18ac263e39210bcf68d85f4370e97fb1734166995a1f63fb38b4f6e07d90d212
+
 HOST_BUILD_DIR:=$(STAGING_DIR_HOST)/go
-PKG_HASH:=4525aa6b0e3cecb57845f4060a7075aafc9ab752bb7b6b4cf8a212d43078e1e4
 
 include $(INCLUDE_DIR)/host-build.mk
 
 define Host/Compile
-	(cd $(STAGING_DIR_HOST)/go/src ; \
-		GOROOT_BOOTSTRAP=$(STAGING_DIR_HOST)/go1.4 ./make.bash --no-clean ; \
+	( cd $(STAGING_DIR_HOST)/go/src; \
+		GOROOT_BOOTSTRAP=$(STAGING_DIR_HOST)/go1.4 ./make.bash -no-clean=true; \
 	)
 endef
 
