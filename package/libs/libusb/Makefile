@@ -25,6 +25,7 @@ PKG_SOURCE_URL:=\
 PKG_MAINTAINER:= Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=LGPL-2.1-or-later
 PKG_LICENSE_FILES:=COPYING
+PKG_CPE_ID:=cpe:/a:libusb:libusb
 
 PKG_INSTALL:=1
 PKG_BUILD_PARALLEL:=1
