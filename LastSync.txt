@@ -1,5 +1,11 @@
-commit a0b7fef0ffe4cd9cca39a652a37e4f3ce8f0a681 (HEAD -> master, origin/master, origin/HEAD)
-Author: David Bauer <mail@david-bauer.net>
-Date:   Fri May 27 17:48:06 2022 +0200
+commit a5873ad675792bd4fdab227f2d2226779346fe07 (HEAD -> master, origin/master, origin/HEAD)
+Author: Jan-Niklas Burfeind <git@aiyionpri.me>
+Date:   Mon Nov 28 17:58:17 2022 +0100
 
-    ramips: add support for ZyXEL NWA50AX / NWA55AXE
+    realtek: fix dell typo
+    
+    should be add/delete or abbreviated add/del
+    
+    Signed-off-by: Jan-Niklas Burfeind <git@aiyionpri.me>
+    Reviewed-by: Philippe Mathieu-Daudé <philmd@linaro.org>
+
