@@ -4,7 +4,7 @@ IMAGE_KERNEL = $(word 1,$^)
 IMAGE_ROOTFS = $(word 2,$^)
 
 define ModelNameLimit16
-$(shell expr substr "$(word 2, $(subst _, ,$(1)))" 1 16)
+$(shell printf %.16s "$(word 2, $(subst _, ,$(1)))")
 endef
 
 define rootfs_align
@@ -218,6 +218,11 @@ define Build/copy-file
 	cat "$(1)" > "$@"
 endef
 
+define Build/edimax-header
+	$(STAGING_DIR_HOST)/bin/mkedimaximg -i $@ -o $@.new $(1)
+	@mv $@.new $@
+endef
+
 define Build/elecom-product-header
 	$(eval product=$(word 1,$(1)))
 	$(eval fw=$(if $(word 2,$(1)),$(word 2,$(1)),$@))
@@ -279,9 +284,11 @@ endef
 define Build/fit
 	$(TOPDIR)/scripts/mkits.sh \
 		-D $(DEVICE_NAME) -o $@.its -k $@ \
-		-C $(word 1,$(1)) $(if $(word 2,$(1)),\
-		$(if $(DEVICE_DTS_OVERLAY),-d $(KERNEL_BUILD_DIR)/image-$$(basename $(word 2,$(1))),\
-			-d $(word 2,$(1)))) \
+		-C $(word 1,$(1)) \
+		$(if $(word 2,$(1)),\
+			$(if $(findstring 11,$(if $(DEVICE_DTS_OVERLAY),1)$(if $(findstring $(KERNEL_BUILD_DIR)/image-,$(word 2,$(1))),,1)), \
+				-d $(KERNEL_BUILD_DIR)/image-$$(basename $(word 2,$(1))), \
+				-d $(word 2,$(1)))) \
 		$(if $(findstring with-rootfs,$(word 3,$(1))),-r $(IMAGE_ROOTFS)) \
 		$(if $(findstring with-initrd,$(word 3,$(1))), \
 			$(if $(CONFIG_TARGET_ROOTFS_INITRAMFS_SEPARATE), \
@@ -289,6 +296,7 @@ define Build/fit
 		-a $(KERNEL_LOADADDR) -e $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
 		$(if $(DEVICE_FDT_NUM),-n $(DEVICE_FDT_NUM)) \
 		$(if $(DEVICE_DTS_DELIMITER),-l $(DEVICE_DTS_DELIMITER)) \
+		$(if $(DEVICE_DTS_LOADADDR),-s $(DEVICE_DTS_LOADADDR)) \
 		$(if $(DEVICE_DTS_OVERLAY),$(foreach dtso,$(DEVICE_DTS_OVERLAY), -O $(dtso):$(KERNEL_BUILD_DIR)/image-$(dtso).dtb)) \
 		-c $(if $(DEVICE_DTS_CONFIG),$(DEVICE_DTS_CONFIG),"config-1") \
 		-A $(LINUX_KARCH) -v $(LINUX_VERSION)

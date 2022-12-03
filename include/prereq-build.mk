@@ -173,24 +173,30 @@ $(eval $(call SetupHostCommand,python2,Please install Python 2.7, \
 	python2.7 -V 2>&1 | grep 'Python 2'))
 
 $(eval $(call SetupHostCommand,python,Please install Python >= 3.6, \
+	python3.11 -V 2>&1 | grep 'Python 3', \
 	python3.10 -V 2>&1 | grep 'Python 3', \
 	python3.9 -V 2>&1 | grep 'Python 3', \
 	python3.8 -V 2>&1 | grep 'Python 3', \
 	python3.7 -V 2>&1 | grep 'Python 3', \
 	python3.6 -V 2>&1 | grep 'Python 3', \
-	python3 -V 2>&1 | grep -E 'Python 3\.([6-9]|10)\.?'))
+	python3 -V 2>&1 | grep -E 'Python 3\.([6-9]|[0-9][0-9])\.?'))
 
 $(eval $(call SetupHostCommand,python3,Please install Python >= 3.6, \
+	python3.11 -V 2>&1 | grep 'Python 3', \
 	python3.10 -V 2>&1 | grep 'Python 3', \
 	python3.9 -V 2>&1 | grep 'Python 3', \
 	python3.8 -V 2>&1 | grep 'Python 3', \
 	python3.7 -V 2>&1 | grep 'Python 3', \
 	python3.6 -V 2>&1 | grep 'Python 3', \
-	python3 -V 2>&1 | grep -E 'Python 3\.([6-9]|10)\.?'))
+	python3 -V 2>&1 | grep -E 'Python 3\.([6-9]|[0-9][0-9])\.?'))
 
 $(eval $(call TestHostCommand,python3-distutils, \
 	Please install the Python3 distutils module, \
-	$(STAGING_DIR_HOST)/bin/python3 -c 'import distutils'))
+	$(STAGING_DIR_HOST)/bin/python3 -c 'from distutils import util'))
+
+$(eval $(call TestHostCommand,python3-stdlib, \
+	Please install the Python3 stdlib module, \
+	$(STAGING_DIR_HOST)/bin/python3 -c 'import ntpath'))
 
 $(eval $(call SetupHostCommand,file,Please install the 'file' package, \
 	file --version 2>&1 | grep file))
@@ -204,8 +210,11 @@ $(STAGING_DIR_HOST)/bin/mkhash: $(SCRIPT_DIR)/mkhash.c
 	mkdir -p $(dir $@)
 	$(CC) -O2 -I$(TOPDIR)/tools/include -o $@ $<
 
-prereq: $(STAGING_DIR_HOST)/bin/mkhash
+$(STAGING_DIR_HOST)/bin/xxd: $(SCRIPT_DIR)/xxdi.pl
+	$(LN) $< $@
+
+prereq: $(STAGING_DIR_HOST)/bin/mkhash $(STAGING_DIR_HOST)/bin/xxd
 
 # Install ldconfig stub
 $(eval $(call TestHostCommand,ldconfig-stub,Failed to install stub, \
-	$(LN) /bin/true $(STAGING_DIR_HOST)/bin/ldconfig))
+	$(LN) $(firstword $(wildcard /bin/true /usr/bin/true)) $(STAGING_DIR_HOST)/bin/ldconfig))
