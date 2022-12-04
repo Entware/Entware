@@ -318,6 +318,10 @@ hostapd_bss_get_clients(struct ubus_context *ctx, struct ubus_object *obj,
 			blobmsg_add_u8(&b, sta_flags[i].name,
 				       !!(sta->flags & sta_flags[i].flag));
 
+#ifdef CONFIG_MBO
+		blobmsg_add_u8(&b, "mbo", !!(sta->cell_capa));
+#endif
+
 		r = blobmsg_open_array(&b, "rrm");
 		for (i = 0; i < ARRAY_SIZE(sta->rrm_enabled_capa); i++)
 			blobmsg_add_u32(&b, "", sta->rrm_enabled_capa[i]);
@@ -1979,6 +1983,20 @@ void hostapd_ubus_notify(struct hostapd_data *hapd, const char *type, const u8 *
 	ubus_notify(ctx, &hapd->ubus.obj, type, b.head, -1);
 }
 
+void hostapd_ubus_notify_authorized(struct hostapd_data *hapd, struct sta_info *sta,
+				    const char *auth_alg)
+{
+	if (!hapd->ubus.obj.has_subscribers)
+		return;
+
+	blob_buf_init(&b, 0);
+	blobmsg_add_macaddr(&b, "address", sta->addr);
+	if (auth_alg)
+		blobmsg_add_string(&b, "auth-alg", auth_alg);
+
+	ubus_notify(ctx, &hapd->ubus.obj, "sta-authorized", b.head, -1);
+}
+
 void hostapd_ubus_notify_beacon_report(
 	struct hostapd_data *hapd, const u8 *addr, u8 token, u8 rep_mode,
 	struct rrm_measurement_beacon_report *rep, size_t len)
@@ -2001,6 +2019,7 @@ void hostapd_ubus_notify_beacon_report(
 	blobmsg_add_macaddr(&b, "bssid", rep->bssid);
 	blobmsg_add_u16(&b, "antenna-id", rep->antenna_id);
 	blobmsg_add_u16(&b, "parent-tsf", rep->parent_tsf);
+	blobmsg_add_u16(&b, "rep-mode", rep_mode);
 
 	ubus_notify(ctx, &hapd->ubus.obj, "beacon-report", b.head, -1);
 }
