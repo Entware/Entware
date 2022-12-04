@@ -64,6 +64,8 @@ GO_VARS += \
 	GOPATH=$(TMP_DIR)/go-build
 
 GO_BUILD_CMD ?= $(GO_VARS) $(GO_BIN) build
+# verbose
+GO_BUILD_CMD += $(if $(OPENWRT_VERBOSE),-v -x)
 # -some1 -some2
 GO_BUILD_CMD += $(if $(GO_BUILD_ARGS),$(GO_BUILD_ARGS))
 # $(PKG_BUILD_DIR)/bin/ $(PKG_INSTALL_DIR)
