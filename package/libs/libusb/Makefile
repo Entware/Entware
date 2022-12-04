@@ -46,10 +46,26 @@ define Package/libusb-1.0/description
   many different operating systems.
 endef
 
+define Package/fxload
+  SECTION:=utils
+  CATEGORY:=Utilities
+  TITLE:=fxload firmware loader
+  URL:=http://linux-hotplug.sourceforge.net
+  DEPENDS:=+libusb-1.0
+endef
+
+define Package/fxload/description
+This program is conveniently able to download firmware into FX, FX2,
+and FX2LP EZ-USB devices, as well as the original AnchorChips EZ-USB.
+It is intended to be invoked by hotplug scripts when the unprogrammed
+device appears on the bus.
+endef
+
 TARGET_CFLAGS += $(FPIC)
 CONFIGURE_ARGS += \
-	--disable-udev \
-	--disable-log
+	--enable-examples-build \
+	--disable-log \
+	--disable-udev
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/include/libusb-1.0
@@ -65,4 +81,10 @@ define Package/libusb-1.0/install
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libusb-1.0.so* $(1)/opt/lib/
 endef
 
+define Package/fxload/install
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/examples/.libs/fxload $(1)/opt/sbin
+endef
+
 $(eval $(call BuildPackage,libusb-1.0))
+$(eval $(call BuildPackage,fxload))
