@@ -67,7 +67,8 @@ CONFIGURE_ARGS+= \
 	--without-mpc \
 	--without-mpfr \
 	--without-isl \
-	--with-libgmp-prefix=$(STAGING_DIR)/opt
+	--with-libgmp-prefix=$(STAGING_DIR)/opt \
+	--without-xxhash
 
 CONFIGURE_VARS+= \
 	ac_cv_search_tgetent="$(TARGET_LDFLAGS) -lncurses -lreadline"
