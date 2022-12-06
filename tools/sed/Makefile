@@ -4,14 +4,16 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+# Entware - we have downgraded sed to 4.8. It looks like sed 4.9 causes race conditions in some cases, for example when building python3 package
+
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sed
-PKG_VERSION:=4.9
+PKG_VERSION:=4.8
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/$(PKG_NAME)
-PKG_HASH:=6e226b732e1cd739464ad6862bd1a1aba42d7982922da7a53519631d24975181
+PKG_HASH:=f79b0cfea71b37a8eeec8490db6c5f7ae7719c35587f21edb0617f370eeff633
 export SED:=
 
 HOST_BUILD_PARALLEL:=1
