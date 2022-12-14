@@ -36,7 +36,7 @@ define Package/nftables/Default
   CATEGORY:=Network
   SUBMENU:=Firewall
   TITLE:=nftables userspace utility
-  DEPENDS:=+libnftnl
+  DEPENDS:=+libnftnl @!LINUX_2_6_36
   URL:=http://netfilter.org/projects/nftables/
   PROVIDES:=nftables
 endef
