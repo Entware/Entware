@@ -31,7 +31,7 @@ PKG_CONFIG_DEPENDS:= CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_dhcp \
 	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_dnssec \
 	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_auth \
 	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_ipset \
-	$(if $(CONFIG_LINUX_2_6_36),,CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_nftset) \
+	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_nftset \
 	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_conntrack \
 	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_noid \
 	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_broken_rtc \
@@ -65,7 +65,7 @@ $(call Package/dnsmasq/Default)
   TITLE += (with DNSSEC, DHCPv6, Auth DNS, IPset, Nftset, Conntrack, NO_ID enabled by default)
   DEPENDS+=+PACKAGE_dnsmasq_full_dnssec:libnettle \
 	+PACKAGE_dnsmasq_full_conntrack:libnetfilter-conntrack \
-	+(!LINUX_2_6_36&&PACKAGE_dnsmasq_full_nftset):nftables-json
+	+PACKAGE_dnsmasq_full_nftset:nftables-json
   VARIANT:=full
   PROVIDES:=dnsmasq
 endef
@@ -112,7 +112,6 @@ define Package/dnsmasq-full/config
 		default n
 	config PACKAGE_dnsmasq_full_nftset
 		bool "Build with Nftset support."
-		depends on !LINUX_2_6_36
 		default y
 	config PACKAGE_dnsmasq_full_conntrack
 		bool "Build with Conntrack support."
