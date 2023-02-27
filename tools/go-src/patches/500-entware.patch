@@ -16,17 +16,6 @@
  	"/etc/ssl/certs",               // SLES10/SLES11, https://golang.org/issue/12139
  	"/etc/pki/tls/certs",           // Fedora/RHEL
  	"/system/etc/security/cacerts", // Android
---- a/src/net/conf.go
-+++ b/src/net/conf.go
-@@ -113,7 +113,7 @@ func initConfVal() {
- 	}
- 
- 	if runtime.GOOS != "openbsd" {
--		confVal.nss = parseNSSConfFile("/etc/nsswitch.conf")
-+		confVal.nss = parseNSSConfFile("/opt/etc/nsswitch.conf")
- 	}
- 
- 	confVal.resolv = dnsReadConfig("/etc/resolv.conf")
 --- a/src/time/zoneinfo_unix.go
 +++ b/src/time/zoneinfo_unix.go
 @@ -18,6 +18,7 @@ import (
@@ -55,3 +44,23 @@
  					localLoc.name = "Local"
  				} else {
  					localLoc.name = tz
+--- a/scr/net/nss.go
++++ b/src/net/nss.go
+@@ -13,7 +13,7 @@
+ )
+ 
+ const (
+-	nssConfigPath = "/etc/nsswitch.conf"
++	nssConfigPath = "/opt/etc/nsswitch.conf"
+ )
+ 
+ var nssConfig nsswitchConfig
+@@ -40,7 +40,7 @@
+ 
+ // init initializes conf and is only called via conf.initOnce.
+ func (conf *nsswitchConfig) init() {
+-	conf.nssConf = parseNSSConfFile("/etc/nsswitch.conf")
++	conf.nssConf = parseNSSConfFile("/opt/etc/nsswitch.conf")
+ 	conf.lastChecked = time.Now()
+ 	conf.ch = make(chan struct{}, 1)
+ }
