@@ -24,12 +24,12 @@ hostapd_append_wep_key() {
 		[1234])
 			for idx in 1 2 3 4; do
 				local zidx
-				zidx=$(($idx - 1))
+				zidx="$(($idx - 1))"
 				json_get_var ckey "key${idx}"
 				[ -n "$ckey" ] && \
 					append $var "wep_key${zidx}=$(prepare_key_wep "$ckey")" "$N$T"
 			done
-			wep_keyidx=$((key - 1))
+			wep_keyidx="$((key - 1))"
 		;;
 		*)
 			append $var "wep_key0=$(prepare_key_wep "$key")" "$N$T"
@@ -611,7 +611,9 @@ hostapd_set_bss_options() {
 		[ -n "$wpa_strict_rekey" ] && append bss_conf "wpa_strict_rekey=$wpa_strict_rekey" "$N"
 	}
 
-	[ -n "$nasid" ] && append bss_conf "nas_identifier=$nasid" "$N"
+	set_default nasid "${macaddr//\:}"
+	append bss_conf "nas_identifier=$nasid" "$N"
+
 	[ -n "$acct_server" ] && {
 		append bss_conf "acct_server_addr=$acct_server" "$N"
 		append bss_conf "acct_server_port=$acct_port" "$N"
@@ -687,13 +689,15 @@ hostapd_set_bss_options() {
 			json_get_vars \
 				auth_server auth_secret auth_port \
 				dae_client dae_secret dae_port \
-				ownip radius_client_addr \
+				dynamic_ownip ownip radius_client_addr \
 				eap_reauth_period request_cui \
 				erp_domain mobility_domain \
 				fils_realm fils_dhcp
 
 			# radius can provide VLAN ID for clients
 			vlan_possible=1
+
+			set_default dynamic_ownip 1
 
 			# legacy compatibility
 			[ -n "$auth_server" ] || json_get_var auth_server server
@@ -743,7 +747,12 @@ hostapd_set_bss_options() {
 			}
 			json_for_each_item append_radius_auth_req_attr radius_auth_req_attr
 
-			[ -n "$ownip" ] && append bss_conf "own_ip_addr=$ownip" "$N"
+			if [ -n "$ownip" ]; then
+				append bss_conf "own_ip_addr=$ownip" "$N"
+			elif [ "$dynamic_ownip" -gt 0 ]; then
+				append bss_conf "dynamic_own_ip_addr=$dynamic_ownip" "$N"
+			fi
+
 			[ -n "$radius_client_addr" ] && append bss_conf "radius_client_addr=$radius_client_addr" "$N"
 			append bss_conf "eapol_key_index_workaround=1" "$N"
 			append bss_conf "ieee8021x=1" "$N"
@@ -778,7 +787,7 @@ hostapd_set_bss_options() {
 		;;
 	esac
 
-	local auth_algs=$((($auth_mode_shared << 1) | $auth_mode_open))
+	local auth_algs="$((($auth_mode_shared << 1) | $auth_mode_open))"
 	append bss_conf "auth_algs=${auth_algs:-1}" "$N"
 	append bss_conf "wpa=$wpa" "$N"
 	[ -n "$wpa_pairwise" ] && append bss_conf "wpa_pairwise=$wpa_pairwise" "$N"
@@ -905,7 +914,6 @@ hostapd_set_bss_options() {
 			append bss_conf "ft_psk_generate_local=$ft_psk_generate_local" "$N"
 			append bss_conf "ft_over_ds=$ft_over_ds" "$N"
 			append bss_conf "reassociation_deadline=$reassociation_deadline" "$N"
-			[ -n "$nasid" ] || append bss_conf "nas_identifier=${macaddr//\:}" "$N"
 
 			if [ "$ft_psk_generate_local" -eq "0" ]; then
 				json_get_vars r0_key_lifetime r1_key_holder pmk_r1_push
@@ -1148,7 +1156,7 @@ hostapd_set_bss_options() {
 		append bss_conf "$val" "$N"
 	done
 
-	bss_md5sum=$(echo $bss_conf | md5sum | cut -d" " -f1)
+	bss_md5sum="$(echo $bss_conf | md5sum | cut -d" " -f1)"
 	append bss_conf "config_id=$bss_md5sum" "$N"
 
 	append "$var" "$bss_conf" "$N"
@@ -1170,7 +1178,7 @@ hostapd_set_log_options() {
 	set_default log_iapp   1
 	set_default log_mlme   1
 
-	local log_mask=$(( \
+	local log_mask="$(( \
 		($log_80211  << 0) | \
 		($log_8021x  << 1) | \
 		($log_radius << 2) | \
@@ -1178,7 +1186,7 @@ hostapd_set_log_options() {
 		($log_driver << 4) | \
 		($log_iapp   << 5) | \
 		($log_mlme   << 6)   \
-	))
+	))"
 
 	append "$var" "logger_syslog=$log_mask" "$N"
 	append "$var" "logger_syslog_level=$log_level" "$N"
@@ -1322,7 +1330,7 @@ wpa_supplicant_add_network() {
 	}
 
 	[ "$_w_mode" = "mesh" ] && {
-		json_get_vars mesh_id mesh_fwding mesh_rssi_threshold
+		json_get_vars mesh_id mesh_fwding mesh_rssi_threshold encryption
 		[ -n "$mesh_id" ] && ssid="${mesh_id}"
 
 		append network_data "mode=5" "$N$T"
@@ -1330,7 +1338,7 @@ wpa_supplicant_add_network() {
 		[ -n "$mesh_rssi_threshold" ] && append network_data "mesh_rssi_threshold=${mesh_rssi_threshold}" "$N$T"
 		[ -n "$freq" ] && wpa_supplicant_set_fixed_freq "$freq" "$htmode"
 		[ "$noscan" = "1" ] && append network_data "noscan=1" "$N$T"
-		append wpa_key_mgmt "SAE"
+		[ "$encryption" = "none" -o -z "$encryption" ] || append wpa_key_mgmt "SAE"
 		scan_ssid=""
 	}
 
@@ -1364,11 +1372,11 @@ wpa_supplicant_add_network() {
 
 			key_mgmt="$wpa_key_mgmt"
 
-			if [ ${#key} -eq 64 ]; then
-				passphrase="psk=${key}"
+			if [ "$_w_mode" = "mesh" ] || [ "$auth_type" = "sae" ]; then
+				passphrase="sae_password=\"${key}\""
 			else
-				if [ "$_w_mode" = "mesh" ]; then
-					passphrase="sae_password=\"${key}\""
+				if [ ${#key} -eq 64 ]; then
+					passphrase="psk=${key}"
 				else
 					passphrase="psk=\"${key}\""
 				fi
