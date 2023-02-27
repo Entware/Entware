@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=e2fsprogs
-PKG_VERSION:=1.46.5
+PKG_VERSION:=1.47.0
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/kernel/people/tytso/e2fsprogs/v$(PKG_VERSION)/
-PKG_HASH:=2f16c9176704cf645dc69d5b15ff704ae722d665df38b2ed3cfc249757d8d81e
+PKG_HASH:=144af53f2bbd921cef6f8bea88bb9faddca865da3fbc657cc9b4d2001097d5db
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=NOTICE
@@ -144,7 +144,6 @@ endef
 
 TARGET_CFLAGS += $(FPIC) -ffunction-sections -fdata-sections -flto
 
-TARGET_LDFLAGS += $(if $(CONFIG_USE_GLIBC),-lrt)
 TARGET_LDFLAGS += -flto
 
 CONFIGURE_ARGS += \
