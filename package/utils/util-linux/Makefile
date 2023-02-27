@@ -4,19 +4,19 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-# Entware specific: column, ionice, fallocate and fsfreeze packages added, add swapon/swapoff binaries
+# Entware specific: column, ionice, fallocate, fsfreeze and rev packages added, add swapon/swapoff binaries
 # disable nsenter for k2.6 based targets
 # -Dlibutil/-Dbuild-fallocate enabled
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=util-linux
-PKG_VERSION:=2.38
-PKG_RELEASE:=$(AUTORELEASE)
+PKG_VERSION:=2.38.1
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.38
-PKG_HASH:=6d111cbe4d55b336db2f1fbeffbc65b89908704c01136371d32aa9bec373eb64
+PKG_HASH:=60492a19b44e6cf9a3ddff68325b333b8b52b6c59ce3ebd6a0ecaa4c5117e84f
 PKG_CPE_ID:=cpe:/a:kernel:util-linux
 
 PKG_LICENSE:=GPL-2.0-only
@@ -469,6 +469,17 @@ define Package/rename/description
  expression in their name by replacement
 endef
 
+define Package/rev
+$(call Package/util-linux/Default)
+  TITLE:=reverse lines characterwise
+endef
+
+
+define Package/rev/description
+ rev utility copies the specified files to standard output, reversing the order
+ of characters in every line.  If no files are  specified, standard input is read.
+endef
+
 define Package/partx-utils
 $(call Package/util-linux/Default)
   TITLE:=inform kernel about the presence and numbering of on-disk partitions
@@ -606,7 +617,7 @@ MESON_ARGS += \
 	-Dsystemd=disabled \
 	-Dtinfo=disabled \
 	-Dcryptsetup=disabled \
-	-Dlibutil=$(if $(CONFIG_USE_GLIBC),en,dis)abled \
+	-Dlibutil=enabled \
 	-Dlibutempter=disabled \
 	-Dlibpcre2-posix=disabled \
 	-Dlibuser=disabled \
@@ -883,6 +894,11 @@ define Package/rename/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/rename $(1)/opt/bin/
 endef
 
+define Package/rev/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/rev $(1)/opt/bin/
+endef
+
 define Package/partx-utils/install
 	$(INSTALL_DIR) $(1)/opt/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/partx $(1)/opt/sbin/
@@ -989,6 +1005,7 @@ $(eval $(call BuildPackage,namei))
 $(eval $(call BuildPackage,nsenter))
 $(eval $(call BuildPackage,prlimit))
 $(eval $(call BuildPackage,rename))
+$(eval $(call BuildPackage,rev))
 $(eval $(call BuildPackage,partx-utils))
 $(eval $(call BuildPackage,script-utils))
 $(eval $(call BuildPackage,setterm))
