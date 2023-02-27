@@ -1,11 +1,9 @@
-commit a5873ad675792bd4fdab227f2d2226779346fe07 (HEAD -> master, origin/master, origin/HEAD)
-Author: Jan-Niklas Burfeind <git@aiyionpri.me>
-Date:   Mon Nov 28 17:58:17 2022 +0100
+commit ed64c3323590e3c9fa8b423bf37689023a7a101f (HEAD -> master, origin/master, origin/HEAD)
+Author: Daniel González Cabanelas <dgcbueu@gmail.com>
+Date:   Thu Feb 16 23:04:20 2023 +0100
 
-    realtek: fix dell typo
+    ipq40xx: Linksys MR8300: fix the USB port power
     
-    should be add/delete or abbreviated add/del
+    The USB port on the MR8300 randomly fails to feed bus-powered devices.
     
-    Signed-off-by: Jan-Niklas Burfeind <git@aiyionpri.me>
-    Reviewed-by: Philippe Mathieu-Daudé <philmd@linaro.org>
-
+.........
