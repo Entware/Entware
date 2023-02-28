@@ -4,7 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-# Entware specific: -DHAVE_UBUS removed from CFLAGS
+# Entware specific: -DHAVE_UBUS removed from CFLAGS, Entware kernels do not support nftables -> PACKAGE_dnsmasq_full_nftset removed!
 
 include $(TOPDIR)/rules.mk
 
@@ -109,9 +109,9 @@ define Package/dnsmasq-full/config
 	config PACKAGE_dnsmasq_full_ipset
 		bool "Build with IPset support."
 		default n
-	config PACKAGE_dnsmasq_full_nftset
-		bool "Build with Nftset support."
-		default y
+#	config PACKAGE_dnsmasq_full_nftset
+#		bool "Build with Nftset support."
+#		default y
 	config PACKAGE_dnsmasq_full_conntrack
 		bool "Build with Conntrack support."
 		default y
