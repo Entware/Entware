@@ -6,6 +6,7 @@
 #
 # Entware specific: OPENSSL_OPTIONS += -DOPENSSL_RAND_SEED_DEVRANDOM_SHM_ID=-1
 # openssl.cnf: optional 'engines=engines'
+# +libatomic is required by arm5
 
 include $(TOPDIR)/rules.mk
 
@@ -93,7 +94,7 @@ endef
 define Package/libopenssl
 $(call Package/openssl/Default)
   SUBMENU:=SSL
-  DEPENDS:=+OPENSSL_WITH_COMPRESSION:zlib
+  DEPENDS:=+libatomic +OPENSSL_WITH_COMPRESSION:zlib
   TITLE+= (libraries)
   ABI_VERSION:=$(firstword $(subst .,$(space),$(PKG_VERSION)))
   MENU:=1
