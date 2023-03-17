@@ -12,7 +12,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openssl
 PKG_VERSION:=3.0.8
-PKG_RELEASE:=2
+PKG_RELEASE:=2a
 PKG_USE_MIPS16:=0
 
 PKG_BUILD_PARALLEL:=1
@@ -375,6 +375,8 @@ define Package/libopenssl/install
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/libcrypto.so.* $(1)/opt/lib/
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/libssl.so.* $(1)/opt/lib/
 	$(if $(CONFIG_OPENSSL_ENGINE),$(INSTALL_DIR) $(1)/opt/lib/$(ENGINES_DIR))
+	$(INSTALL_DIR) $(1)/opt/lib/ossl-modules
+	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/ossl-modules/legacy.so $(1)/opt/lib/ossl-modules/legacy.so
 endef
 
 define Package/libopenssl-conf/install
