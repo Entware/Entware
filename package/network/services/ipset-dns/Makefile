@@ -4,12 +4,11 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-# Entware specific: old ipset interface is set
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ipset-dns
-PKG_RELEASE:=1
+PKG_RELEASE:=1a
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://git.zx2c4.com/ipset-dns
@@ -43,8 +42,6 @@ define Package/ipset-dns/description
  particular web services or webpages that do not have a priori predictable
  IP addresses and instead rely on dizzying arrays of DNS resolutions.
 endef
-
-MAKE_FLAGS += OLD_IPSET=1
 
 define Package/ipset-dns/install
 	$(INSTALL_DIR) $(1)/opt/sbin
