@@ -1,0 +1,119 @@
+From 500c2aa00f2fe7cee594cce9dec369e9f854be56 Mon Sep 17 00:00:00 2001
+From: xunkutech <xunkutech@gmail.com>
+Date: Fri, 8 Feb 2019 23:04:24 +0800
+Subject: [PATCH] Add full address:port supporting
+
+Make listen port and upstream address supporting customized port
+---
+ ipset-dns.c | 24 +++++++++++++++++++-----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
+
+diff --git a/ipset-dns.c b/ipset-dns.c
+index 25c33f7..e75ca2c 100644
+--- a/ipset-dns.c
++++ b/ipset-dns.c
+@@ -313,6 +313,7 @@ int main(int argc, char *argv[])
+ 	socklen_t len;
+ 	size_t received;
+ 	pid_t child;
++	char delim[] = ":";
+ 	
+ 	if (argc != 5) {
+ 		fprintf(stderr, "Usage: %s ipv4-ipset ipv6-ipset port upstream\n", argv[0]);
+@@ -332,11 +333,18 @@ int main(int argc, char *argv[])
+ 		perror("socket");
+ 		return 1;
+ 	}
+-
++	
++	char *l_ip_port = strtok(argv[3], delim);
++	char *l_port = strtok(NULL, delim);
+ 	memset(&listen_addr, 0, sizeof(listen_addr));
+ 	listen_addr.sin_family = AF_INET;
+-	listen_addr.sin_port = htons(atoi(argv[3]));
+-	listen_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
++	if (l_port != NULL) {
++		listen_addr.sin_port = htons(atoi(l_port));
++		inet_aton(l_ip_port, &listen_addr.sin_addr);
++	} else {
++		listen_addr.sin_port = htons(atoi(l_ip_port));
++		listen_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
++	}
+ 	i = 1;
+ 	setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i));
+ 	if (bind(listen_sock, (struct sockaddr *)&listen_addr, sizeof(listen_addr)) < 0) {
+@@ -344,10 +352,16 @@ int main(int argc, char *argv[])
+ 		return 1;
+ 	}
+ 	
++	char *up_ip = strtok(argv[4], delim);
++	char *up_port = strtok(NULL, delim);
+ 	memset(&upstream_addr, 0, sizeof(upstream_addr));
+ 	upstream_addr.sin_family = AF_INET;
+-	upstream_addr.sin_port = htons(53);
+-	inet_aton(argv[4], &upstream_addr.sin_addr);
++	if (up_port != NULL) {
++		upstream_addr.sin_port = htons(atoi(up_port));
++	} else {
++		upstream_addr.sin_port = htons(53);
++	}
++	inet_aton(up_ip, &upstream_addr.sin_addr);
+ 	
+ 	/* TODO: Put all of the below code in several forks all listening on the same sock. */
+ 
+From 6e7fafe6f281da6f8cfb5b962ca05843f3d8c63c Mon Sep 17 00:00:00 2001
+From: xunkutech <xunkutech@gmail.com>
+Date: Fri, 17 Jan 2020 21:10:19 +0800
+Subject: [PATCH] improve document
+
+---
+ README.md   | 8 ++++----
+ ipset-dns.c | 2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/README.md b/README.md
+index 75f3fae..7dd2962 100644
+--- a/README.md
++++ b/README.md
+@@ -31,7 +31,7 @@ bandwidth and/or geo-availability.
+ 
+ ### Usage
+ 
+-    # ipset-dns name-of-v4-ipset name-of-v6-ipset listening-port upstream-dns-server
++    # ipset-dns name-of-v4-ipset name-of-v6-ipset [binding-address:]listening-port upstream-dns-server[:upstream-dns-server-port]
+ 
+ `ipset-dns` binds only to localhost. It will daemonize unless the `NO_DAEMONIZE`
+ environment variable is set. If either `name-of-v4-ipset` or `name-of-v6-ipset` are
+@@ -59,7 +59,7 @@ Make an ipset:
+ 
+ Start the `ipset-dns` server:
+ 
+-	# ipset-dns youtube 1919 8.8.8.8
++	# ipset-dns youtube [127.0.0.1:]1919 8.8.8.8[:53]
+ 
+ Query a hostname:
+ 
+@@ -121,8 +121,8 @@ given by `dnsmasq`. Lastly, `SIGHUP` is sent to `dnsmasq` to flush its cache.
+ 	routes 2 tun11
+ 
+ 	killall ipset-dns 2>/dev/null
+-	ipset-dns youtube 39128 8.8.8.8
+-	ipset-dns netflix 39129 8.8.8.8
++	ipset-dns youtube [127.0.0.1:]39128 8.8.8.8[:53]
++	ipset-dns netflix [127.0.0.1:]39129 8.8.8.8[:53]
+ 
+ 	killall -SIGHUP dnsmasq
+ 
+diff --git a/ipset-dns.c b/ipset-dns.c
+index e75ca2c..4b5ec7c 100644
+--- a/ipset-dns.c
++++ b/ipset-dns.c
+@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
+ 	char delim[] = ":";
+ 	
+ 	if (argc != 5) {
+-		fprintf(stderr, "Usage: %s ipv4-ipset ipv6-ipset port upstream\n", argv[0]);
++		fprintf(stderr, "Usage: %s ipv4-ipset ipv6-ipset [binding_address:]port upstream_address[:port]\n", argv[0]);
+ 		return 1;
+ 	}
+ 

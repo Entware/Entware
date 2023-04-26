@@ -9,7 +9,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ipset-dns
-PKG_RELEASE:=1a
+PKG_RELEASE:=1b
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://git.zx2c4.com/ipset-dns
