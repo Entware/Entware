@@ -7,17 +7,18 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=busybox
-PKG_VERSION:=1.36.0
+PKG_VERSION:=1.36.1
 PKG_RELEASE:=1
 PKG_FLAGS:=essential
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=https://www.busybox.net/downloads \
 		http://sources.buildroot.net
-PKG_HASH:=542750c8af7cb2630e201780b4f99f3dcceeb06f505b479ec68241c1e6af61a5
+PKG_HASH:=b8cc24c9574d809e7279c3be349795c5d5ceb6fdf19ca709f80cde50e47de314
 
 PKG_BUILD_DEPENDS:=BUSYBOX_CONFIG_PAM:libpam
 PKG_BUILD_PARALLEL:=1
+PKG_BUILD_FLAGS:=lto
 PKG_CHECK_FORMAT_SECURITY:=0
 
 PKG_LICENSE:=GPL-2.0
@@ -105,9 +106,6 @@ ifeq ($(BUILD_VARIANT),selinux)
   LDLIBS += selinux sepol
 endif
 
-TARGET_CFLAGS += -flto
-TARGET_LDFLAGS += -flto=jobserver -fuse-linker-plugin
-
 MAKE_VARS :=
 MAKE_FLAGS += \
 	EXTRA_CFLAGS="$(TARGET_CFLAGS) $(TARGET_CPPFLAGS)" \
@@ -140,12 +138,17 @@ define Build/Compile
 endef
 
 define Package/busybox/install
+	$(INSTALL_DIR) $(1)/opt/etc/init.d
 	$(INSTALL_DIR) $(1)/opt/{bin,sbin}
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/busybox $(1)/opt/bin/
 	chmod u+s $(1)/opt/bin/busybox
 	$(INSTALL_DIR) $(1)/opt/share
 	(cd $(PKG_INSTALL_DIR); \
 	    find ./opt -lname "*" | sed "s|^./opt/||g" > $(1)/opt/share/busybox_applets.lst.dist)
+ifneq ($(CONFIG_BUSYBOX_$(BUSYBOX_SYM)_CROND),)
+	$(INSTALL_BIN) ./files/S10crond $(1)/opt/etc/init.d
+	$(INSTALL_DIR) $(1)/opt/var/spool/cron/crontabs
+endif
 endef
 
 # The postinst & prerm scripts will work only when busybox has readlink applet.
@@ -177,6 +180,9 @@ do
     if [ ! -e $$applet ]
     then
        /opt/bin/busybox ln -s /opt/bin/busybox $$applet
+         if ! grep -qF -- "/opt/$$applet" /opt/lib/opkg/info/busybox.list; then
+           echo "/opt/$$applet" >> /opt/lib/opkg/info/busybox.list
+         fi
     else
        echo "Warning: '/opt/$$applet' is already exists, skipping."
     fi
@@ -185,6 +191,12 @@ endef
 
 define Package/busybox/prerm
 #!/opt/bin/busybox sh
+
+/opt/bin/busybox cat > /opt/lib/opkg/info/busybox.list <<EOF
+/opt/lib/upgrade/keep.d/busybox
+/opt/lib/opkg/info/busybox.list
+/opt/bin/busybox
+EOF
 
 bb_fc=`/opt/bin/busybox readlink -f /opt/bin/busybox`
 for file in /opt/bin/*; do
