@@ -7,12 +7,11 @@
 # See /LICENSE for more information.
 
 include $(TOPDIR)/rules.mk
-include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=wireguard-tools
 
 PKG_VERSION:=1.0.20210914
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=wireguard-tools-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=https://git.zx2c4.com/wireguard-tools/snapshot/
@@ -24,7 +23,6 @@ PKG_LICENSE_FILES:=COPYING
 PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
-include $(INCLUDE_DIR)/package-defaults.mk
 
 MAKE_PATH:=src
 MAKE_VARS += PLATFORM=linux
@@ -54,9 +52,10 @@ endef
 define Package/wireguard-tools/install
 	$(INSTALL_DIR) $(1)/opt/bin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/wg $(1)/opt/bin/
-	$(INSTALL_BIN) ./files/wireguard_watchdog $(1)/opt/bin/
-	$(INSTALL_DIR) $(1)/opt/lib/netifd/proto/
-	$(INSTALL_BIN) ./files/wireguard.sh $(1)/opt/lib/netifd/proto/
+#	$(INSTALL_BIN) ./files/wireguard_watchdog $(1)/usr/bin/
+#	$(INSTALL_DIR) $(1)/lib/netifd/proto/
+#	$(INSTALL_BIN) ./files/wireguard.sh $(1)/lib/netifd/proto/
+	$(INSTALL_DIR) $(1)/opt/etc/wireguard $(1)/opt/var/run/wireguard
 endef
 
 $(eval $(call BuildPackage,wireguard-tools))
