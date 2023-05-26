@@ -1,0 +1,12 @@
+# iproute2: tc-mod-iptables
+
+--- a/lib/route/qdisc/netem.c
++++ b/lib/route/qdisc/netem.c
+@@ -917,6 +917,7 @@ int rtnl_netem_set_delay_distribution(st
+ 	char *test_path[] = {
+ 		"",
+ 		"./",
++		"/opt/lib/tc/",
+ 		"/usr/lib/tc/",
+ 		"/usr/lib64/tc/",
+ 		"/usr/local/lib/tc/",
