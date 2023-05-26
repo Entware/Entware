@@ -32,7 +32,7 @@ define Package/unetd
   SECTION:=net
   CATEGORY:=Network
   TITLE:=WireGuard based VPN connection manager for OpenWrt
-  DEPENDS:=+libubox +libubus +libblobmsg-json +libnl-tiny #+kmod-wireguard +UNETD_VXLAN_SUPPORT:libbpf
+  DEPENDS:=+libubox +libubus +libblobmsg-json +libnl-tiny +kmod-wireguard +UNETD_VXLAN_SUPPORT:libbpf
 endef
 
 define Package/unetd/config
@@ -108,6 +108,6 @@ define Package/unet-cli/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/scripts/unet-cli $(1)/usr/sbin
 endef
 
-$(eval $(call BuildPackage,unetd))
-$(eval $(call BuildPackage,unet-dht))
-$(eval $(call BuildPackage,unet-cli))
+#$(eval $(call BuildPackage,unetd))
+#$(eval $(call BuildPackage,unet-dht))
+#$(eval $(call BuildPackage,unet-cli))
