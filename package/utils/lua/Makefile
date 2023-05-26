@@ -4,6 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+# Entware specific: keep CONFIG_USE_GLIBC
 
 include $(TOPDIR)/rules.mk
 
@@ -153,7 +154,6 @@ define Build/InstallDev
 	$(LN) liblua.so.$(PKG_VERSION) $(1)/opt/lib/liblualib.so
 	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
 	$(CP) $(PKG_BUILD_DIR)/etc/lua.pc $(1)/opt/lib/pkgconfig/
-	$(SED) 's,/usr/local,/opt,g' $(1)/opt/lib/pkgconfig/lua.pc
 endef
 
 define Package/liblua/install

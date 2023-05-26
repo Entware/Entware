@@ -1,0 +1,22 @@
+--- a/etc/lua.pc
++++ b/etc/lua.pc
+@@ -8,7 +8,7 @@ V= 5.1
+ R= 5.1.5
+ 
+ # grep '^INSTALL_.*=' ../Makefile | sed 's/INSTALL_TOP/prefix/'
+-prefix= /usr/local
++prefix= /opt
+ INSTALL_BIN= ${prefix}/bin
+ INSTALL_INC= ${prefix}/include
+ INSTALL_LIB= ${prefix}/lib
+--- a/src/luaconf.h
++++ b/src/luaconf.h
+@@ -95,7 +95,7 @@
+ 	".\\?.dll;"  LUA_CDIR"?.dll;" LUA_CDIR"loadall.dll"
+ 
+ #else
+-#define LUA_ROOT	"/usr/"
++#define LUA_ROOT	"/opt/"
+ #define LUA_LDIR	LUA_ROOT "share/lua/"
+ #define LUA_CDIR	LUA_ROOT "lib/lua/"
+ #define LUA_PATH_DEFAULT  \
