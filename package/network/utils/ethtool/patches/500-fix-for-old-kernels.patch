@@ -1,0 +1,16 @@
+--- a/uapi/linux/if.h
++++ b/uapi/linux/if.h
+@@ -20,7 +20,13 @@
+ #ifndef _LINUX_IF_H
+ #define _LINUX_IF_H
+ 
++#ifndef LINUX_VERSION_CODE
++#include <linux/version.h>
++#endif
++
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,12,0)
+ #include <linux/libc-compat.h>          /* for compatibility with glibc */
++#endif /* libc-compat.h since Linux 3.12 */
+ #include <linux/types.h>		/* for "__kernel_caddr_t" et al	*/
+ #include <linux/socket.h>		/* for "struct sockaddr" et al	*/
+ 		/* for "__user" et al           */
