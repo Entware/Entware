@@ -1,6 +1,6 @@
 --- a/Makeconfig
 +++ b/Makeconfig
-@@ -526,6 +526,9 @@
+@@ -526,6 +526,9 @@ else
  default-rpath = $(libdir)
  endif
  

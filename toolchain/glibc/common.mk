@@ -72,6 +72,7 @@ GLIBC_CONFIGURE:= \
 		--$(if $(CONFIG_SOFT_FLOAT),without,with)-fp \
 		  $(if $(CONFIG_PKG_CC_STACKPROTECTOR_REGULAR),--enable-stack-protector=yes) \
 		  $(if $(CONFIG_PKG_CC_STACKPROTECTOR_STRONG),--enable-stack-protector=strong) \
+		  $(if $(CONFIG_PKG_RELRO_FULL),--enable-bind-now) \
 		  $(if $(or $(CONFIG_GLIBC_USE_VERSION_2_23),\
 			    $(CONFIG_GLIBC_USE_VERSION_2_27)),--enable-obsolete-rpc) \
 		  $(if $(CONFIG_GLIBC_USE_VERSION_2_27),--enable-obsolete-nsl)
@@ -89,11 +90,6 @@ define Host/SetToolchainInfo
 endef
 
 define Host/Configure
-	[ -f $(HOST_BUILD_DIR)/.autoconf ] || { \
-		cd $(HOST_BUILD_DIR)/; \
-		autoconf --force && \
-		touch $(HOST_BUILD_DIR)/.autoconf; \
-	}
 	mkdir -p $(CUR_BUILD_DIR)
 	( cd $(CUR_BUILD_DIR); rm -f config.cache; \
 		$(GLIBC_CONFIGURE) \
@@ -103,7 +99,7 @@ endef
 define Host/Prepare
 	$(call Host/Prepare/Default)
 	for f in $(PATCH_DIR).$(ARCH)/*.patch; do \
-		patch -p1 -d $(HOST_BUILD_DIR) <  $$$$f; \
+		patch -p1 -d $(HOST_BUILD_DIR) < $$$$f; \
 	done; \
 	ln -snf $(PKG_SOURCE_SUBDIR) $(BUILD_DIR_TOOLCHAIN)/$(PKG_NAME)
 endef

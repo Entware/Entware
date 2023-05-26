@@ -1,6 +1,6 @@
 --- a/Makeconfig
 +++ b/Makeconfig
-@@ -197,7 +197,7 @@
+@@ -197,9 +197,9 @@ inst_i18ndir = $(install_root)$(i18ndir)
  
  # Where to install the shared object for charset transformation.
  ifndef gconvdir

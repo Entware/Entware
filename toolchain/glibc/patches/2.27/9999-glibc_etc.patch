@@ -1,6 +1,6 @@
 --- a/nss/nss_compat/compat-grp.c
 +++ b/nss/nss_compat/compat-grp.c
-@@ -106,7 +106,7 @@
+@@ -106,7 +106,7 @@ internal_setgrent (ent_t *ent, int stayo
  
    if (ent->stream == NULL)
      {
@@ -11,7 +11,7 @@
  	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
 --- a/nss/nss_compat/compat-initgroups.c
 +++ b/nss/nss_compat/compat-initgroups.c
-@@ -121,7 +121,7 @@
+@@ -121,7 +121,7 @@ internal_setgrent (ent_t *ent)
    else
      ent->blacklist.current = 0;
  
@@ -22,7 +22,7 @@
      status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
 --- a/nss/nss_compat/compat-pwd.c
 +++ b/nss/nss_compat/compat-pwd.c
-@@ -221,7 +221,7 @@
+@@ -221,7 +221,7 @@ internal_setpwent (ent_t *ent, int stayo
  
    if (ent->stream == NULL)
      {
@@ -33,7 +33,7 @@
  	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
 --- a/nss/nss_compat/compat-spwd.c
 +++ b/nss/nss_compat/compat-spwd.c
-@@ -177,7 +177,7 @@
+@@ -177,7 +177,7 @@ internal_setspent (ent_t *ent, int stayo
  
    if (ent->stream == NULL)
      {
@@ -69,7 +69,7 @@
  #define HST_FILENAME "/etc/hosts"
 --- a/nss/nss_files/files-initgroups.c
 +++ b/nss/nss_files/files-initgroups.c
-@@ -31,7 +31,7 @@
+@@ -31,7 +31,7 @@ _nss_files_initgroups_dyn (const char *u
  			   long int *size, gid_t **groupsp, long int limit,
  			   int *errnop)
  {

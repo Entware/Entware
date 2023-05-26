@@ -1,6 +1,6 @@
 --- a/Makeconfig
 +++ b/Makeconfig
-@@ -271,7 +271,7 @@
+@@ -270,7 +270,7 @@ inst_vardbdir = $(install_root)$(vardbdi
  # other than there, so the zoneinfo directory contains only universal data,
  # localizing the configuration data elsewhere.
  ifndef localtime-file

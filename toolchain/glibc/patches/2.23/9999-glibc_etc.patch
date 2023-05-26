@@ -1,7 +1,6 @@
-diff -aur glibc.orig/nis/nss_compat/compat-grp.c glibc/nis/nss_compat/compat-grp.c
---- glibc.orig/nis/nss_compat/compat-grp.c	2016-02-18 20:54:00.000000000 +0300
-+++ glibc/nis/nss_compat/compat-grp.c	2016-04-16 11:06:26.692785638 +0300
-@@ -120,7 +120,7 @@
+--- a/nis/nss_compat/compat-grp.c
++++ b/nis/nss_compat/compat-grp.c
+@@ -120,7 +120,7 @@ internal_setgrent (ent_t *ent, int stayo
  
    if (ent->stream == NULL)
      {
@@ -10,10 +9,9 @@ diff -aur glibc.orig/nis/nss_compat/compat-grp.c glibc/nis/nss_compat/compat-grp
  
        if (ent->stream == NULL)
  	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
-diff -aur glibc.orig/nis/nss_compat/compat-initgroups.c glibc/nis/nss_compat/compat-initgroups.c
---- glibc.orig/nis/nss_compat/compat-initgroups.c	2016-02-18 20:54:00.000000000 +0300
-+++ glibc/nis/nss_compat/compat-initgroups.c	2016-04-16 11:06:08.120785638 +0300
-@@ -136,7 +136,7 @@
+--- a/nis/nss_compat/compat-initgroups.c
++++ b/nis/nss_compat/compat-initgroups.c
+@@ -136,7 +136,7 @@ internal_setgrent (ent_t *ent)
    else
      ent->blacklist.current = 0;
  
@@ -22,10 +20,9 @@ diff -aur glibc.orig/nis/nss_compat/compat-initgroups.c glibc/nis/nss_compat/com
  
    if (ent->stream == NULL)
      status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
-diff -aur glibc.orig/nis/nss_compat/compat-pwd.c glibc/nis/nss_compat/compat-pwd.c
---- glibc.orig/nis/nss_compat/compat-pwd.c	2016-02-18 20:54:00.000000000 +0300
-+++ glibc/nis/nss_compat/compat-pwd.c	2016-04-16 11:05:58.040785638 +0300
-@@ -235,7 +235,7 @@
+--- a/nis/nss_compat/compat-pwd.c
++++ b/nis/nss_compat/compat-pwd.c
+@@ -235,7 +235,7 @@ internal_setpwent (ent_t *ent, int stayo
  
    if (ent->stream == NULL)
      {
@@ -34,10 +31,9 @@ diff -aur glibc.orig/nis/nss_compat/compat-pwd.c glibc/nis/nss_compat/compat-pwd
  
        if (ent->stream == NULL)
  	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
-diff -aur glibc.orig/nis/nss_compat/compat-spwd.c glibc/nis/nss_compat/compat-spwd.c
---- glibc.orig/nis/nss_compat/compat-spwd.c	2016-02-18 20:54:00.000000000 +0300
-+++ glibc/nis/nss_compat/compat-spwd.c	2016-04-16 11:06:16.808785638 +0300
-@@ -191,7 +191,7 @@
+--- a/nis/nss_compat/compat-spwd.c
++++ b/nis/nss_compat/compat-spwd.c
+@@ -191,7 +191,7 @@ internal_setspent (ent_t *ent, int stayo
  
    if (ent->stream == NULL)
      {
@@ -46,9 +42,8 @@ diff -aur glibc.orig/nis/nss_compat/compat-spwd.c glibc/nis/nss_compat/compat-sp
  
        if (ent->stream == NULL)
  	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
-diff -aur glibc.orig/nss/nss_files/files-grp.c glibc/nss/nss_files/files-grp.c
---- glibc.orig/nss/nss_files/files-grp.c	2016-02-18 20:54:00.000000000 +0300
-+++ glibc/nss/nss_files/files-grp.c	2016-04-16 11:14:48.304785638 +0300
+--- a/nss/nss_files/files-grp.c
++++ b/nss/nss_files/files-grp.c
 @@ -21,6 +21,7 @@
  #define STRUCTURE	group
  #define ENTNAME		grent
@@ -57,9 +52,8 @@ diff -aur glibc.orig/nss/nss_files/files-grp.c glibc/nss/nss_files/files-grp.c
  struct grent_data {};
  
  /* Our parser function is already defined in fgetgrent.c, so use that.
-diff -aur glibc.orig/nss/nss_files/files-init.c glibc/nss/nss_files/files-init.c
---- glibc.orig/nss/nss_files/files-init.c	2016-02-18 20:54:00.000000000 +0300
-+++ glibc/nss/nss_files/files-init.c	2016-04-16 11:08:02.136785638 +0300
+--- a/nss/nss_files/files-init.c
++++ b/nss/nss_files/files-init.c
 @@ -21,10 +21,10 @@
  #include <string.h>
  #include <nscd/nscd.h>
@@ -73,10 +67,9 @@ diff -aur glibc.orig/nss/nss_files/files-init.c glibc/nss/nss_files/files-init.c
  define_traced_file (grp, GRP_FILENAME);
  
  #define HST_FILENAME "/etc/hosts"
-diff -aur glibc.orig/nss/nss_files/files-initgroups.c glibc/nss/nss_files/files-initgroups.c
---- glibc.orig/nss/nss_files/files-initgroups.c	2016-02-18 20:54:00.000000000 +0300
-+++ glibc/nss/nss_files/files-initgroups.c	2016-04-16 11:08:22.136785638 +0300
-@@ -31,7 +31,7 @@
+--- a/nss/nss_files/files-initgroups.c
++++ b/nss/nss_files/files-initgroups.c
+@@ -31,7 +31,7 @@ _nss_files_initgroups_dyn (const char *u
  			   long int *size, gid_t **groupsp, long int limit,
  			   int *errnop)
  {
@@ -85,9 +78,8 @@ diff -aur glibc.orig/nss/nss_files/files-initgroups.c glibc/nss/nss_files/files-
    if (stream == NULL)
      {
        *errnop = errno;
-diff -aur glibc.orig/nss/nss_files/files-pwd.c glibc/nss/nss_files/files-pwd.c
---- glibc.orig/nss/nss_files/files-pwd.c	2016-02-18 20:54:00.000000000 +0300
-+++ glibc/nss/nss_files/files-pwd.c	2016-04-16 11:15:01.760785638 +0300
+--- a/nss/nss_files/files-pwd.c
++++ b/nss/nss_files/files-pwd.c
 @@ -21,6 +21,7 @@
  #define STRUCTURE	passwd
  #define ENTNAME		pwent
@@ -96,9 +88,8 @@ diff -aur glibc.orig/nss/nss_files/files-pwd.c glibc/nss/nss_files/files-pwd.c
  struct pwent_data {};
  
  /* Our parser function is already defined in fgetpwent_r.c, so use that
-diff -aur glibc.orig/nss/nss_files/files-sgrp.c glibc/nss/nss_files/files-sgrp.c
---- glibc.orig/nss/nss_files/files-sgrp.c	2016-02-18 20:54:00.000000000 +0300
-+++ glibc/nss/nss_files/files-sgrp.c	2016-04-16 11:36:38.688785638 +0300
+--- a/nss/nss_files/files-sgrp.c
++++ b/nss/nss_files/files-sgrp.c
 @@ -21,6 +21,7 @@
  #define STRUCTURE	sgrp
  #define ENTNAME		sgent
@@ -107,9 +98,8 @@ diff -aur glibc.orig/nss/nss_files/files-sgrp.c glibc/nss/nss_files/files-sgrp.c
  struct sgent_data {};
  
  /* Our parser function is already defined in sgetspent_r.c, so use that
-diff -aur glibc.orig/nss/nss_files/files-spwd.c glibc/nss/nss_files/files-spwd.c
---- glibc.orig/nss/nss_files/files-spwd.c	2016-02-18 20:54:00.000000000 +0300
-+++ glibc/nss/nss_files/files-spwd.c	2016-04-16 11:38:17.468785638 +0300
+--- a/nss/nss_files/files-spwd.c
++++ b/nss/nss_files/files-spwd.c
 @@ -21,6 +21,7 @@
  #define STRUCTURE	spwd
  #define ENTNAME		spent
@@ -118,9 +108,8 @@ diff -aur glibc.orig/nss/nss_files/files-spwd.c glibc/nss/nss_files/files-spwd.c
  struct spent_data {};
  
  /* Our parser function is already defined in sgetspent_r.c, so use that
-diff -aur glibc.orig/nss/nss_files/files-XXX.c glibc/nss/nss_files/files-XXX.c
---- glibc.orig/nss/nss_files/files-XXX.c	2016-02-18 20:54:00.000000000 +0300
-+++ glibc/nss/nss_files/files-XXX.c	2016-04-16 11:16:26.204785638 +0300
+--- a/nss/nss_files/files-XXX.c
++++ b/nss/nss_files/files-XXX.c
 @@ -38,7 +38,12 @@
  
  #define ENTNAME_r	CONCAT(ENTNAME,_r)
@@ -134,9 +123,8 @@ diff -aur glibc.orig/nss/nss_files/files-XXX.c glibc/nss/nss_files/files-XXX.c
  
  #ifdef NEED_H_ERRNO
  # include <netdb.h>
-diff -aur glibc.orig/shadow/lckpwdf.c glibc/shadow/lckpwdf.c
---- glibc.orig/shadow/lckpwdf.c	2016-02-18 20:54:00.000000000 +0300
-+++ glibc/shadow/lckpwdf.c	2016-04-16 11:21:33.784785638 +0300
+--- a/shadow/lckpwdf.c
++++ b/shadow/lckpwdf.c
 @@ -29,7 +29,7 @@
  
  
@@ -146,9 +134,8 @@ diff -aur glibc.orig/shadow/lckpwdf.c glibc/shadow/lckpwdf.c
  
  /* How long to wait for getting the lock before returning with an
     error.  */
-diff -aur glibc.orig/sysdeps/generic/paths.h glibc/sysdeps/generic/paths.h
---- glibc.orig/sysdeps/generic/paths.h	2016-02-18 20:54:00.000000000 +0300
-+++ glibc/sysdeps/generic/paths.h	2016-04-16 11:04:48.784785638 +0300
+--- a/sysdeps/generic/paths.h
++++ b/sysdeps/generic/paths.h
 @@ -44,7 +44,7 @@
  #define	_PATH_DEVDB	"/var/run/dev.db"
  #define	_PATH_DEVNULL	"/dev/null"
@@ -169,9 +156,8 @@ diff -aur glibc.orig/sysdeps/generic/paths.h glibc/sysdeps/generic/paths.h
  #define	_PATH_TTY	"/dev/tty"
  #define	_PATH_UNIX	"/vmunix"
  #define	_PATH_UTMP	"/var/run/utmp"
-diff -aur glibc.orig/sysdeps/unix/sysv/linux/paths.h glibc/sysdeps/unix/sysv/linux/paths.h
---- glibc.orig/sysdeps/unix/sysv/linux/paths.h	2016-02-18 20:54:00.000000000 +0300
-+++ glibc/sysdeps/unix/sysv/linux/paths.h	2016-04-16 11:04:05.364785638 +0300
+--- a/sysdeps/unix/sysv/linux/paths.h
++++ b/sysdeps/unix/sysv/linux/paths.h
 @@ -44,7 +44,7 @@
  #define	_PATH_DEVDB	"/var/run/dev.db"
  #define	_PATH_DEVNULL	"/dev/null"
