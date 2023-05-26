@@ -1,6 +1,6 @@
 --- a/include/tic.h
 +++ b/include/tic.h
-@@ -257,7 +257,7 @@ struct user_table_entry
+@@ -256,7 +256,7 @@ struct user_table_entry
  #define MAX_TERMINFO_LENGTH	4096
  
  #ifndef TERMINFO
@@ -20,7 +20,7 @@
  #if HAVE_MKSTEMP
      {
  	int oldmask = (int) umask(077);
-@@ -903,7 +903,7 @@ main(int argc, char *argv[])
+@@ -917,7 +917,7 @@ main(int argc, char *argv[])
      } else {
  	if (infodump == TRUE) {
  	    /* captoinfo's no-argument case */
@@ -31,7 +31,7 @@
  		if (access(termcap, F_OK) == 0) {
 --- a/progs/tset.c
 +++ b/progs/tset.c
-@@ -576,8 +576,8 @@ get_termcap_entry(int fd, char *userarg)
+@@ -579,8 +579,8 @@ get_termcap_entry(int fd, char *userarg)
  	    goto map;
  	}
  #else

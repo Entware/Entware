@@ -1,6 +1,6 @@
 --- a/misc/gen-pkgconfig.in
 +++ b/misc/gen-pkgconfig.in
-@@ -235,7 +235,7 @@ Description: $desc
+@@ -242,7 +242,7 @@ Description: $desc
  Version: \${version}
  ${USEURL}URL: https://invisible-island.net/ncurses
  Requires.private: $reqs

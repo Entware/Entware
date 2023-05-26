@@ -8,14 +8,13 @@
 # * opkg binary segfaults when a real package is replaced by "provided" package.
 # we removed PROVIDES libncurses field in libncursesw and added a real libncurses package that
 # installes symlinks.
-# * ncurses-bin packages added
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ncurses
 PKG_CPE_ID:=cpe:/a:gnu:ncurses
 PKG_VERSION:=6.4
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@GNU/$(PKG_NAME)
@@ -61,17 +60,8 @@ define Package/libncurses-dev
   SECTION:=devel
   CATEGORY:=Development
   SUBMENU:=Libraries
-  DEPENDS:=zlib +libncurses
+  DEPENDS:=+zlib +libncurses
   TITLE:=Development files for the ncurses library
-endef
-
-define Package/ncurses-bin
-  SECTION:=utils
-  CATEGORY:=Utilities
-  SUBMENU:=Terminal
-  DEPENDS:=+libncursesw
-  TITLE:=Terminal-related programs
-  URL:=http://www.gnu.org/software/ncurses/
 endef
 
 TARGET_CFLAGS += $(FPIC)
@@ -146,6 +136,7 @@ ifneq ($(HOST_OS),FreeBSD)
 	)
 	for file in \
 		a/ansi \
+		a/alacritty \
 		d/dumb \
 		l/linux \
 		r/rxvt \
@@ -182,7 +173,7 @@ endef
 
 define Package/libncurses-dev/install
 	$(INSTALL_DIR) $(1)/opt/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/* $(1)/opt/bin/
+	$(CP) $(PKG_INSTALL_DIR)/opt/bin/* $(1)/opt/bin/
 	$(INSTALL_DIR) $(1)/opt/include
 	$(CP) $(PKG_INSTALL_DIR)/opt/include/*.h $(1)/opt/include/
 	$(INSTALL_DIR) $(1)/opt/lib
@@ -195,20 +186,12 @@ endef
 
 define Package/libncurses/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	ln -s libncurses.so.6.4 $(1)/opt/lib/libcurses.so
+	ln -s libncurses.so.$(PKG_VERSION) $(1)/opt/lib/libcurses.so
 	for lib in ncurses panel menu form; do \
 		ln -s lib$$$${lib}w.so $(1)/opt/lib/lib$$$${lib}.so; \
 		ln -s lib$$$${lib}w.so.6 $(1)/opt/lib/lib$$$${lib}.so.6; \
-		ln -s lib$$$${lib}w.so.6.4 $(1)/opt/lib/lib$$$${lib}.so.6.4; \
+		ln -s lib$$$${lib}w.so.$(PKG_VERSION) $(1)/opt/lib/lib$$$${lib}.so.$(PKG_VERSION); \
 	done
-endef
-
-define Package/ncurses-bin/install
-	$(INSTALL_DIR) $(1)/opt/bin
-	$(CP) $(PKG_INSTALL_DIR)/opt/bin/* $(1)/opt/bin
-	$(RM) $(1)/opt/bin/ncurses6-config
-	# XXX
-	$(SED) 's,$(TOOLCHAIN_DIR),/opt,g' $(1)/opt/bin/ncursesw6-config
 endef
 
 define Build/InstallDev
@@ -234,7 +217,6 @@ endef
 
 $(eval $(call HostBuild))
 $(eval $(call BuildPackage,terminfo))
-$(eval $(call BuildPackage,libncursesw))
 $(eval $(call BuildPackage,libncurses))
+$(eval $(call BuildPackage,libncursesw))
 $(eval $(call BuildPackage,libncurses-dev))
-$(eval $(call BuildPackage,ncurses-bin))
