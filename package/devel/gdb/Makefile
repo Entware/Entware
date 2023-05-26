@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gdb
 PKG_VERSION:=12.1
-PKG_RELEASE:=$(AUTORELEASE)
+PKG_RELEASE:=3
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/gdb
@@ -67,8 +67,8 @@ CONFIGURE_ARGS+= \
 	--without-mpc \
 	--without-mpfr \
 	--without-isl \
-	--with-libgmp-prefix=$(STAGING_DIR)/opt \
-	--without-xxhash
+	--without-xxhash \
+	--with-libgmp-prefix=$(STAGING_DIR)/opt
 
 CONFIGURE_VARS+= \
 	ac_cv_search_tgetent="$(TARGET_LDFLAGS) -lncurses -lreadline"
