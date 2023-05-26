@@ -44,9 +44,9 @@
  					localLoc.name = "Local"
  				} else {
  					localLoc.name = tz
---- a/scr/net/nss.go
+--- a/src/net/nss.go
 +++ b/src/net/nss.go
-@@ -13,7 +13,7 @@
+@@ -13,7 +13,7 @@ import (
  )
  
  const (
@@ -55,7 +55,7 @@
  )
  
  var nssConfig nsswitchConfig
-@@ -40,7 +40,7 @@
+@@ -40,7 +40,7 @@ func getSystemNSS() *nssConf {
  
  // init initializes conf and is only called via conf.initOnce.
  func (conf *nsswitchConfig) init() {
