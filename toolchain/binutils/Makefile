@@ -4,6 +4,8 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+# XXX Entware specific: keep versions 2.27/2.34
+
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=binutils
@@ -46,6 +48,12 @@ PATCH_DIR:=./patches/$(PKG_VERSION)
 
 include $(INCLUDE_DIR)/toolchain-build.mk
 
+ifdef CONFIG_GCC_USE_GRAPHITE
+  GRAPHITE_CONFIGURE:= --with-isl=$(STAGING_DIR_HOST)
+else
+  GRAPHITE_CONFIGURE:= --without-isl --without-cloog
+endif
+
 HOST_CONFIGURE_ARGS = \
 	--prefix=$(TOOLCHAIN_DIR) \
 	--build=$(GNU_HOST_NAME) \
@@ -53,7 +61,7 @@ HOST_CONFIGURE_ARGS = \
 	--target=$(REAL_GNU_TARGET_NAME) \
 	--with-sysroot=$(TOOLCHAIN_DIR) \
 	--with-system-zlib \
-	--without-zstd \
+	--$(if $(or ($(PKG_VERSION),2.27),($(PKG_VERSION),2.34)),without-zstd,with-zstd) \
 	--enable-deterministic-archives \
 	--enable-plugins \
 	--enable-lto \
