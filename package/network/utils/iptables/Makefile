@@ -24,6 +24,7 @@ PKG_HASH:=52004c68021da9a599feed27f65defcfb22128f7da2c0531c0f75de0f479d3e0
 PKG_FIXUP:=autoreconf
 
 PKG_INSTALL:=1
+PKG_BUILD_FLAGS:=gc-sections
 PKG_BUILD_PARALLEL:=1
 PKG_LICENSE:=GPL-2.0
 PKG_CPE_ID:=cpe:/a:netfilter_core_team:iptables
@@ -92,18 +93,16 @@ TARGET_CPPFLAGS := \
 TARGET_CFLAGS += \
 	-I$(PKG_BUILD_DIR)/include \
 	-I$(LINUX_DIR)/user_headers/include \
-	-ffunction-sections -fdata-sections \
 	-DNO_LEGACY
 
-TARGET_LDFLAGS += \
-	-lm -Wl,--gc-sections
+TARGET_LDFLAGS += -lm
 
 CONFIGURE_ARGS += \
 	--enable-shared \
+	--enable-static \
 	--enable-devel \
 	--with-kernel="$(LINUX_DIR)/user_headers" \
 	--with-xtlibdir=/opt/lib/iptables \
-	--enable-static \
 	$(if $(CONFIG_IPV6),,--disable-ipv6)
 
 MAKE_FLAGS := \
