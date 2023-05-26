@@ -18,19 +18,3 @@
  #include <linux/netfilter_ipv4/ip_tables.h>
  #include <linux/netfilter_ipv6/ip6_tables.h>
  #include <linux/netfilter_arp/arp_tables.h>
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -31,6 +31,13 @@
- 
- #include <netinet/ip_icmp.h>
- 
-+#ifndef ICMPV6_POLICY_FAIL
-+#define ICMPV6_POLICY_FAIL		5
-+#endif
-+#ifndef ICMPV6_REJECT_ROUTE
-+#define ICMPV6_REJECT_ROUTE		6
-+#endif
-+
- static const struct datatype *datatypes[TYPE_MAX + 1] = {
- 	[TYPE_INVALID]		= &invalid_type,
- 	[TYPE_VERDICT]		= &verdict_type,

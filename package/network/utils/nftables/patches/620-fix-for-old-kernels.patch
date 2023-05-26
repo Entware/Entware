@@ -1,0 +1,108 @@
+# ../include/linux/netfilter_ipv6/ip6_tables.h:135:25: error: field 'target' has incomplete type
+#   struct xt_error_target target;
+#                          ^~~~~~
+# $(TOOLCHAIN_DIR)/include/linux/netlink.h:31:2: error: unknown type name 'sa_family_t'
+#   sa_family_t nl_family; /* AF_NETLINK */
+#   ^~~~~~~~~~~
+
+--- a/include/linux/netfilter_ipv6/ip6_tables.h
++++ b/include/linux/netfilter_ipv6/ip6_tables.h
+@@ -56,6 +56,10 @@
+ #define IP6T_ENTRY_ITERATE(entries, size, fn, args...) \
+ 	XT_ENTRY_ITERATE(struct ip6t_entry, entries, size, fn, ## args)
+ 
++#ifndef LINUX_VERSION_CODE
++#include <linux/version.h>
++#endif
++
+ /* Yes, Virginia, you have to zero the padding. */
+ struct ip6t_ip6 {
+ 	/* Source and destination IP6 addr */
+@@ -130,6 +134,13 @@ struct ip6t_standard {
+ 	struct xt_standard_target target;
+ };
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(3,2,0)
++struct ip6t_error_target {
++	struct ip6t_entry_target target;
++	char errorname[IP6T_FUNCTION_MAXNAMELEN];
++};
++#endif
++
+ struct ip6t_error {
+ 	struct ip6t_entry entry;
+ 	struct xt_error_target target;
+--- a/include/netlink.h
++++ b/include/netlink.h
+@@ -9,6 +9,7 @@
+ #include <libnftnl/object.h>
+ #include <libnftnl/flowtable.h>
+ 
++#include <sys/socket.h>
+ #include <linux/netlink.h>
+ #include <linux/netfilter/nf_tables.h>
+ 
+--- a/src/fib.c
++++ b/src/fib.c
+@@ -17,6 +17,7 @@
+ #include <string.h>
+ #include <fib.h>
+ 
++#include <sys/socket.h>
+ #include <linux/rtnetlink.h>
+ #include <net/if.h>
+ 
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -23,6 +23,11 @@
+ #include <gmputil.h>
+ #include <utils.h>
+ 
++/* ETH_P_8021AD since Linux 3.1.0 */
++#ifndef LINUX_VERSION_CODE
++#include <linux/version.h>
++#endif
++
+ const char *proto_base_names[] = {
+ 	[PROTO_BASE_INVALID]		= "invalid",
+ 	[PROTO_BASE_LL_HDR]		= "link layer",
+@@ -1117,7 +1122,9 @@ const struct proto_desc proto_vlan = {
+ 		PROTO_LINK(__constant_htons(ETH_P_ARP),		&proto_arp),
+ 		PROTO_LINK(__constant_htons(ETH_P_IPV6),	&proto_ip6),
+ 		PROTO_LINK(__constant_htons(ETH_P_8021Q),	&proto_vlan),
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,1,0)
+ 		PROTO_LINK(__constant_htons(ETH_P_8021AD),	&proto_vlan),
++#endif /* ETH_P_8021AD since Linux 3.1.0 */
+ 
+ 	},
+ 	.templates	= {
+@@ -1149,7 +1156,9 @@ static const struct symbol_table etherty
+ 		SYMBOL("arp",		__constant_htons(ETH_P_ARP)),
+ 		SYMBOL("ip6",		__constant_htons(ETH_P_IPV6)),
+ 		SYMBOL("8021q",		__constant_htons(ETH_P_8021Q)),
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,1,0)
+ 		SYMBOL("8021ad",	__constant_htons(ETH_P_8021AD)),
++#endif /* ETH_P_8021AD since Linux 3.1.0 */
+ 
+ 		/* for compatibility with older versions */
+ 		SYMBOL("vlan",		__constant_htons(ETH_P_8021Q)),
+@@ -1195,7 +1204,9 @@ const struct proto_desc proto_eth = {
+ 		PROTO_LINK(__constant_htons(ETH_P_ARP),		&proto_arp),
+ 		PROTO_LINK(__constant_htons(ETH_P_IPV6),	&proto_ip6),
+ 		PROTO_LINK(__constant_htons(ETH_P_8021Q),	&proto_vlan),
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,1,0)
+ 		PROTO_LINK(__constant_htons(ETH_P_8021AD),	&proto_vlan),
++#endif /* ETH_P_8021AD since Linux 3.1.0 */
+ 	},
+ 	.templates	= {
+ 		[ETHHDR_DADDR]		= ETHHDR_ADDR("daddr", ether_dhost),
+@@ -1272,7 +1283,9 @@ const struct proto_desc proto_netdev = {
+ 		PROTO_LINK(__constant_htons(ETH_P_ARP),		&proto_arp),
+ 		PROTO_LINK(__constant_htons(ETH_P_IPV6),	&proto_ip6),
+ 		PROTO_LINK(__constant_htons(ETH_P_8021Q),	&proto_vlan),
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,1,0)
+ 		PROTO_LINK(__constant_htons(ETH_P_8021AD),	&proto_vlan),
++#endif /* ETH_P_8021AD since Linux 3.1.0 */
+ 	},
+ 	.templates	= {
+ 		[0]	= PROTO_META_TEMPLATE("protocol", &ethertype_type, NFT_META_PROTOCOL, 16),
