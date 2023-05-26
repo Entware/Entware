@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=comgt
 PKG_VERSION:=0.32
-PKG_RELEASE:=34
+PKG_RELEASE:=35
 
 PKG_SOURCE:=$(PKG_NAME).$(PKG_VERSION).tgz
 PKG_SOURCE_URL:=@SF/comgt
@@ -79,6 +79,7 @@ define Package/comgt/install
 	$(INSTALL_DATA) ./files/getcarrier.gcom $(1)/opt/etc/gcom/getcarrier.gcom
 	$(INSTALL_DATA) ./files/getcnum.gcom $(1)/opt/etc/gcom/getcnum.gcom
 	$(INSTALL_DATA) ./files/getimsi.gcom $(1)/opt/etc/gcom/getimsi.gcom
+	$(INSTALL_DATA) ./files/runcommand.gcom $(1)/opt/etc/gcom/runcommand.gcom
 endef
 
 define Package/comgt-directip/install
@@ -90,7 +91,6 @@ endef
 define Package/comgt-ncm/install
 	$(INSTALL_DIR) $(1)/opt/etc/gcom
 	$(INSTALL_DATA) ./files/ncm.json $(1)/opt/etc/gcom/ncm.json
-	$(INSTALL_DATA) ./files/runcommand.gcom $(1)/opt/etc/gcom/runcommand.gcom
 endef
 
 $(eval $(call BuildPackage,comgt))
