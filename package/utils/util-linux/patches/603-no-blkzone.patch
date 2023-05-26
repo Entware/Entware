@@ -2,15 +2,15 @@
 
 --- a/meson.build
 +++ b/meson.build
-@@ -151,7 +151,6 @@ headers = '''
-         utmp.h
-         utmpx.h
+@@ -161,7 +161,6 @@ headers = '''
+         asm-generic/fcntl.h
+         asm/fcntl.h
          asm/io.h
 -        linux/blkzoned.h
          linux/capability.h
          linux/cdrom.h
          linux/compiler.h
-@@ -1353,16 +1352,16 @@ exes += exe
+@@ -1444,16 +1443,16 @@ exes += exe
  manadocs += ['sys-utils/blkdiscard.8.adoc']
  bashcompletions += ['blkdiscard']
  
@@ -36,4 +36,4 @@
 +#bashcompletions += ['blkzone']
  
  exe = executable(
-   'ldattach',
+   'blkpr',

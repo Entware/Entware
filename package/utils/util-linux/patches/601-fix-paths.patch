@@ -1,19 +1,31 @@
 --- a/meson.build
 +++ b/meson.build
-@@ -20,12 +20,12 @@ sbindir = join_paths(prefixdir, get_opti
+@@ -21,7 +21,7 @@ sbindir = join_paths(prefixdir, get_opti
  sysconfstaticdir = join_paths(prefixdir, 'lib')
  docdir = join_paths(prefixdir, get_option('datadir'), 'doc', 'util-linux')
  mandir = join_paths(prefixdir, get_option('mandir'))
 -runstatedir = '/run'
--execprefixdir = '/usr'
 +runstatedir = '/opt/var/run'
-+execprefixdir = '/opt'
- usrbin_exec_dir = join_paths(execprefixdir, 'bin')
- usrsbin_exec_dir = join_paths(execprefixdir, 'sbin')
--sysconfdir = '/etc'
--localstatedir = '/var'
-+sysconfdir = '/opt/etc'
-+localstatedir = '/opt/var'
- bash_completion = dependency('bash-completion', required : get_option('build-bash-completion'))
+ execprefixdir = prefixdir
+ sysconfdir = join_paths(prefixdir, get_option('sysconfdir'))
+ usrbin_exec_dir = join_paths(execprefixdir, bindir)
+@@ -63,8 +63,8 @@ conf.set('usrsbin_execdir', usrsbin_exec
+ conf.set('docdir', docdir)
+ conf.set_quoted('_PATH_SYSCONFSTATICDIR', sysconfstaticdir)
+ conf.set_quoted('_PATH_RUNSTATEDIR', runstatedir)
+-conf.set_quoted('CONFIG_ADJTIME_PATH', '/etc/adjtime')
+-conf.set_quoted('ADJTIME_PATH', '/etc/adjtime') # yes, both are used :(
++conf.set_quoted('CONFIG_ADJTIME_PATH', '/opt/etc/adjtime')
++conf.set_quoted('ADJTIME_PATH', '/opt/etc/adjtime') # yes, both are used :(
  
- vendordir = get_option('vendordir')
+ conf.set_quoted('_PATH_VENDORDIR', vendordir)
+ conf.set('USE_VENDORDIR', vendordir == '' ? false : 1)
+@@ -3385,7 +3385,7 @@ if asciidoctor.found()
+ 	  '-b', 'manpage',
+ 	  '-a', 'VERSION=' + meson.project_version(),
+ 	  '-a', 'release-version=' + meson.project_version(),
+-	  '-a', 'ADJTIME_PATH=/etc/adjtime',
++	  '-a', 'ADJTIME_PATH=/opt/etc/adjtime',
+ 	  '-a', 'package-docdir=' + docdir,
+ 	  '--base-dir=' + meson.current_source_dir(),
+           '--destination-dir=' + meson.current_build_dir(),

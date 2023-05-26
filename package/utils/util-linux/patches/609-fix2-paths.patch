@@ -1,0 +1,150 @@
+--- a/disk-utils/fsck.c
++++ b/disk-utils/fsck.c
+@@ -69,7 +69,7 @@
+ #define MAX_DEVICES 32
+ #define MAX_ARGS 32
+ 
+-#define FSCK_RUNTIME_DIRNAME	"/run/fsck"
++#define FSCK_RUNTIME_DIRNAME	"/opt/var/run/fsck"
+ 
+ static const char *ignored_types[] = {
+ 	"ignore",
+@@ -154,7 +154,7 @@ static int kill_sent;
+ static char *fstype;
+ static struct fsck_instance *instance_list;
+ 
+-#define FSCK_DEFAULT_PATH "/sbin"
++#define FSCK_DEFAULT_PATH "/opt/sbin"
+ static char *fsck_path;
+ 
+ 
+--- a/lib/shells.c
++++ b/lib/shells.c
+@@ -26,7 +26,7 @@ extern int is_known_shell(const char *sh
+ 
+ 	error = econf_readDirs(&key_file,
+ 			       _PATH_VENDORDIR,
+-			       "/etc",
++			       "/opt/etc",
+ 			       "shells",
+ 			       NULL,
+ 			       "", /* key only */
+--- a/libblkid/src/blkidP.h
++++ b/libblkid/src/blkidP.h
+@@ -304,15 +304,15 @@ struct blkid_struct_cache
+ #define BLKID_BIC_FL_CHANGED	0x0004	/* Cache has changed from disk */
+ 
+ /* config file */
+-#define BLKID_CONFIG_FILE	"/etc/blkid.conf"
++#define BLKID_CONFIG_FILE	"/opt/etc/blkid.conf"
+ 
+ /* cache file on systemds with /run */
+-#define BLKID_RUNTIME_TOPDIR	"/run"
++#define BLKID_RUNTIME_TOPDIR	"/opt/var/run"
+ #define BLKID_RUNTIME_DIR	BLKID_RUNTIME_TOPDIR "/blkid"
+ #define BLKID_CACHE_FILE	BLKID_RUNTIME_DIR "/blkid.tab"
+ 
+ /* old systems */
+-#define BLKID_CACHE_FILE_OLD	"/etc/blkid.tab"
++#define BLKID_CACHE_FILE_OLD	"/opt/etc/blkid.tab"
+ 
+ #define BLKID_ERR_IO	 5
+ #define BLKID_ERR_SYSFS	 9
+--- a/libuuid/src/uuidP.h
++++ b/libuuid/src/uuidP.h
+@@ -39,7 +39,7 @@
+ 
+ #include "uuid.h"
+ 
+-#define LIBUUID_CLOCK_FILE	"/var/lib/libuuid/clock.txt"
++#define LIBUUID_CLOCK_FILE	"/opt/var/lib/libuuid/clock.txt"
+ 
+ /*
+  * Offset between 15-Oct-1582 and 1-Jan-70
+--- a/libuuid/src/uuidd.h
++++ b/libuuid/src/uuidd.h
+@@ -38,7 +38,7 @@
+ #define UUIDD_DIR		_PATH_RUNSTATEDIR "/uuidd"
+ #define UUIDD_SOCKET_PATH	UUIDD_DIR "/request"
+ #define UUIDD_PIDFILE_PATH	UUIDD_DIR "/uuidd.pid"
+-#define UUIDD_PATH		"/usr/sbin/uuidd"
++#define UUIDD_PATH		"/opt/sbin/uuidd"
+ 
+ #define UUIDD_OP_GETPID			0
+ #define UUIDD_OP_GET_MAXOP		1
+--- a/misc-utils/whereis.c
++++ b/misc-utils/whereis.c
+@@ -101,20 +101,29 @@ struct wh_dirlist {
+ };
+ 
+ static const char *bindirs[] = {
++	"/opt/usr/bin",
++	"/opt/usr/sbin",
++	"/opt/bin",
++	"/opt/sbin",
+ 	"/usr/bin",
+ 	"/usr/sbin",
+ 	"/bin",
+ 	"/sbin",
+ #if defined(MULTIARCHTRIPLET)
++	"/opt/lib/" MULTIARCHTRIPLET,
++	"/opt/usr/lib/" MULTIARCHTRIPLET,
+ 	"/lib/" MULTIARCHTRIPLET,
+ 	"/usr/lib/" MULTIARCHTRIPLET,
+ 	"/usr/local/lib/" MULTIARCHTRIPLET,
+ #endif
++	"/opt/usr/lib",
+ 	"/usr/lib",
+ 	"/usr/lib32",
+ 	"/usr/lib64",
++	"/opt/etc",
+ 	"/etc",
+ 	"/usr/etc",
++	"/opt/lib",
+ 	"/lib",
+ 	"/lib32",
+ 	"/lib64",
+@@ -154,7 +163,10 @@ static const char *bindirs[] = {
+ 	"/usr/old",
+ 	"/usr/new",
+ 	"/usr/local",
++	"/opt/libexec",
+ 	"/usr/libexec",
++	"/opt/share",
++	"/opt/usr/share",
+ 	"/usr/share",
+ 
+ 	"/opt/*/bin",
+@@ -163,16 +175,21 @@ static const char *bindirs[] = {
+ 
+ static const char *mandirs[] = {
+ 	"/usr/man/*",
++	"/opt/share/man/*",
++	"/opt/usr/share/man/*",
+ 	"/usr/share/man/*",
+ 	"/usr/X386/man/*",
+ 	"/usr/X11/man/*",
+ 	"/usr/TeX/man/*",
+ 	"/usr/interviews/man/mann",
++	"/opt/share/info",
++	"/opt/usr/share/info",
+ 	"/usr/share/info",
+ 	NULL
+ };
+ 
+ static const char *srcdirs[] = {
++	"/opt/src/*",
+ 	"/usr/src/*",
+ 	"/usr/src/lib/libc/*",
+ 	"/usr/src/lib/libc/net/*",
+--- a/term-utils/agetty.c
++++ b/term-utils/agetty.c
+@@ -159,7 +159,7 @@
+ # include <sys/inotify.h>
+ # include <linux/netlink.h>
+ # include <linux/rtnetlink.h>
+-# define AGETTY_RELOAD_FILENAME "/run/agetty.reload"	/* trigger file */
++# define AGETTY_RELOAD_FILENAME "/opt/var/run/agetty.reload"	/* trigger file */
+ # define AGETTY_RELOAD_FDNONE	-2			/* uninitialized fd */
+ static int inotify_fd = AGETTY_RELOAD_FDNONE;
+ static int netlink_fd = AGETTY_RELOAD_FDNONE;

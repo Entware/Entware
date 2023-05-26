@@ -1,0 +1,47 @@
+# XXX pidfd_open since Linux 5.3
+
+--- a/misc-utils/meson.build
++++ b/misc-utils/meson.build
+@@ -162,6 +162,6 @@ fadvise_sources = files(
+   'fadvise.c',
+ )
+ 
+-waitpid_sources = files(
+-  'waitpid.c',
+-)
++#waitpid_sources = files(
++#  'waitpid.c',
++#)
+--- a/meson.build
++++ b/meson.build
+@@ -2840,18 +2840,18 @@ if not is_disabler(exe)
+   bashcompletions += ['fadvise']
+ endif
+ 
+-exe = executable(
+-  'waitpid',
+-  waitpid_sources,
+-  include_directories : includes,
+-  link_with : [lib_common],
+-  install_dir : usrbin_exec_dir,
+-  install : true)
+-if not is_disabler(exe)
+-  exes += exe
+-  manadocs += ['misc-utils/waitpid.1.adoc']
+-  bashcompletions += ['waitpid']
+-endif
++#exe = executable(
++#  'waitpid',
++#  waitpid_sources,
++#  include_directories : includes,
++#  link_with : [lib_common],
++#  install_dir : usrbin_exec_dir,
++#  install : true)
++#if not is_disabler(exe)
++#  exes += exe
++#  manadocs += ['misc-utils/waitpid.1.adoc']
++#  bashcompletions += ['waitpid']
++#endif
+ 
+ ############################################################
+ 

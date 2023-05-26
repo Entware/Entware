@@ -5,18 +5,19 @@
 # See /LICENSE for more information.
 #
 # Entware specific: column, ionice, fallocate, fsfreeze and rev packages added, add swapon/swapoff binaries
-# disable nsenter for k2.6 based targets
-# -Dlibutil/-Dbuild-fallocate enabled
+#	disable nsenter for k2.6 based targets;
+#	-Dlibutil/-Dbuild-fallocate enabled;
+#	added more ALTERNATIVES
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=util-linux
-PKG_VERSION:=2.38.1
-PKG_RELEASE:=1
+PKG_VERSION:=2.39
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.38
-PKG_HASH:=60492a19b44e6cf9a3ddff68325b333b8b52b6c59ce3ebd6a0ecaa4c5117e84f
+PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.39
+PKG_HASH:=32b30a336cda903182ed61feb3e9b908b762a5e66fe14e43efb88d37162075cb
 PKG_CPE_ID:=cpe:/a:kernel:util-linux
 
 PKG_LICENSE:=GPL-2.0-only
@@ -139,6 +140,7 @@ $(call Package/util-linux/Default)
   TITLE:=locate and print block device attributes
   DEPENDS:= +libblkid +libuuid
   SUBMENU=Disc
+  ALTERNATIVES:=200:/opt/sbin/blkid:/opt/sbin/util-linux-blkid
 endef
 
 define Package/blkid/description
@@ -150,6 +152,7 @@ define Package/blockdev
 $(call Package/util-linux/Default)
   TITLE:=call block device ioctls from the command line
   SUBMENU=Disc
+  ALTERNATIVES:=200:/opt/sbin/blockdev:/opt/sbin/util-linux-blockdev
 endef
 
 define Package/blockdev/description
@@ -191,6 +194,7 @@ define Package/dmesg
 $(call Package/util-linux/Default)
   TITLE:=print or control the kernel ring buffer
   DEPENDS:= +libncursesw
+  ALTERNATIVES:=200:/opt/bin/dmesg:/opt/bin/util-linux-dmesg
 endef
 
 define Package/dmesg/description
@@ -350,6 +354,7 @@ define Package/losetup
 $(call Package/util-linux/Default)
   TITLE:=set up and control loop devices
   DEPENDS:= +libsmartcols
+  ALTERNATIVES:=200:/opt/sbin/losetup:/opt/sbin/util-linux-losetup
 endef
 
 define Package/losetup/description
@@ -402,6 +407,7 @@ define Package/more
 $(call Package/util-linux/Default)
   TITLE:=filter for paging through text one screenful at a time
   DEPENDS:= +libncurses
+  ALTERNATIVES:=200:/opt/bin/more:/opt/bin/util-linux-more
 endef
 
 define Package/more/description
@@ -422,6 +428,8 @@ define Package/mount-utils
 $(call Package/util-linux/Default)
   TITLE:=related (u)mount utilities
   DEPENDS+= +libmount +libsmartcols
+  ALTERNATIVES:=200:/opt/bin/mount:/opt/bin/util-linux-mount \
+		200:/opt/bin/umount:/opt/bin/util-linux-umount
 endef
 
 define Package/mount-utils/description
@@ -471,13 +479,14 @@ endef
 
 define Package/rev
 $(call Package/util-linux/Default)
-  TITLE:=reverse lines characterwise
+  TITLE:=Reverse lines characterwise
+  ALTERNATIVES:=200:/opt/bin/rev:/opt/bin/util-linux-rev
 endef
 
-
 define Package/rev/description
- rev utility copies the specified files to standard output, reversing the order
- of characters in every line.  If no files are  specified, standard input is read.
+ rev utility copies the specified files to the standard output, reversing the
+ order of characters in every line. If no files are specified, the standard
+ input is read.
 endef
 
 define Package/partx-utils
@@ -530,6 +539,9 @@ $(call Package/util-linux/Default)
   TITLE:=swap space management utilities
   DEPENDS+= +libblkid +libmount +libsmartcols
   SUBMENU:=Filesystem
+  ALTERNATIVES:=200:/opt/sbin/mkswap:/opt/sbin/util-linux-mkswap \
+		200:/opt/sbin/swapoff:/opt/sbin/util-linux-swapoff \
+		200:/opt/sbin/swapon:/opt/sbin/util-linux-swapon
 endef
 
 define Package/swap-utils/description
@@ -539,6 +551,7 @@ endef
 define Package/taskset
 $(call Package/util-linux/Default)
   TITLE:=set or retrieve a process's CPU affinity
+  ALTERNATIVES:=200:/opt/bin/taskset:/opt/bin/util-linux-taskset
 endef
 
 define Package/taskset/description
@@ -617,7 +630,7 @@ MESON_ARGS += \
 	-Dsystemd=disabled \
 	-Dtinfo=disabled \
 	-Dcryptsetup=disabled \
-	-Dlibutil=enabled \
+	-Dlibutil=$(if $(CONFIG_USE_GLIBC),en,dis)abled \
 	-Dlibutempter=disabled \
 	-Dlibpcre2-posix=disabled \
 	-Dlibuser=disabled \
@@ -734,12 +747,12 @@ endef
 
 define Package/blkid/install
 	$(INSTALL_DIR) $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/blkid $(1)/opt/sbin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/blkid $(1)/opt/sbin/util-linux-blkid
 endef
 
 define Package/blockdev/install
 	$(INSTALL_DIR) $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/blockdev $(1)/opt/sbin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/blockdev $(1)/opt/sbin/util-linux-blockdev
 endef
 
 define Package/cal/install
@@ -759,7 +772,7 @@ endef
 
 define Package/dmesg/install
 	$(INSTALL_DIR) $(1)/opt/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/dmesg $(1)/opt/bin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/dmesg $(1)/opt/bin/util-linux-dmesg
 endef
 
 define Package/eject/install
@@ -834,7 +847,7 @@ endef
 
 define Package/losetup/install
 	$(INSTALL_DIR) $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/losetup $(1)/opt/sbin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/losetup $(1)/opt/sbin/util-linux-losetup
 endef
 
 define Package/lsblk/install
@@ -859,7 +872,7 @@ endef
 
 define Package/more/install
 	$(INSTALL_DIR) $(1)/opt/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/more $(1)/opt/bin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/more $(1)/opt/bin/util-linux-more
 endef
 
 define Package/mcookie/install
@@ -869,7 +882,8 @@ endef
 
 define Package/mount-utils/install
 	$(INSTALL_DIR) $(1)/opt/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/{u,}mount $(1)/opt/bin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/mount $(1)/opt/bin/util-linux-mount
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/umount $(1)/opt/bin/util-linux-umount
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/mountpoint $(1)/opt/bin/
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/findmnt $(1)/opt/bin/
 endef
@@ -896,7 +910,7 @@ endef
 
 define Package/rev/install
 	$(INSTALL_DIR) $(1)/opt/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/rev $(1)/opt/bin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/rev $(1)/opt/bin/util-linux-rev
 endef
 
 define Package/partx-utils/install
@@ -924,14 +938,15 @@ endef
 
 define Package/swap-utils/install
 	$(INSTALL_DIR) $(1)/opt/sbin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/mkswap $(1)/opt/sbin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/mkswap $(1)/opt/sbin/util-linux-mkswap
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/swaplabel $(1)/opt/sbin/
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/swap{on,off} $(1)/opt/sbin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/swapoff $(1)/opt/sbin/util-linux-swapoff
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/swapon $(1)/opt/sbin/util-linux-swapon
 endef
 
 define Package/taskset/install
 	$(INSTALL_DIR) $(1)/opt/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/taskset $(1)/opt/bin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/taskset $(1)/opt/bin/util-linux-taskset
 endef
 
 define Package/unshare/install

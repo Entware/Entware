@@ -2,7 +2,7 @@
 
 --- a/config.h.in
 +++ b/config.h.in
-@@ -313,7 +313,8 @@
+@@ -338,7 +338,8 @@
  #undef HAVE_LINUX_NET_NAMESPACE_H
  
  /* Define to 1 if you have the <linux/nsfs.h> header file. */
@@ -10,15 +10,15 @@
 +/* NS_GET_NSTYPE NS_GET_OWNER_UID since Linux 4.11 */
 +/* #undef HAVE_LINUX_NSFS_H */
  
- /* Define to 1 if you have the <linux/raw.h> header file. */
- #undef HAVE_LINUX_RAW_H
+ /* Define to 1 if you have the <linux/pr.h> header file. */
+ #undef HAVE_LINUX_PR_H
 --- a/meson.build
 +++ b/meson.build
-@@ -160,7 +160,6 @@ headers = '''
- 	linux/fiemap.h
- 	linux/gsmmux.h
+@@ -173,7 +173,6 @@ headers = '''
+         linux/if_alg.h
+         linux/kcmp.h
          linux/net_namespace.h
 -        linux/nsfs.h
+         linux/pr.h
+         linux/stat.h
          linux/securebits.h
-         linux/tiocl.h
-         linux/version.h

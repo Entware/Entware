@@ -1,0 +1,21 @@
+# XXX ../tests/helpers/test_enosys.c:25:10: fatal error: linux/seccomp.h: No such file or directory
+
+--- a/meson.build
++++ b/meson.build
+@@ -3241,11 +3241,11 @@ exes += exe
+ #  include_directories : includes)
+ #exes += exe
+ 
+-exe = executable(
+-  'test_enosys',
+-  'tests/helpers/test_enosys.c',
+-  include_directories : includes)
+-exes += exe
++#exe = executable(
++#  'test_enosys',
++#  'tests/helpers/test_enosys.c',
++#  include_directories : includes)
++#exes += exe
+ 
+ ############################################################
+ 
