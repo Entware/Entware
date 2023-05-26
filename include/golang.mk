@@ -1,13 +1,12 @@
 # Strip is not recommended for go binaries. It may make binaries unusable
-RSTRIP:="/bin/true"
+RSTRIP:=:
+STRIP:=:
 
 GO_BIN:=$(GOROOT)/bin/go
-GO_SRC_DIR:=$(PKG_BUILD_DIR)/src/$(PKG_GOGET)
 
-GO_INSTALL_DIR:=$(PKG_BUILD_DIR)/bin/
 #GO_LDFLAGS:=
 GO_TARGET ?= .
-GO_VARS:=
+GO_VARS ?=
 
 GO_LDFLAGS = -s -w
 
@@ -67,9 +66,9 @@ GO_BUILD_CMD ?= $(GO_VARS) $(GO_BIN) build
 # verbose
 GO_BUILD_CMD += $(if $(OPENWRT_VERBOSE),-v -x)
 # -some1 -some2
-GO_BUILD_CMD += $(if $(GO_BUILD_ARGS),$(GO_BUILD_ARGS))
-# $(PKG_BUILD_DIR)/bin/ $(PKG_INSTALL_DIR)
-GO_BUILD_CMD += -o $(GO_INSTALL_DIR)
+GO_BUILD_CMD += -trimpath $(if $(GO_BUILD_ARGS),$(GO_BUILD_ARGS))
+# PKG_INSTALL_DIR
+GO_BUILD_CMD += -o $(PKG_INSTALL_DIR)/bin/
 # -X '$(PKG_GOGET).some1=some2'
 GO_BUILD_CMD += -ldflags="$(GO_LDFLAGS)"
 # -tags=some
@@ -77,18 +76,12 @@ GO_BUILD_CMD += $(if $(GO_TAGS),$(GO_TAGS))
 # ./cmd/... ./dir/path1 ./dir/path2
 GO_BUILD_CMD += $(GO_TARGET)
 
-define Build/Prepare
-	$(INSTALL_DIR) $(GO_SRC_DIR)
-	$(HOST_TAR) -C $(GO_SRC_DIR) -xf $(DL_DIR)/$(PKG_SOURCE) --strip-components=1
-	$(Build/Patch)
-endef
-
 define Build/Configure/Go
 endef
 
 define Build/Compile/Go
 	( \
-		cd $(GO_SRC_DIR)$(if $(GO_SRC_SUBDIR),/$(GO_SRC_SUBDIR)); \
+		cd $(PKG_BUILD_DIR)$(if $(GO_SRC_SUBDIR),/$(GO_SRC_SUBDIR)); \
 		$(GO_BUILD_CMD); \
 	)
 endef
