@@ -1,0 +1,24 @@
+--- a/kexec/arch/i386/x86-linux-setup.c
++++ b/kexec/arch/i386/x86-linux-setup.c
+@@ -24,7 +24,9 @@
+ #include <limits.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
++#if defined(__GLIBC__) && (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 30)
+ #include <sys/random.h>
++#endif /* since glibc-2.30 */
+ #include <fcntl.h>
+ #include <sys/ioctl.h>
+ #include <linux/fb.h>
+@@ -839,9 +841,11 @@ static void setup_rng_seed(struct kexec_
+ 	sd->header.len = sizeof(sd->rng_seed);
+ 	sd->header.type = SETUP_RNG_SEED;
+ 
++#if defined(__GLIBC__) && (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 30)
+ 	if (getrandom(sd->rng_seed, sizeof(sd->rng_seed), GRND_NONBLOCK) !=
+ 	    sizeof(sd->rng_seed))
+ 		return; /* Not initialized, so don't pass a seed. */
++#endif /* since glibc-2.30 */
+ 
+ 	add_setup_data(info, real_mode, &sd->header);
+ }
