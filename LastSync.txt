@@ -1,9 +1,9 @@
-commit ed64c3323590e3c9fa8b423bf37689023a7a101f (HEAD -> master, origin/master, origin/HEAD)
-Author: Daniel González Cabanelas <dgcbueu@gmail.com>
-Date:   Thu Feb 16 23:04:20 2023 +0100
+commit 2388b119de9279d7adaa525c7ba502fcae1fe187 (HEAD -> master, origin/master, origin/main, origin/HEAD)
+Author: Nick Hainke <vincent@systemli.org>
+Date:   Tue May 23 16:47:42 2023 +0200
 
-    ipq40xx: Linksys MR8300: fix the USB port power
+    ramips: mark patches accepted upstream
     
-    The USB port on the MR8300 randomly fails to feed bus-powered devices.
+    Add kernel tags to the patches that got accepted upstream.
     
-.........
+    Signed-off-by: Nick Hainke <vincent@systemli.org>
