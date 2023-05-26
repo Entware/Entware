@@ -8,6 +8,13 @@ include $(INCLUDE_DIR)/prereq.mk
 SHELL:=sh
 PKG_NAME:=Build dependency
 
+$(eval $(call TestHostCommand,true, \
+	Please install GNU 'coreutils', \
+	$(TRUE)))
+
+$(eval $(call TestHostCommand,false, \
+	Please install GNU 'coreutils', \
+	$(FALSE); [ $$$$$$$$? = 1 ] && $(TRUE)))
 
 # Required for the toolchain
 $(eval $(call TestHostCommand,working-make, \
@@ -168,29 +175,25 @@ $(eval $(call SetupHostCommand,install,Please install GNU 'install', \
 $(eval $(call SetupHostCommand,perl,Please install Perl 5.x, \
 	perl --version | grep "perl.*v5"))
 
-$(eval $(call CleanupPython2))
-
 # Entware specific: we need python2 for building node_legacy
 $(eval $(call SetupHostCommand,python2,Please install Python 2.7, \
 	python2.7 -V 2>&1 | grep 'Python 2'))
 
-$(eval $(call SetupHostCommand,python,Please install Python >= 3.6, \
+$(eval $(call SetupHostCommand,python,Please install Python >= 3.7, \
 	python3.11 -V 2>&1 | grep 'Python 3', \
 	python3.10 -V 2>&1 | grep 'Python 3', \
 	python3.9 -V 2>&1 | grep 'Python 3', \
 	python3.8 -V 2>&1 | grep 'Python 3', \
 	python3.7 -V 2>&1 | grep 'Python 3', \
-	python3.6 -V 2>&1 | grep 'Python 3', \
-	python3 -V 2>&1 | grep -E 'Python 3\.([6-9]|[0-9][0-9])\.?'))
+	python3 -V 2>&1 | grep -E 'Python 3\.([7-9]|[0-9][0-9])\.?'))
 
-$(eval $(call SetupHostCommand,python3,Please install Python >= 3.6, \
+$(eval $(call SetupHostCommand,python3,Please install Python >= 3.7, \
 	python3.11 -V 2>&1 | grep 'Python 3', \
 	python3.10 -V 2>&1 | grep 'Python 3', \
 	python3.9 -V 2>&1 | grep 'Python 3', \
 	python3.8 -V 2>&1 | grep 'Python 3', \
 	python3.7 -V 2>&1 | grep 'Python 3', \
-	python3.6 -V 2>&1 | grep 'Python 3', \
-	python3 -V 2>&1 | grep -E 'Python 3\.([6-9]|[0-9][0-9])\.?'))
+	python3 -V 2>&1 | grep -E 'Python 3\.([7-9]|[0-9][0-9])\.?'))
 
 $(eval $(call TestHostCommand,python3-distutils, \
 	Please install the Python3 distutils module, \
