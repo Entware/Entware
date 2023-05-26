@@ -1,0 +1,46 @@
+--- a/bfd/elf32-arm.c
++++ b/bfd/elf32-arm.c
+@@ -2306,7 +2306,7 @@ typedef unsigned short int insn16;
+ 
+ /* The name of the dynamic interpreter.  This is put in the .interp
+    section.  */
+-#define ELF_DYNAMIC_INTERPRETER     "/usr/lib/ld.so.1"
++#define ELF_DYNAMIC_INTERPRETER     "/opt/lib/ld-linux.so.3"
+ 
+ /* FDPIC default stack size.  */
+ #define DEFAULT_STACK_SIZE 0x8000
+--- a/bfd/elfnn-aarch64.c
++++ b/bfd/elfnn-aarch64.c
+@@ -2356,7 +2356,7 @@ elfNN_aarch64_reloc_name_lookup (bfd *ab
+ 
+ /* The name of the dynamic interpreter.  This is put in the .interp
+    section.  */
+-#define ELF_DYNAMIC_INTERPRETER     "/lib/ld.so.1"
++#define ELF_DYNAMIC_INTERPRETER     "/opt/lib/ld-linux-aarch64.so.1"
+ 
+ #define AARCH64_MAX_FWD_BRANCH_OFFSET \
+   (((1 << 25) - 1) << 2)
+--- a/bfd/elfxx-mips.c
++++ b/bfd/elfxx-mips.c
+@@ -986,7 +986,7 @@ static bfd *reldyn_sorting_bfd;
+ #define ELF_DYNAMIC_INTERPRETER(abfd)		\
+    (ABI_N32_P (abfd) ? "/usr/lib32/libc.so.1"	\
+     : ABI_64_P (abfd) ? "/usr/lib64/libc.so.1"	\
+-    : "/usr/lib/libc.so.1")
++    : "/opt/lib/ld.so.1")
+ 
+ #ifdef BFD64
+ #define MNAME(bfd,pre,pos) \
+--- a/bfd/elfxx-x86.c
++++ b/bfd/elfxx-x86.c
+@@ -25,8 +25,8 @@
+ /* The name of the dynamic interpreter.  This is put in the .interp
+    section.  */
+ 
+-#define ELF32_DYNAMIC_INTERPRETER "/usr/lib/libc.so.1"
+-#define ELF64_DYNAMIC_INTERPRETER "/lib/ld64.so.1"
++#define ELF32_DYNAMIC_INTERPRETER "/opt/lib/ld-linux.so.2"
++#define ELF64_DYNAMIC_INTERPRETER "/opt/lib/ld-linux-x86-64.so.2"
+ #define ELFX32_DYNAMIC_INTERPRETER "/lib/ldx32.so.1"
+ 
+ bool

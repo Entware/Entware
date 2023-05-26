@@ -1,0 +1,92 @@
+--- a/ld/genscripts.sh
++++ b/ld/genscripts.sh
+@@ -201,29 +201,6 @@ append_to_lib_path()
+ 	lib="=${lib}"
+       fi
+       skip_lib=no
+-      for libpath_suffix in ${LIBPATH_SUFFIX}; do
+-	case "${lib}" in
+-	  *${libpath_suffix})
+-	    case :${lib_path1}: in
+-	      *:${lib}:*) ;;
+-	      ::) lib_path1=${lib} ;;
+-	      *) lib_path1=${lib_path1}:${lib} ;;
+-	    esac ;;
+-	  *)
+-	    if test -n "${LIBPATH_SUFFIX_SKIP}"; then
+-	      case "${lib}" in
+-		*${LIBPATH_SUFFIX_SKIP}) skip_lib=yes ;;
+-	      esac
+-	    fi
+-	    if test "${skip_lib}" = "no"; then
+-	      case :${lib_path1}: in
+-		*:${lib}${libpath_suffix}:*) ;;
+-		::) lib_path1=${lib}${libpath_suffix} ;;
+-		*) lib_path1=${lib_path1}:${lib}${libpath_suffix} ;;
+-	      esac
+-	    fi ;;
+-	esac
+-      done
+       if test "${skip_lib}" = "no"; then
+ 	case :${lib_path1}:${lib_path2}: in
+ 	  *:${lib}:*) ;;
+@@ -235,42 +212,6 @@ append_to_lib_path()
+   fi
+ }
+ 
+-# Always search $(tooldir)/lib, aka /usr/local/TARGET/lib when native
+-# except when LIBPATH=":".
+-if [ "${LIB_PATH}" != ":" ] ; then
+-  libs=
+-  if [ "x${TOOL_LIB}" = "x" ] ; then
+-    if [ "x${NATIVE}" = "xyes" ] ; then
+-      libs="${exec_prefix}/${target_alias}/lib"
+-    fi
+-  else
+-    # For multilib'ed targets, ensure both ${target_alias}/lib${LIBPATH_SUFFIX}
+-    # and ${TOOL_LIB}/lib${LIBPATH_SUFFIX} are in the default search path,
+-    # because 64bit libraries may be in both places, depending on
+-    # cross-development setup method (e.g.: /usr/s390x-linux/lib64
+-    # vs. /usr/s390-linux/lib64)
+-    for libpath_suffix in ${LIBPATH_SUFFIX}; do
+-      case "${NATIVE}:${libpath_suffix}:${TOOL_LIB}" in
+-	:* | *::* | *:*:*${libpath_suffix}) ;;
+-	*) libs="${exec_prefix}/${target_alias}/lib${libpath_suffix}" ;;
+-      esac
+-    done
+-    libs="${exec_prefix}/${TOOL_LIB}/lib ${libs}"
+-  fi
+-  append_to_lib_path ${libs}
+-fi
+-
+-if [ "x${LIB_PATH}" = "x" ] && [ "x${USE_LIBPATH}" = xyes ] ; then
+-  libs=${NATIVE_LIB_DIRS}
+-  if [ "x${NATIVE}" = "xyes" ] ; then
+-    case " ${libs} " in
+-      *" ${libdir} "*) ;;
+-      *) libs="${libdir} ${libs}" ;;
+-    esac
+-  fi
+-  append_to_lib_path ${libs}
+-fi
+-
+ case :${lib_path1}:${lib_path2}: in
+   *:: | ::*) LIB_PATH=${lib_path1}${lib_path2} ;;
+   *) LIB_PATH=${lib_path1}:${lib_path2} ;;
+--- a/ld/ldelf.c
++++ b/ld/ldelf.c
+@@ -936,12 +936,12 @@ ldelf_check_ld_so_conf (const struct bfd
+ 
+       info.path = NULL;
+       info.len = info.alloc = 0;
+-      tmppath = concat (ld_sysroot, prefix, "/etc/ld.so.conf",
++      tmppath = concat (ld_sysroot, prefix, "/opt/etc/ld.so.conf",
+ 			(const char *) NULL);
+       if (!ldelf_parse_ld_so_conf (&info, tmppath))
+ 	{
+ 	  free (tmppath);
+-	  tmppath = concat (ld_sysroot, "/etc/ld.so.conf",
++	  tmppath = concat (ld_sysroot, "/opt/etc/ld.so.conf",
+ 			    (const char *) NULL);
+ 	  ldelf_parse_ld_so_conf (&info, tmppath);
+ 	}

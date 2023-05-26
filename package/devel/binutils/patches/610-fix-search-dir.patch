@@ -1,0 +1,11 @@
+--- a/ld/configure.tgt
++++ b/ld/configure.tgt
+@@ -1094,7 +1094,7 @@ loongarch64-*)		targ_emul=elf64loongarch
+ 
+ esac
+ 
+-NATIVE_LIB_DIRS='/usr/local/lib /lib /usr/lib'
++NATIVE_LIB_DIRS='/opt/usr/lib'
+ case "${target}" in
+ 
+ *-*-dragonfly*)
