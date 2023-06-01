@@ -8,7 +8,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=busybox
 PKG_VERSION:=1.36.1
-PKG_RELEASE:=1
+PKG_RELEASE:=1a
 PKG_FLAGS:=essential
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -138,17 +138,12 @@ define Build/Compile
 endef
 
 define Package/busybox/install
-	$(INSTALL_DIR) $(1)/opt/etc/init.d
 	$(INSTALL_DIR) $(1)/opt/{bin,sbin}
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/busybox $(1)/opt/bin/
 	chmod u+s $(1)/opt/bin/busybox
 	$(INSTALL_DIR) $(1)/opt/share
 	(cd $(PKG_INSTALL_DIR); \
 	    find ./opt -lname "*" | sed "s|^./opt/||g" > $(1)/opt/share/busybox_applets.lst.dist)
-ifneq ($(CONFIG_BUSYBOX_$(BUSYBOX_SYM)_CROND),)
-	$(INSTALL_BIN) ./files/S10crond $(1)/opt/etc/init.d
-	$(INSTALL_DIR) $(1)/opt/var/spool/cron/crontabs
-endif
 endef
 
 # The postinst & prerm scripts will work only when busybox has readlink applet.
