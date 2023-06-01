@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=binutils
 PKG_VERSION:=2.40
-PKG_RELEASE:=1
+PKG_RELEASE:=1a
 
 PKG_SOURCE_URL:=@GNU/binutils
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
@@ -133,7 +133,7 @@ endef
 
 define Package/ar/install
 	$(INSTALL_DIR) $(1)/opt/bin
-	$(CP) $(PKG_INSTALL_DIR)/opt/bin/ar $(1)/opt/bin/
+	$(CP) $(PKG_INSTALL_DIR)/opt/bin/ar $(1)/opt/bin/binutils-ar
 endef
 
 define Package/binutils/install
