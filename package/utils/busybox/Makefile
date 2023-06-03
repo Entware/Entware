@@ -8,7 +8,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=busybox
 PKG_VERSION:=1.36.1
-PKG_RELEASE:=1a
+PKG_RELEASE:=1b
 PKG_FLAGS:=essential
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -175,9 +175,6 @@ do
     if [ ! -e $$applet ]
     then
        /opt/bin/busybox ln -s /opt/bin/busybox $$applet
-         if ! grep -qF -- "/opt/$$applet" /opt/lib/opkg/info/busybox.list; then
-           echo "/opt/$$applet" >> /opt/lib/opkg/info/busybox.list
-         fi
     else
        echo "Warning: '/opt/$$applet' is already exists, skipping."
     fi
@@ -186,12 +183,6 @@ endef
 
 define Package/busybox/prerm
 #!/opt/bin/busybox sh
-
-/opt/bin/busybox cat > /opt/lib/opkg/info/busybox.list <<EOF
-/opt/lib/upgrade/keep.d/busybox
-/opt/lib/opkg/info/busybox.list
-/opt/bin/busybox
-EOF
 
 bb_fc=`/opt/bin/busybox readlink -f /opt/bin/busybox`
 for file in /opt/bin/*; do
