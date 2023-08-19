@@ -1,0 +1,16 @@
+--- a/internal.h
++++ b/internal.h
+@@ -42,6 +42,14 @@ typedef uint16_t u16;
+ typedef uint8_t u8;
+ typedef int32_t s32;
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(4,4,250)
++/* ethtool.h epxects __KERNEL_DIV_ROUND_UP to be defined by <linux/kernel.h> */
++#include <linux/kernel.h>
++#ifndef __KERNEL_DIV_ROUND_UP
++#define __KERNEL_DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
++#endif
++#endif
++
+ #include <linux/ethtool.h>
+ #include <linux/net_tstamp.h>
