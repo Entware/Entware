@@ -28,9 +28,9 @@ define Require
 
     prereq-$(1): $(if $(PREREQ_PREV),prereq-$(PREREQ_PREV)) FORCE
 		printf "Checking '$(1)'... "
-		if $(NO_TRACE_MAKE) -f $(firstword $(MAKEFILE_LIST)) check-$(1) >/dev/null 2>/dev/null; then \
+		if $(NO_TRACE_MAKE) -f $(firstword $(MAKEFILE_LIST)) check-$(1) PATH="$(ORIG_PATH)" >/dev/null 2>/dev/null; then \
 			echo 'ok.'; \
-		elif $(NO_TRACE_MAKE) -f $(firstword $(MAKEFILE_LIST)) check-$(1) >/dev/null 2>/dev/null; then \
+		elif $(NO_TRACE_MAKE) -f $(firstword $(MAKEFILE_LIST)) check-$(1) PATH="$(ORIG_PATH)" >/dev/null 2>/dev/null; then \
 			echo 'updated.'; \
 		else \
 			echo 'failed.'; \
@@ -111,9 +111,18 @@ define SetupHostCommand
 					*" -> $$$$$$$$bin"*) \
 						[ -x "$(STAGING_DIR_HOST)/bin/$(strip $(1))" ] && exit 0 \
 						;; \
+					"-"*) \
+						find "$(STAGING_DIR_HOST)/stamp" | grep $(strip $(1)) && \
+						[ -x "$(STAGING_DIR_HOST)/bin/$(strip $(1))" ] && exit 0 \
+						;; \
+					*" -> /"*) \
+						;; \
+					*" -> "*) \
+						[ -x "$(STAGING_DIR_HOST)/bin/$(strip $(1))" ] && exit 0 \
+						;; \
 				esac; \
 				ln -sf "$$$$$$$$bin" "$(STAGING_DIR_HOST)/bin/$(strip $(1))"; \
-				exit 0; \
+				exit 1; \
 			fi; \
 		fi; \
 	done; \
