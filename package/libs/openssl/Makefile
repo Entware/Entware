@@ -10,9 +10,9 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openssl
-PKG_VERSION:=3.0.8
-PKG_RELEASE:=9
-PKG_BUILD_FLAGS:=no-mips16 gc-sections
+PKG_VERSION:=3.0.10
+PKG_RELEASE:=1
+PKG_BUILD_FLAGS:=no-mips16 gc-sections no-lto
 
 PKG_BUILD_PARALLEL:=1
 
@@ -26,7 +26,7 @@ PKG_SOURCE_URL:= \
 	ftp://ftp.pca.dfn.de/pub/tools/net/openssl/source/ \
 	ftp://ftp.pca.dfn.de/pub/tools/net/openssl/source/old/$(PKG_BASE)/
 
-PKG_HASH:=6c13d2bf38fdf31eac3ce2a347073673f5d63263398f1f69d0df4a41253e4b3e
+PKG_HASH:=1761d4f5b13a1028b9b6f3d4b8e17feb0cedc9370f6afe61d7193d2cdce83323
 
 PKG_LICENSE:=Apache-2.0
 PKG_LICENSE_FILES:=LICENSE
@@ -140,7 +140,6 @@ endef
 ifneq ($(CONFIG_OPENSSL_ENGINE_BUILTIN_PADLOCK)$(CONFIG_OPENSSL_ENGINE_BUILTIN_DEVCRYPTO),)
 define Package/libopenssl-conf/postinst
 #!/bin/sh
-OPENSSL_UCI="$${IPKG_INSTROOT}/etc/config/openssl"
 
 add_engine_config() {
 	if [ -z "$${IPKG_INSTROOT}" ] && uci -q get "openssl.$$1" >/dev/null; then
@@ -148,12 +147,6 @@ add_engine_config() {
 		uci set "openssl.$$1.builtin=1" && uci commit openssl
 		return
 	fi
-	{
-		echo "engine '$$1'"
-		echo "	option enabled '1'"
-		echo "	option builtin '1'"
-		echo
-	} >>"$${OPENSSL_UCI}"
 }
 
 $(if $(CONFIG_OPENSSL_ENGINE_BUILTIN_DEVCRYPTO),add_engine_config devcrypto)
@@ -374,6 +367,7 @@ define Build/Configure
 			--libdir=lib \
 			--openssldir=/opt/etc/ssl \
 			--cross-compile-prefix="$(TARGET_CROSS)" \
+			$(TARGET_CFLAGS) \
 			$(TARGET_CPPFLAGS) \
 			$(TARGET_LDFLAGS) \
 			$(OPENSSL_OPTIONS) && \
