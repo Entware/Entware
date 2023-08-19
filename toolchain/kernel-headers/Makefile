@@ -67,7 +67,8 @@ endef
 #	$(CP) \
 #		$(HOST_BUILD_DIR)/arch/mips/include/asm/asm.h \
 #		$(HOST_BUILD_DIR)/arch/mips/include/asm/regdef.h \
-#		$(if $(call kernel_patchver_ge,3.15.0),$(HOST_BUILD_DIR)/arch/mips/include/asm/asm-eva.h) \
+#		$(HOST_BUILD_DIR)/arch/mips/include/asm/asm-eva.h \
+#		$(HOST_BUILD_DIR)/arch/mips/include/asm/isa-rev.h \
 #		$(BUILD_DIR_TOOLCHAIN)/linux-dev/include/asm/
 #  endef
 #endif
@@ -89,7 +90,6 @@ define Host/Prepare
 endef
 
 define Host/Configure
-	env
 	yes '' | $(HOST_KMAKE) oldconfig
 	$(call Host/Configure/all)
 	$(call Host/Configure/post/$(ARCH))
