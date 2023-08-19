@@ -1,9 +1,13 @@
-commit 2388b119de9279d7adaa525c7ba502fcae1fe187 (HEAD -> master, origin/master, origin/main, origin/HEAD)
-Author: Nick Hainke <vincent@systemli.org>
-Date:   Tue May 23 16:47:42 2023 +0200
+commit 46ed38adeb76b376e34056c755e0c8ffa5acf29f (HEAD -> master, origin/master, origin/main, origin/HEAD)
+Author: Robert Marko <robimarko@gmail.com>
+Date:   Fri Aug 11 23:54:36 2023 +0200
 
-    ramips: mark patches accepted upstream
+    ipq40xx: remove DK01 and DK04 boards
     
-    Add kernel tags to the patches that got accepted upstream.
-    
-    Signed-off-by: Nick Hainke <vincent@systemli.org>
+    DK01 and DK04 board support has been in a form of 2 patches that we have
+    been carrying for a long time.
+    Both of the patches contain weird changes, dont follow any DT syntax and I
+    honestly doubt they are even valid.
+    DK01 and DK04 also have not been converted to DSA even after a long time
+    and I doubt that anybody in the community even has these boards as they are
+    QCA reference boards that are not even obtainable anymore.

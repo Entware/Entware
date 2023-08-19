@@ -211,11 +211,12 @@ ifndef DUMP
     export GCC_HONOUR_COPTS:=0
     TARGET_CROSS:=$(if $(TARGET_CROSS),$(TARGET_CROSS),$(OPTIMIZE_FOR_CPU)-openwrt-linux$(if $(TARGET_SUFFIX),-$(TARGET_SUFFIX))-)
     TARGET_CFLAGS+= -fhonour-copts
+    TARGET_CPPFLAGS+= -I$(TOOLCHAIN_DIR)/usr/include
     ifeq ($(CONFIG_USE_MUSL),y)
       TARGET_CPPFLAGS+= -I$(TOOLCHAIN_DIR)/include/fortify
     endif
     TARGET_CPPFLAGS+= -I$(TOOLCHAIN_DIR)/include
-    TARGET_LDFLAGS+= -L$(TOOLCHAIN_DIR)/lib
+    TARGET_LDFLAGS+= -L$(TOOLCHAIN_DIR)/usr/lib -L$(TOOLCHAIN_DIR)/lib
     TARGET_PATH:=$(TOOLCHAIN_DIR)/bin:$(TARGET_PATH)
   else
     ifeq ($(CONFIG_NATIVE_TOOLCHAIN),)
@@ -236,6 +237,10 @@ ifndef DUMP
     endif
   endif
 endif
+
+TARGET_LINKER?=bfd
+TARGET_LDFLAGS+= -fuse-ld=$(TARGET_LINKER)
+
 TARGET_PATH_PKG:=$(STAGING_DIR)/host/bin:$(STAGING_DIR_HOSTPKG)/bin:$(TARGET_PATH)
 
 ifeq ($(CONFIG_SOFT_FLOAT),y)
@@ -252,6 +257,7 @@ else
   endif
 endif
 
+export ORIG_PATH:=$(if $(ORIG_PATH),$(ORIG_PATH),$(PATH))
 export PATH:=$(TARGET_PATH)
 export STAGING_DIR STAGING_DIR_HOST STAGING_DIR_HOSTPKG
 export SH_FUNC:=. $(INCLUDE_DIR)/shell.sh;
@@ -262,8 +268,8 @@ export PKG_CONFIG
 
 export GOROOT:=$(STAGING_DIR_HOST)/go
 
-HOSTCC:=gcc
-HOSTCXX:=g++
+HOSTCC:=$(STAGING_DIR_HOST)/bin/gcc
+HOSTCXX:=$(STAGING_DIR_HOST)/bin/g++
 HOST_CPPFLAGS:=-I$(STAGING_DIR_HOST)/include $(if $(IS_PACKAGE_BUILD),-I$(STAGING_DIR_HOSTPKG)/include -I$(STAGING_DIR)/host/include)
 HOST_CXXFLAGS:=
 HOST_CFLAGS:=-O2 $(HOST_CPPFLAGS)
@@ -278,6 +284,7 @@ TARGET_RANLIB:=$(TARGET_CROSS)gcc-ranlib
 TARGET_NM:=$(TARGET_CROSS)gcc-nm
 TARGET_CC:=$(TARGET_CROSS)gcc
 TARGET_CXX:=$(TARGET_CROSS)g++
+TARGET_LD:=$(TARGET_CROSS)ld.$(TARGET_LINKER)
 KPATCH:=$(SCRIPT_DIR)/patch-kernel.sh
 FILECMD:=$(STAGING_DIR_HOST)/bin/file
 SED:=$(STAGING_DIR_HOST)/bin/sed -i -e
@@ -331,7 +338,7 @@ endif
 TARGET_CONFIGURE_OPTS = \
   AR="$(TARGET_AR)" \
   AS="$(TARGET_CC) -c $(TARGET_ASFLAGS)" \
-  LD=$(TARGET_CROSS)ld \
+  LD="$(TARGET_LD)" \
   NM="$(TARGET_NM)" \
   CC="$(TARGET_CC)" \
   GCC="$(TARGET_CC)" \
@@ -351,7 +358,7 @@ else
     STRIP:=$(TARGET_CROSS)strip $(call qstrip,$(CONFIG_STRIP_ARGS))
   else
     ifneq ($(CONFIG_USE_SSTRIP),)
-      STRIP:=$(STAGING_DIR_HOST)/bin/sstrip $(call qstrip,$(CONFIG_SSTRIP_ARGS))
+      STRIP:=$(STAGING_DIR_HOST)/bin/sstrip $(if $(CONFIG_SSTRIP_DISCARD_TRAILING_ZEROES),-z)
     endif
   endif
   RSTRIP= \
