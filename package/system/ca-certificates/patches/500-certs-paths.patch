@@ -1,5 +1,5 @@
---- a/work/Makefile
-+++ b/work/Makefile
+--- a/Makefile
++++ b/Makefile
 @@ -2,7 +2,7 @@
  # Makefile
  #
@@ -9,8 +9,8 @@
  SUBDIRS = mozilla
  
  all:
---- a/work/sbin/Makefile
-+++ b/work/sbin/Makefile
+--- a/sbin/Makefile
++++ b/sbin/Makefile
 @@ -3,7 +3,7 @@
  #
  #
@@ -20,8 +20,8 @@
  
  all:
  
---- a/work/sbin/update-ca-certificates
-+++ b/work/sbin/update-ca-certificates
+--- a/sbin/update-ca-certificates
++++ b/sbin/update-ca-certificates
 @@ -24,12 +24,12 @@
  verbose=0
  fresh=0
