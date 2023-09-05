@@ -14,6 +14,10 @@ PKG_NAME:=iptables
 PKG_VERSION:=1.4.21
 PKG_RELEASE:=3
 
+ifdef CONFIG_PACKAGE_opt-ndmsv2
+PKG_RELEASE:=3a
+endif
+
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=http://www.netfilter.org/projects/iptables/files \
 	ftp://ftp.be.netfilter.org/pub/netfilter/iptables/ \
@@ -29,7 +33,7 @@ PKG_BUILD_PARALLEL:=1
 PKG_LICENSE:=GPL-2.0
 PKG_CPE_ID:=cpe:/a:netfilter_core_team:iptables
 
-ifeq ($(CONFIG_PACKAGE_opt-ndmsv2),m)
+ifdef CONFIG_PACKAGE_opt-ndmsv2
 PATCH_DIR:=./patches_kn
 endif
 
@@ -41,7 +45,7 @@ define Package/iptables
   CATEGORY:=Network
   SUBMENU:=Firewall
   URL:=http://netfilter.org/
-ifeq ($(CONFIG_PACKAGE_opt-ndmsv2),m)
+ifdef CONFIG_PACKAGE_opt-ndmsv2
   PKGARCH:=$(BOARD)_kn
 endif
 endef
@@ -111,7 +115,8 @@ MAKE_FLAGS := \
 	KERNEL_DIR="$(LINUX_DIR)/user_headers/" PREFIX=/opt \
 	KBUILD_OUTPUT="$(LINUX_DIR)"
 
-define Build/InstallDev
+ifndef CONFIG_PACKAGE_opt-ndmsv2
+  define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/include
 	$(INSTALL_DIR) $(1)/opt/include/iptables
 	$(INSTALL_DIR) $(1)/opt/include/net/netfilter
@@ -133,7 +138,8 @@ define Build/InstallDev
 
 	# XXX: needed by firewall3
 	$(CP) $(PKG_BUILD_DIR)/extensions/libiptext*.so $(1)/opt/lib/
-endef
+  endef
+endif
 
 define Package/iptables/install
 	$(INSTALL_DIR) $(1)/opt/bin

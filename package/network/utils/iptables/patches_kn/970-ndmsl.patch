@@ -1,0 +1,159 @@
+diff -Naur a/extensions/libxt_ndm_security_level.c b/extensions/libxt_ndm_security_level.c
+--- a/extensions/libxt_ndm_security_level.c	1970-01-01 03:00:00.000000000 +0300
++++ b/extensions/libxt_ndm_security_level.c	2023-08-04 17:42:27.282726000 +0300
+@@ -0,0 +1,155 @@
++#include <stdio.h>
++#include <xtables.h>
++
++struct xt_ndm_security_level {
++    __u8 ndm_security_level;
++    __u8 invert;
++};
++
++static const char* ndmsl_print(const __u8 value)
++{
++	switch (value)
++	{
++		case 0:
++		{
++			return "none";
++		};
++
++		case 1:
++		{
++			return "private";
++		};
++
++		case 2:
++		{
++			return "protected";
++		};
++
++		case 3:
++		{
++			return "public";
++		};
++
++		default:
++		{
++			return "invalid";
++		}
++	};
++}
++
++
++enum {
++	O_SL = 0,
++};
++
++static void ndmslin_help(void)
++{
++	printf(
++"ndmslin match options:\n"
++"[!] --slin number   Match security level (0 - none, 1 - private, 2 - protected, 3 - public)\n");
++}
++
++static const struct xt_option_entry ndmslin_opts[] = {
++	{.name = "ndmslin", .id = O_SL, .type = XTTYPE_UINT8,
++	 .flags = XTOPT_INVERT | XTOPT_MAND | XTOPT_PUT,
++	 XTOPT_POINTER(struct xt_ndm_security_level, ndm_security_level)},
++	XTOPT_TABLEEND,
++};
++
++static void ndmslin_parse(struct xt_option_call *cb)
++{
++	struct xt_ndm_security_level *ndmslinfo = cb->data;
++
++	xtables_option_parse(cb);
++	if (cb->invert)
++		ndmslinfo->invert = true;
++}
++
++static void
++ndmslin_print(const void *ip, const struct xt_entry_match *match, int numeric)
++{
++	const struct xt_ndm_security_level *info = (void *)match->data;
++
++	printf(" slin %s%u (%s)", info->invert ? "! ":"", info->ndm_security_level,
++		ndmsl_print(info->ndm_security_level));
++}
++
++static void ndmslin_save(const void *ip, const struct xt_entry_match *match)
++{
++	const struct xt_ndm_security_level *info = (void *)match->data;
++
++	printf("%s --slin %u (%s)", info->invert ? " !" : "", info->ndm_security_level,
++		ndmsl_print(info->ndm_security_level));
++}
++
++static struct xtables_match ndmslin_match = {
++	.family		= NFPROTO_UNSPEC,
++ 	.name		= "ndmslin",
++	.version	= XTABLES_VERSION,
++	.size		= XT_ALIGN(sizeof(struct xt_ndm_security_level)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_ndm_security_level)),
++	.help		= ndmslin_help,
++	.print		= ndmslin_print,
++	.save		= ndmslin_save,
++	.x6_parse	= ndmslin_parse,
++	.x6_options	= ndmslin_opts,
++};
++
++static void ndmslout_help(void)
++{
++	printf(
++"ndmslout match options:\n"
++"[!] --slout number   Match security level (0 - none, 1 - private, 2 - protected, 3 - public)\n");
++}
++
++static const struct xt_option_entry ndmslout_opts[] = {
++	{.name = "ndmslout", .id = O_SL, .type = XTTYPE_UINT8,
++	 .flags = XTOPT_INVERT | XTOPT_MAND | XTOPT_PUT,
++	 XTOPT_POINTER(struct xt_ndm_security_level, ndm_security_level)},
++	XTOPT_TABLEEND,
++};
++
++static void ndmslout_parse(struct xt_option_call *cb)
++{
++	struct xt_ndm_security_level *ndmslinfo = cb->data;
++
++	xtables_option_parse(cb);
++	if (cb->invert)
++		ndmslinfo->invert = true;
++}
++
++static void
++ndmslout_print(const void *ip, const struct xt_entry_match *match, int numeric)
++{
++	const struct xt_ndm_security_level *info = (void *)match->data;
++
++	printf(" slout %s%u (%s)", info->invert ? "! ":"", info->ndm_security_level,
++		ndmsl_print(info->ndm_security_level));
++}
++
++static void ndmslout_save(const void *ip, const struct xt_entry_match *match)
++{
++	const struct xt_ndm_security_level *info = (void *)match->data;
++
++	printf("%s --slout %u (%s)", info->invert ? " !" : "", info->ndm_security_level,
++		ndmsl_print(info->ndm_security_level));
++}
++
++static struct xtables_match ndmslout_match = {
++	.family		= NFPROTO_UNSPEC,
++	.name		= "ndmslout",
++	.version	= XTABLES_VERSION,
++	.size		= XT_ALIGN(sizeof(struct xt_ndm_security_level)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_ndm_security_level)),
++	.help		= ndmslout_help,
++	.print		= ndmslout_print,
++	.save		= ndmslout_save,
++	.x6_parse	= ndmslout_parse,
++	.x6_options	= ndmslout_opts,
++};
++
++void _init(void)
++{
++	xtables_register_match(&ndmslin_match);
++	xtables_register_match(&ndmslout_match);
++}
