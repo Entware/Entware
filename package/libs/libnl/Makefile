@@ -6,12 +6,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libnl
-PKG_VERSION:=3.7.0
+PKG_VERSION:=3.9.0
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://github.com/thom311/libnl/releases/download/libnl$(subst .,_,$(PKG_VERSION))
-PKG_HASH:=9fe43ccbeeea72c653bdcf8c93332583135cda46a79507bfd0a483bb57f65939
+PKG_HASH:=aed507004d728a5cf11eab48ca4bf9e6e1874444e33939b9d3dfed25018ee9bb
 
 PKG_LICENSE:=LGPL-2.1
 PKG_LICENSE_FILES:=COPYING
@@ -55,10 +55,16 @@ $(call Package/libnl/default)
   DEPENDS:=+libnl-route
 endef
 
+define Package/libnl-cli
+$(call Package/libnl/default)
+  TITLE:=CLI Netlink Library
+  DEPENDS:=+libnl-genl +libnl-nf
+endef
+
 define Package/libnl
 $(call Package/libnl/default)
   TITLE:=Full Netlink Library
-  DEPENDS:=+libnl-genl +libnl-route +libnl-nf
+  DEPENDS:=+libnl-genl +libnl-route +libnl-nf +libnl-cli
 endef
 
 define Package/libnl-core/description
@@ -75,6 +81,10 @@ endef
 
 define Package/libnl-nf/description
  Netfilter Netlink Library Functions
+endef
+
+define Package/libnl-cli/description
+ CLI Netlink Library Functions
 endef
 
 define Package/libnl/description
@@ -120,6 +130,11 @@ define Package/libnl-nf/install
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-nf-3.so.* $(1)/opt/lib/
 endef
 
+define Package/libnl-cli/install
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-cli-3.so.* $(1)/usr/lib/
+endef
+
 define Package/libnl/install
 	:
 endef
@@ -128,4 +143,5 @@ $(eval $(call BuildPackage,libnl-core))
 $(eval $(call BuildPackage,libnl-genl))
 $(eval $(call BuildPackage,libnl-route))
 $(eval $(call BuildPackage,libnl-nf))
+$(eval $(call BuildPackage,libnl-cli))
 $(eval $(call BuildPackage,libnl))
