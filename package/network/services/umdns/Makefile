@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=umdns
-PKG_RELEASE:=5
+PKG_RELEASE:=1
 
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/mdnsd.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2023-01-16
-PKG_SOURCE_VERSION:=65b3308d13de7d7975444d34389651612e2a4d38
-PKG_MIRROR_HASH:=945fdf51a299b68982aab74e8fba5614f2553a7b4c49a3a53b3093ea8aac0279
+PKG_SOURCE_DATE:=2023-11-21
+PKG_SOURCE_VERSION:=b1e023eda3584da4a5dfbc33016839f977a02040
+PKG_MIRROR_HASH:=e0619afc3b8e1b8a627b35bbe0734746303db02e6d62fd8a3ff047d4fbaa0522
 
 PKG_MAINTAINER:=John Crispin <john@phrozen.org>
 PKG_LICENSE:=LGPL-2.1
@@ -27,7 +27,7 @@ define Package/umdns
   SECTION:=net
   CATEGORY:=Network
   TITLE:=OpenWrt Multicast DNS Daemon
-  DEPENDS:=+libubox +libubus +libblobmsg-json
+  DEPENDS:=+libubox +libubus +libblobmsg-json +libudebug
 endef
 
 TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include
