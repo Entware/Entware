@@ -9,12 +9,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gdb
-PKG_VERSION:=12.1
-PKG_RELEASE:=3
+PKG_VERSION:=14.1
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/gdb
-PKG_HASH:=0e1793bf8f2b54d53f46dea84ccfd446f48f81b297b28c4f7fc017b818d69fed
+PKG_HASH:=d66df51276143451fcbff464cc8723d68f1e9df45a6a2d5635a54e71643edb80
 
 PKG_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
@@ -34,7 +34,7 @@ endef
 define Package/gdb
 $(call Package/gdb/Default)
   TITLE:=GNU Debugger
-  DEPENDS+=+libreadline +libncurses +zlib +libgmp
+  DEPENDS+=+libreadline +libncurses +zlib +libgmp +libmpfr
 endef
 
 define Package/gdb/description
@@ -59,13 +59,12 @@ CONFIGURE_ARGS+= \
 	--with-system-zlib \
 	--without-expat \
 	--without-lzma \
+	--without-zstd \
 	--disable-unit-tests \
 	--disable-ubsan \
 	--disable-sim \
 	--disable-werror \
 	--disable-source-highlight \
-	--without-mpc \
-	--without-mpfr \
 	--without-isl \
 	--without-xxhash \
 	--with-libgmp-prefix=$(STAGING_DIR)/opt
