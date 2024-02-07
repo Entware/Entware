@@ -14,5 +14,5 @@ config GCC_VERSION
 	string
 	default "11.3.0"	if GCC_VERSION_11
 	default "12.3.0"	if GCC_VERSION_12
-	default "13.1.0"	if GCC_VERSION_13
+	default "13.2.0"	if GCC_VERSION_13
 	default "8.4.0"
