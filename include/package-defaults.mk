@@ -50,7 +50,7 @@ define Package/Default
   KCONFIG:=
   BUILDONLY:=
   HIDDEN:=
-  URL:=
+  URL:=$(PKG_URL)
   VARIANT:=
   DEFAULT_VARIANT:=
   USERID:=

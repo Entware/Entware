@@ -34,8 +34,8 @@ endif
 ifneq ($(if $(DUMP),1,$(__quilt_inc)),1)
 __quilt_inc:=1
 
-PATCH_DIR?=./patches
-FILES_DIR?=./files
+PATCH_DIR?=$(CURDIR)/patches
+FILES_DIR?=$(CURDIR)/files
 HOST_PATCH_DIR?=$(PATCH_DIR)
 HOST_FILES_DIR?=$(FILES_DIR)
 
@@ -108,13 +108,14 @@ define Kernel/Patch/Default
 endef
 
 define Quilt/RefreshDir
-	mkdir -p $(2)
-	-rm -f $(2)/* 2>/dev/null >/dev/null
-	@( \
+	-rm -rf $(2) 2>/dev/null >/dev/null
+	[ -f $(1)/.quilt_no_patch ] || mkdir -p $(2)
+	@[ -f $(1)/.quilt_no_patch ] || { \
 		for patch in $$$$($(if $(3),grep "^$(3)",cat) $(1)/patches/series | awk '{print $$$$1}'); do \
 			$(CP) -v "$(1)/patches/$$$$patch" $(2); \
 		done; \
-	)
+	}
+	@-rm -f $(1)/.quilt_no_patch 2>/dev/null >/dev/null;
 endef
 
 define Quilt/Refresh/Host
