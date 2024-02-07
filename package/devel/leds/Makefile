@@ -21,7 +21,7 @@ endef
 define Package/ledumon
   $(Package/leds/default)
   TITLE:=Monitoring userspace LEDs
-  DEPENDS:=+kmod-leds-uleds
+#  DEPENDS:=+kmod-leds-uleds
 endef
 
 define Package/ledumon/description
