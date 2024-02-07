@@ -1,13 +1,10 @@
-commit 46ed38adeb76b376e34056c755e0c8ffa5acf29f (HEAD -> master, origin/master, origin/main, origin/HEAD)
-Author: Robert Marko <robimarko@gmail.com>
-Date:   Fri Aug 11 23:54:36 2023 +0200
+commit 07ea72976168461d9a243a4201a8d1e6cf529715 (HEAD -> master, origin/master, origin/main, origin/HEAD)
+Author: Nick Hainke <vincent@systemli.org>
+Date:   Tue Feb 6 12:26:33 2024 +0100
 
-    ipq40xx: remove DK01 and DK04 boards
+    toolchain: binutils: add support for version 2.42
     
-    DK01 and DK04 board support has been in a form of 2 patches that we have
-    been carrying for a long time.
-    Both of the patches contain weird changes, dont follow any DT syntax and I
-    honestly doubt they are even valid.
-    DK01 and DK04 also have not been converted to DSA even after a long time
-    and I doubt that anybody in the community even has these boards as they are
-    QCA reference boards that are not even obtainable anymore.
+    Release Notes:
+    https://lists.gnu.org/archive/html/info-gnu/2024-01/msg00016.html
+    
+    Signed-off-by: Nick Hainke <vincent@systemli.org>
