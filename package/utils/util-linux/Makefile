@@ -12,12 +12,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=util-linux
-PKG_VERSION:=2.39
-PKG_RELEASE:=2
+PKG_VERSION:=2.39.3
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.39
-PKG_HASH:=32b30a336cda903182ed61feb3e9b908b762a5e66fe14e43efb88d37162075cb
+PKG_HASH:=7b6605e48d1a49f43cc4b4cfc59f313d0dd5402fa40b96810bd572e167dfed0f
 PKG_CPE_ID:=cpe:/a:kernel:util-linux
 
 PKG_LICENSE:=GPL-2.0-only
@@ -176,6 +176,21 @@ $(call Package/util-linux/Default)
   SUBMENU:=Disc
 endef
 
+define Package/cfdisk/description
+ cfdisk is a curses-based program for partitioning any hard disk drive
+endef
+
+define Package/colrm
+$(call Package/util-linux/Default)
+  TITLE:=colrm removes selected columns from a file
+  DEPENDS:=
+endef
+
+define Package/colrm/description
+ colrm removes selected columns from a file. Input is taken from
+ standard input. Output is sent to standard output.
+endef
+
 define Package/column
 $(call Package/util-linux/Default)
   TITLE:=columnate lists
@@ -184,10 +199,6 @@ endef
 
 define Package/column/description
  The  column  utility  formats  its  input  into  multiple  columns
-endef
-
-define Package/cfdisk/description
- cfdisk is a curses-based program for partitioning any hard disk drive
 endef
 
 define Package/dmesg
@@ -765,6 +776,11 @@ define Package/cfdisk/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/cfdisk $(1)/opt/sbin/
 endef
 
+define Package/colrm/install
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/colrm $(1)/opt/bin/
+endef
+
 define Package/column/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/column $(1)/opt/bin/
@@ -992,6 +1008,7 @@ $(eval $(call BuildPackage,blkid))
 $(eval $(call BuildPackage,blockdev))
 $(eval $(call BuildPackage,cal))
 $(eval $(call BuildPackage,cfdisk))
+$(eval $(call BuildPackage,colrm))
 $(eval $(call BuildPackage,column))
 $(eval $(call BuildPackage,dmesg))
 $(eval $(call BuildPackage,eject))

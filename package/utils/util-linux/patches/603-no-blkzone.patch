@@ -2,7 +2,7 @@
 
 --- a/meson.build
 +++ b/meson.build
-@@ -161,7 +161,6 @@ headers = '''
+@@ -164,7 +164,6 @@ headers = '''
          asm-generic/fcntl.h
          asm/fcntl.h
          asm/io.h
@@ -10,7 +10,7 @@
          linux/capability.h
          linux/cdrom.h
          linux/compiler.h
-@@ -1444,16 +1443,16 @@ exes += exe
+@@ -1475,16 +1474,16 @@ exes += exe
  manadocs += ['sys-utils/blkdiscard.8.adoc']
  bashcompletions += ['blkdiscard']
  

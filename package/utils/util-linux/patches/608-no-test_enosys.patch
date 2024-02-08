@@ -2,9 +2,9 @@
 
 --- a/meson.build
 +++ b/meson.build
-@@ -3241,11 +3241,11 @@ exes += exe
- #  include_directories : includes)
- #exes += exe
+@@ -3282,11 +3282,11 @@ exes += exe
+ #  exes += exe
+ #endif
  
 -exe = executable(
 -  'test_enosys',

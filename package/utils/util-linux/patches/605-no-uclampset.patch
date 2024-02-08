@@ -2,7 +2,7 @@
 
 --- a/meson.build
 +++ b/meson.build
-@@ -2883,22 +2883,21 @@ exe3 = executable(
+@@ -2921,22 +2921,21 @@ exe3 = executable(
    install : opt,
    build_by_default : opt)
  

@@ -14,33 +14,37 @@
 +#)
 --- a/meson.build
 +++ b/meson.build
-@@ -2840,18 +2840,18 @@ if not is_disabler(exe)
+@@ -2876,20 +2876,20 @@ if not is_disabler(exe)
    bashcompletions += ['fadvise']
  endif
  
--exe = executable(
--  'waitpid',
--  waitpid_sources,
--  include_directories : includes,
--  link_with : [lib_common],
--  install_dir : usrbin_exec_dir,
--  install : true)
--if not is_disabler(exe)
--  exes += exe
--  manadocs += ['misc-utils/waitpid.1.adoc']
--  bashcompletions += ['waitpid']
+-if LINUX and conf.get('HAVE_PIDFD_OPEN') != false
+-  exe = executable(
+-    'waitpid',
+-    waitpid_sources,
+-    include_directories : includes,
+-    link_with : [lib_common],
+-    install_dir : usrbin_exec_dir,
+-    install : true)
+-  if not is_disabler(exe)
+-    exes += exe
+-    manadocs += ['misc-utils/waitpid.1.adoc']
+-    bashcompletions += ['waitpid']
+-  endif
 -endif
-+#exe = executable(
-+#  'waitpid',
-+#  waitpid_sources,
-+#  include_directories : includes,
-+#  link_with : [lib_common],
-+#  install_dir : usrbin_exec_dir,
-+#  install : true)
-+#if not is_disabler(exe)
-+#  exes += exe
-+#  manadocs += ['misc-utils/waitpid.1.adoc']
-+#  bashcompletions += ['waitpid']
++#if LINUX and conf.get('HAVE_PIDFD_OPEN') != false
++#  exe = executable(
++#    'waitpid',
++#    waitpid_sources,
++#    include_directories : includes,
++#    link_with : [lib_common],
++#    install_dir : usrbin_exec_dir,
++#    install : true)
++#  if not is_disabler(exe)
++#    exes += exe
++#    manadocs += ['misc-utils/waitpid.1.adoc']
++#    bashcompletions += ['waitpid']
++#  endif
 +#endif
  
  ############################################################

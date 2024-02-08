@@ -2,7 +2,7 @@
 
 --- a/meson.build
 +++ b/meson.build
-@@ -1454,15 +1454,15 @@ bashcompletions += ['blkdiscard']
+@@ -1485,15 +1485,15 @@ bashcompletions += ['blkdiscard']
  #manadocs += ['sys-utils/blkzone.8.adoc']
  #bashcompletions += ['blkzone']
  

@@ -1,6 +1,6 @@
 --- a/disk-utils/fsck.c
 +++ b/disk-utils/fsck.c
-@@ -69,7 +69,7 @@
+@@ -73,7 +73,7 @@
  #define MAX_DEVICES 32
  #define MAX_ARGS 32
  
@@ -9,7 +9,7 @@
  
  static const char *ignored_types[] = {
  	"ignore",
-@@ -154,7 +154,7 @@ static int kill_sent;
+@@ -158,7 +158,7 @@ static int kill_sent;
  static char *fstype;
  static struct fsck_instance *instance_list;
  
