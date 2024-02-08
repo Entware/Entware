@@ -132,7 +132,7 @@ endef
 
 define Package/libnl-cli/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-cli-3.so.* $(1)/usr/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-cli-3.so.* $(1)/opt/lib/
 endef
 
 define Package/libnl/install
