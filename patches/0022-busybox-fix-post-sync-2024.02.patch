@@ -1,0 +1,100 @@
+From cd497534a438fa15d90ba4fdf3cf9f5c67cbcd9c Mon Sep 17 00:00:00 2001
+From: The-BB <tun.chen.bo@gmail.com>
+Date: Sun, 11 Feb 2024 18:57:43 +0300
+Subject: [PATCH 22/39] busybox: fix post-sync, 2024.02
+
+Config-*.in - изменено
+Makefile:
+jsonfilter - не нужОн, ntpd* файло не используются
+конфиги - не нужны, не используются
+chmod - уже фиксанут PKG_FILE_MODES
+генератор списка - пофиг (можно не нужно)
+---
+ package/utils/busybox/Config-defaults.in |  4 ++--
+ package/utils/busybox/Makefile           | 20 +++++++++-----------
+ 2 files changed, 11 insertions(+), 13 deletions(-)
+
+diff --git a/package/utils/busybox/Config-defaults.in b/package/utils/busybox/Config-defaults.in
+index bc07192f..8fdafb23 100644
+--- a/package/utils/busybox/Config-defaults.in
++++ b/package/utils/busybox/Config-defaults.in
+@@ -1333,7 +1333,7 @@ config BUSYBOX_DEFAULT_USE_BB_CRYPT
+ 	default n
+ config BUSYBOX_DEFAULT_USE_BB_CRYPT_SHA
+ 	bool
+-	default n
++	default y
+ config BUSYBOX_DEFAULT_ADD_SHELL
+ 	bool
+ 	default n
+@@ -1366,7 +1366,7 @@ config BUSYBOX_DEFAULT_CHPASSWD
+ 	default n
+ config BUSYBOX_DEFAULT_FEATURE_DEFAULT_PASSWD_ALGO
+ 	string
+-	default "md5"
++	default "sha256"
+ config BUSYBOX_DEFAULT_CRYPTPW
+ 	bool
+ 	default n
+diff --git a/package/utils/busybox/Makefile b/package/utils/busybox/Makefile
+index dc3b1f17..95f93316 100644
+--- a/package/utils/busybox/Makefile
++++ b/package/utils/busybox/Makefile
+@@ -2,13 +2,13 @@
+ #
+ # Copyright (C) 2006-2021 OpenWrt.org
+ #
+-# Entware specific: postinst/prerm
++# Entware specific: postinst/prerm; no jsonfilter as deps; no configs
+ 
+ include $(TOPDIR)/rules.mk
+ 
+ PKG_NAME:=busybox
+ PKG_VERSION:=1.36.1
+-PKG_RELEASE:=1b
++PKG_RELEASE:=1c
+ PKG_FLAGS:=essential
+ 
+ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+@@ -46,7 +46,7 @@ define Package/busybox/Default
+   MAINTAINER:=Felix Fietkau <nbd@nbd.name>
+   TITLE:=Core utilities for embedded Linux
+   URL:=http://busybox.net/
+-  DEPENDS:=+BUSYBOX_CONFIG_PAM:libpam +BUSYBOX_CONFIG_NTPD:jsonfilter
++  DEPENDS:=+BUSYBOX_CONFIG_PAM:libpam #+BUSYBOX_CONFIG_NTPD:jsonfilter
+   USERID:=ntp=123:ntp=123
+ endef
+ 
+@@ -85,12 +85,12 @@ define Package/busybox/conffiles/crond
+ endef
+ endif
+ 
+-define Package/busybox/conffiles
+-$(Package/busybox/conffiles/syslog)
+-$(Package/busybox/conffiles/crond)
+-endef
++#define Package/busybox/conffiles
++#$(Package/busybox/conffiles/syslog)
++#$(Package/busybox/conffiles/crond)
++#endef
+ 
+-Package/busybox-selinux/conffiles = $(Package/busybox/conffiles)
++#Package/busybox-selinux/conffiles = $(Package/busybox/conffiles)
+ 
+ ifndef CONFIG_USE_MUSL
+ LDLIBS:=m crypt
+@@ -140,10 +140,8 @@ endef
+ define Package/busybox/install
+ 	$(INSTALL_DIR) $(1)/opt/{bin,sbin}
+ 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/busybox $(1)/opt/bin/
+-	chmod u+s $(1)/opt/bin/busybox
+ 	$(INSTALL_DIR) $(1)/opt/share
+-	(cd $(PKG_INSTALL_DIR); \
+-	    find ./opt -lname "*" | sed "s|^./opt/||g" > $(1)/opt/share/busybox_applets.lst.dist)
++	$(FIND) $(PKG_INSTALL_DIR) -lname "*" | sed "s|$(PKG_INSTALL_DIR)/opt/||g" > $(1)/opt/share/busybox_applets.lst.dist
+ endef
+ 
+ # The postinst & prerm scripts will work only when busybox has readlink applet.
+-- 
+2.30.2
+

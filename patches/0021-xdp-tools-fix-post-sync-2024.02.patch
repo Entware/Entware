@@ -1,0 +1,26 @@
+From 8dc037df9be8c9826748d03cfb0b15b79bc2db5b Mon Sep 17 00:00:00 2001
+From: The-BB <tun.chen.bo@gmail.com>
+Date: Sun, 11 Feb 2024 18:57:43 +0300
+Subject: [PATCH 21/39] xdp-tools: fix post-sync, 2024.02
+
+изменено
+---
+ package/network/utils/xdp-tools/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/package/network/utils/xdp-tools/Makefile b/package/network/utils/xdp-tools/Makefile
+index 8042505e..f77a5885 100644
+--- a/package/network/utils/xdp-tools/Makefile
++++ b/package/network/utils/xdp-tools/Makefile
+@@ -94,7 +94,7 @@ MAKE_VARS += \
+ 
+ define Build/Configure
+ 	$(call Build/Configure/Default)
+-	echo "BPF_CFLAGS += -I$(BPF_HEADERS_DIR)/tools/lib" >> $(PKG_BUILD_DIR)/config.mk
++	echo "BPF_CFLAGS += -I$(BPF_HEADERS_DIR)/tools/lib -fno-stack-protector" >> $(PKG_BUILD_DIR)/config.mk
+ endef
+ 
+ define Build/InstallDev
+-- 
+2.30.2
+

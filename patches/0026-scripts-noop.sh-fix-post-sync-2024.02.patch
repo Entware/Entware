@@ -1,0 +1,23 @@
+From a1c0b6e4fc348d2ec5d00a10616095cd103b3d8d Mon Sep 17 00:00:00 2001
+From: The-BB <tun.chen.bo@gmail.com>
+Date: Sun, 11 Feb 2024 18:57:43 +0300
+Subject: [PATCH 26/39] scripts/noop.sh: fix post-sync, 2024.02
+
+потеряшка (пропущено)
+см. https://github.com/openwrt/openwrt/commit/2c22589782d74e9db5d79f72b259df08beb5ef7a
+---
+ scripts/noop.sh | 2 ++
+ 1 file changed, 2 insertions(+)
+ create mode 100755 scripts/noop.sh
+
+diff --git a/scripts/noop.sh b/scripts/noop.sh
+new file mode 100755
+index 00000000..96b71fe3
+--- /dev/null
++++ b/scripts/noop.sh
+@@ -0,0 +1,2 @@
++#!/bin/sh
++# This script does nothing, intentionally.
+-- 
+2.30.2
+

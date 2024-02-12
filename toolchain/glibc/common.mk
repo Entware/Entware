@@ -12,6 +12,7 @@ PKG_RELEASE:=1
 
 PKG_SOURCE_URL:=@GNU/glibc
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+PKG_CPE_ID:=cpe:/a:gnu:glibc
 
 ifeq ($(PKG_VERSION),2.23)
   PKG_HASH:=f39f068ce7d749608ff15182b7da28627dd129eaba2687e28bec876d26135629
@@ -72,6 +73,7 @@ GLIBC_CONFIGURE:= \
 		--$(if $(CONFIG_SOFT_FLOAT),without,with)-fp \
 		  $(if $(CONFIG_PKG_CC_STACKPROTECTOR_REGULAR),--enable-stack-protector=yes) \
 		  $(if $(CONFIG_PKG_CC_STACKPROTECTOR_STRONG),--enable-stack-protector=strong) \
+		  $(if $(CONFIG_PKG_CC_STACKPROTECTOR_ALL),--enable-stack-protector=all) \
 		  $(if $(CONFIG_PKG_RELRO_FULL),--enable-bind-now) \
 		  $(if $(or $(CONFIG_GLIBC_USE_VERSION_2_23),\
 			    $(CONFIG_GLIBC_USE_VERSION_2_27)),--enable-obsolete-rpc) \

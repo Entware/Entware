@@ -1,0 +1,25 @@
+From 7aa9b0c7ac22d02c6d47f48e456ba4ddcbb2eb84 Mon Sep 17 00:00:00 2001
+From: The-BB <tun.chen.bo@gmail.com>
+Date: Sun, 11 Feb 2024 18:57:41 +0300
+Subject: [PATCH 09/39] libnl: fix post-sync, 2024.02
+
+потеряшка (пропущено)
+---
+ package/libs/libnl/Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/package/libs/libnl/Makefile b/package/libs/libnl/Makefile
+index 181f0bbe..5de9b2c9 100644
+--- a/package/libs/libnl/Makefile
++++ b/package/libs/libnl/Makefile
+@@ -108,6 +108,7 @@ define Build/InstallDev
+ 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-genl-3.so $(1)/opt/lib/libnl-genl.so
+ 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-nf-3.so $(1)/opt/lib/libnl-nf.so
+ 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-route-3.so $(1)/opt/lib/libnl-route.so
++	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-cli-3.so $(1)/opt/lib/libnl-cli.so
+ endef
+ 
+ define Package/libnl-core/install
+-- 
+2.30.2
+

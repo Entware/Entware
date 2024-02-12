@@ -1,0 +1,63 @@
+From 7299ed037b3348537ed1a3170449570306a3ee08 Mon Sep 17 00:00:00 2001
+From: The-BB <tun.chen.bo@gmail.com>
+Date: Sun, 11 Feb 2024 18:57:43 +0300
+Subject: [PATCH 28/39] target/imagebuilder: fix post-sync, 2024.02
+
+косметика
+---
+ target/imagebuilder/Makefile       | 6 ++++--
+ target/imagebuilder/files/Makefile | 5 ++++-
+ 2 files changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/target/imagebuilder/Makefile b/target/imagebuilder/Makefile
+index 3bbadc72..c3b6c9c1 100644
+--- a/target/imagebuilder/Makefile
++++ b/target/imagebuilder/Makefile
+@@ -27,7 +27,7 @@ all: compile
+ $(BIN_DIR)/$(IB_NAME).tar.xz: clean
+ 	rm -rf $(PKG_BUILD_DIR)
+ 	mkdir -p $(IB_KDIR) $(IB_LDIR) $(PKG_BUILD_DIR)/staging_dir/host/lib \
+-		$(PKG_BUILD_DIR)/target $(PKG_BUILD_DIR)/scripts $(IB_DTSDIR)
++		$(PKG_BUILD_DIR)/target/linux $(PKG_BUILD_DIR)/scripts $(IB_DTSDIR)
+ 	-cp $(TOPDIR)/.config $(PKG_BUILD_DIR)/.config
+ 	$(SED) 's/^CONFIG_BINARY_FOLDER=.*/# CONFIG_BINARY_FOLDER is not set/' $(PKG_BUILD_DIR)/.config
+ 	$(SED) 's/^CONFIG_DOWNLOAD_FOLDER=.*/# CONFIG_DOWNLOAD_FOLDER is not set/' $(PKG_BUILD_DIR)/.config
+@@ -78,7 +78,9 @@ ifneq ($(CONFIG_SIGNATURE_CHECK),)
+ 	$(CP) -L $(STAGING_DIR_ROOT)/usr/sbin/opkg-key $(PKG_BUILD_DIR)/scripts/
+ endif
+ 
+-	$(CP) -L $(TOPDIR)/target/linux $(PKG_BUILD_DIR)/target/
++	$(CP) -L $(TOPDIR)/target/linux/Makefile $(PKG_BUILD_DIR)/target/linux
++	$(CP) -L $(TOPDIR)/target/linux/generic $(PKG_BUILD_DIR)/target/linux
++	$(CP) -L $(TOPDIR)/target/linux/$(BOARD) $(PKG_BUILD_DIR)/target/linux
+ 	if [ -d $(TOPDIR)/staging_dir/host/lib/grub ]; then \
+ 		$(CP) $(TOPDIR)/staging_dir/host/lib/grub/ $(PKG_BUILD_DIR)/staging_dir/host/lib; \
+ 	fi
+diff --git a/target/imagebuilder/files/Makefile b/target/imagebuilder/files/Makefile
+index 5aeedb74..78ec7e2e 100644
+--- a/target/imagebuilder/files/Makefile
++++ b/target/imagebuilder/files/Makefile
+@@ -13,6 +13,7 @@ export TOPDIR LC_ALL LANG
+ export OPENWRT_VERBOSE=s
+ all: help
+ 
++export ORIG_PATH:=$(if $(ORIG_PATH),$(ORIG_PATH),$(PATH))
+ export PATH:=$(TOPDIR)/staging_dir/host/bin:$(PATH)
+ 
+ ifneq ($(OPENWRT_BUILD),1)
+@@ -126,9 +127,11 @@ _call_info: FORCE
+ 	echo 'Available Profiles:'
+ 	echo; $(PROFILE_LIST)
+ 
+-BUILD_PACKAGES:=$(USER_PACKAGES) $(sort $(DEFAULT_PACKAGES) $($(USER_PROFILE)_PACKAGES) kernel)
++BUILD_PACKAGES:=$(sort $(DEFAULT_PACKAGES) $($(USER_PROFILE)_PACKAGES) kernel)
+ # "-pkgname" in the package list means remove "pkgname" from the package list
+ BUILD_PACKAGES:=$(filter-out $(filter -%,$(BUILD_PACKAGES)) $(patsubst -%,%,$(filter -%,$(BUILD_PACKAGES))),$(BUILD_PACKAGES))
++BUILD_PACKAGES:=$(USER_PACKAGES) $(BUILD_PACKAGES)
++BUILD_PACKAGES:=$(filter-out $(filter -%,$(BUILD_PACKAGES)) $(patsubst -%,%,$(filter -%,$(BUILD_PACKAGES))),$(BUILD_PACKAGES))
+ PACKAGES:=
+ 
+ _call_image: staging_dir/host/.prereq-build
+-- 
+2.30.2
+

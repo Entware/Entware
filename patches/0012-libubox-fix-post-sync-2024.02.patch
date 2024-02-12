@@ -1,0 +1,45 @@
+From 2c1b60a21ca68ecc1a127b6e7315971542d1bcfd Mon Sep 17 00:00:00 2001
+From: The-BB <tun.chen.bo@gmail.com>
+Date: Sun, 11 Feb 2024 18:57:42 +0300
+Subject: [PATCH 12/39] libubox: fix post-sync, 2024.02
+
+первый - спорно: ABI не используется, патч поиска lua выкинут
+второй - потеряшка (пропущено)
+---
+ package/libs/libubox/Makefile | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/package/libs/libubox/Makefile b/package/libs/libubox/Makefile
+index d3a54013..091ef7c3 100644
+--- a/package/libs/libubox/Makefile
++++ b/package/libs/libubox/Makefile
+@@ -66,9 +66,9 @@ define Package/libubox-lua
+   TITLE:=Lua binding for the OpenWrt Basic utility library
+ endef
+ 
++TARGET_CFLAGS += -I$(STAGING_DIR)/opt/include
+ CMAKE_OPTIONS += \
+-	-DLUAPATH=/opt/lib/lua \
+-	-DABIVERSION="$(PKG_ABI_VERSION)"
++	-DLUAPATH=/opt/lib/lua
+ 
+ define Package/libubox/install
+ 	$(INSTALL_DIR) $(1)/opt/lib/
+@@ -104,6 +104,14 @@ CMAKE_HOST_OPTIONS += \
+ 	-DCMAKE_MACOSX_RPATH=1 \
+ 	-DCMAKE_INSTALL_RPATH="${STAGING_DIR_HOST}/lib"
+ 
++ifeq ($(HOST_OS),Darwin)
++  define Host/Install
++	$(Host/Install/Default)
++	$(INSTALL_DIR) $(STAGING_DIR_HOSTPKG)/lib
++	cd "$(STAGING_DIR_HOSTPKG)/lib" && ln -sf ../../host/lib/libubox.* .
++  endef
++endif
++
+ $(eval $(call BuildPackage,libubox))
+ $(eval $(call BuildPackage,libblobmsg-json))
+ $(eval $(call BuildPackage,jshn))
+-- 
+2.30.2
+

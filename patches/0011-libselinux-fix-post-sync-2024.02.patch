@@ -1,0 +1,26 @@
+From b126d1c9e925e05a8407c03dcfaa55b6e797f3fa Mon Sep 17 00:00:00 2001
+From: The-BB <tun.chen.bo@gmail.com>
+Date: Sun, 11 Feb 2024 18:57:41 +0300
+Subject: [PATCH 11/39] libselinux: fix post-sync, 2024.02
+
+косметика
+---
+ package/libs/libselinux/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/package/libs/libselinux/Makefile b/package/libs/libselinux/Makefile
+index f744a1ec..1675b19b 100644
+--- a/package/libs/libselinux/Makefile
++++ b/package/libs/libselinux/Makefile
+@@ -106,7 +106,7 @@ endef
+ $(foreach a,$(LIBSELINUX_UTILS),$(eval $(call GenUtilPkg,libselinux-$(a),$(a))))
+ 
+ # Needed to link libselinux utilities, which link against
+-# libselinux.so, which indirectly depends on libpcre.so, installed in
++# libselinux.so, which indirectly depends on libpcre2.so, installed in
+ # $(STAGING_DIR_HOSTPKG).
+ HOST_LDFLAGS += -Wl,-rpath="$(STAGING_DIR_HOSTPKG)/lib"
+ 
+-- 
+2.30.2
+

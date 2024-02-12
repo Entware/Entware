@@ -1,24 +1,20 @@
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# Copyright (C) 2011-2016 Entware
-#
-# This is free software, licensed under the GNU General Public License v2.
-# See /LICENSE for more information.
-#
+# Copyright (C) 2021-2024 Entware
 
 include $(TOPDIR)/rules.mk
 
 ARCH:=mipsel
-CPU_TYPE:=mips32r2
 BOARD:=mipsel-3.4
-BOARDNAME:=Entware (mipsel, soft float, kernel-3.4)
+BOARDNAME:=Entware (mipsel, Linux 3.4.112)
+CPU_TYPE:=mips32r2
 FEATURES:=audio gpio pci usb
 KERNEL_PATCHVER:=3.4
-DEFAULT_PACKAGES := toolchain
 
 include $(INCLUDE_DIR)/target.mk
 
 define Target/Description
-	Build Software Repository for MIPSEL soft float routers.
+  Build Software Repository for MIPS (little-endian) soft float routers.
 endef
 
 $(eval $(call BuildTarget))

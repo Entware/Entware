@@ -1,0 +1,32 @@
+From 71d327e5048448f85a756d61dcb4d303c2c9a35e Mon Sep 17 00:00:00 2001
+From: The-BB <tun.chen.bo@gmail.com>
+Date: Sun, 11 Feb 2024 18:57:43 +0300
+Subject: [PATCH 24/39] f2fs-tools: fix post-sync, 2024.02
+
+изменено (пофих)
+---
+ package/utils/f2fs-tools/Makefile | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/package/utils/f2fs-tools/Makefile b/package/utils/f2fs-tools/Makefile
+index 0877bbc4..ccbc9247 100644
+--- a/package/utils/f2fs-tools/Makefile
++++ b/package/utils/f2fs-tools/Makefile
+@@ -133,10 +133,10 @@ Package/mkf2fs-selinux/install = $(Package/mkf2fs/install)
+ define Package/f2fsck/install
+ 	$(INSTALL_DIR) $(1)/opt/sbin
+ 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/fsck.f2fs $(1)/opt/sbin
+-	ln -s fsck.f2fs $(1)/opt/sbin/defrag.f2fs
+-	ln -s fsck.f2fs $(1)/opt/sbin/dump.f2fs
+-	ln -s fsck.f2fs $(1)/opt/sbin/sload.f2fs
+-	ln -s fsck.f2fs $(1)/opt/sbin/resize.f2fs
++	$(LN) ../sbin/fsck.f2fs $(1)/opt/sbin/defrag.f2fs
++	$(LN) ../sbin/fsck.f2fs $(1)/opt/sbin/dump.f2fs
++	$(LN) ../sbin/fsck.f2fs $(1)/opt/sbin/sload.f2fs
++	$(LN) ../sbin/fsck.f2fs $(1)/opt/sbin/resize.f2fs
+ endef
+ 
+ Package/f2fsck-selinux/install = $(Package/f2fsck/install)
+-- 
+2.30.2
+

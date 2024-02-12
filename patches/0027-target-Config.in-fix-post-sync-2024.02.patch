@@ -1,0 +1,36 @@
+From 278f099931b36c6339a1e15c2487468aa8653a8e Mon Sep 17 00:00:00 2001
+From: The-BB <tun.chen.bo@gmail.com>
+Date: Sun, 11 Feb 2024 18:57:43 +0300
+Subject: [PATCH 27/39] target/Config.in: fix post-sync, 2024.02
+
+косметика
+---
+ target/Config.in | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/target/Config.in b/target/Config.in
+index a6b3351a..ac0f1f98 100644
+--- a/target/Config.in
++++ b/target/Config.in
+@@ -184,6 +184,10 @@ config powerpc64
+ 	select ARCH_64BIT
+ 	bool
+ 
++config riscv64
++	select ARCH_64BIT
++	bool
++
+ config sh3
+ 	bool
+ 
+@@ -223,6 +227,7 @@ config ARCH
+ 	default "mips64el"  if mips64el
+ 	default "powerpc"   if powerpc
+ 	default "powerpc64" if powerpc64
++	default "riscv64"   if riscv64
+ 	default "sh3"       if sh3
+ 	default "sh3eb"     if sh3eb
+ 	default "sh4"       if sh4
+-- 
+2.30.2
+

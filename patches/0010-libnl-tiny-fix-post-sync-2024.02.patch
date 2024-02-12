@@ -1,0 +1,34 @@
+From 84626995eb0b53ba28f0dc25bb535a58be60b5c8 Mon Sep 17 00:00:00 2001
+From: The-BB <tun.chen.bo@gmail.com>
+Date: Sun, 11 Feb 2024 18:57:41 +0300
+Subject: [PATCH 10/39] libnl-tiny: fix post-sync, 2024.02
+
+изменено
+см. https://github.com/openwrt/openwrt/commit/4af0a72a65d7c92ed4e7c2455090f695f424903d
+---
+ package/libs/libnl-tiny/Makefile | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/package/libs/libnl-tiny/Makefile b/package/libs/libnl-tiny/Makefile
+index 34aabda2..aab8b5f0 100644
+--- a/package/libs/libnl-tiny/Makefile
++++ b/package/libs/libnl-tiny/Makefile
+@@ -42,13 +42,13 @@ endif
+ define Build/InstallDev
+ 	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig $(1)/opt/include/libnl-tiny
+ 	$(CP) $(PKG_INSTALL_DIR)/opt/include/libnl-tiny/* $(1)/opt/include/libnl-tiny
+-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/libnl-tiny.so $(1)/opt/lib/
++	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-tiny.so* $(1)/opt/lib/
+ 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/libnl-tiny.pc $(1)/opt/lib/pkgconfig
+ endef
+ 
+ define Package/libnl-tiny/install
+ 	$(INSTALL_DIR) $(1)/opt/lib
+-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/libnl-tiny.so $(1)/opt/lib/
++	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-tiny.so.* $(1)/opt/lib/
+ endef
+ 
+ $(eval $(call BuildPackage,libnl-tiny))
+-- 
+2.30.2
+

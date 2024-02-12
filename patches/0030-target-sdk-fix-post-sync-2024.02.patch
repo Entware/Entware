@@ -1,0 +1,80 @@
+From dcbc1f506a6ba0af380628737f17fda53b47aa41 Mon Sep 17 00:00:00 2001
+From: The-BB <tun.chen.bo@gmail.com>
+Date: Sun, 11 Feb 2024 18:57:44 +0300
+Subject: [PATCH 30/39] target/sdk: fix post-sync, 2024.02
+
+косметика
+---
+ target/sdk/Makefile                        | 9 ++++++---
+ target/sdk/files/Config.in                 | 7 +++++++
+ target/sdk/files/Makefile                  | 2 ++
+ target/sdk/files/{README.SDK => README.md} | 0
+ 4 files changed, 15 insertions(+), 3 deletions(-)
+ rename target/sdk/files/{README.SDK => README.md} (100%)
+
+diff --git a/target/sdk/Makefile b/target/sdk/Makefile
+index b688eb4c..c57a4516 100644
+--- a/target/sdk/Makefile
++++ b/target/sdk/Makefile
+@@ -86,9 +86,12 @@ KERNEL_FILES := $(patsubst $(TOPDIR)/%,%,$(wildcard $(addprefix $(LINUX_DIR)/,$(
+ #
+ USERSPACE_UTILS_FILES := \
+ 	tools/build \
++	tools/leds \
++	tools/power/cpupower \
+ 	tools/scripts \
+-	tools/usb/usbip \
+-	tools/spi
++	tools/spi \
++	tools/thermal/tmon \
++	tools/usb/usbip
+ 
+ USERSPACE_FILES := $(patsubst $(TOPDIR)/%,%,$(wildcard $(addprefix $(LINUX_DIR)/,$(USERSPACE_UTILS_FILES))))
+ 
+@@ -145,7 +148,7 @@ $(BIN_DIR)/$(SDK_NAME).tar.xz: clean
+ 		./files/Config.in \
+ 		./files/Makefile \
+ 		./files/include/prepare.mk \
+-		./files/README.SDK \
++		./files/README.md \
+ 		$(SDK_BUILD_DIR)/
+ 	mkdir -p $(SDK_BUILD_DIR)/package/kernel
+ 	$(CP) \
+diff --git a/target/sdk/files/Config.in b/target/sdk/files/Config.in
+index a14c17fe..0cf68faa 100644
+--- a/target/sdk/files/Config.in
++++ b/target/sdk/files/Config.in
+@@ -119,6 +119,13 @@ menu "Advanced configuration options (for developers)"
+ 		help
+ 		  Compiler cache; see https://ccache.samba.org/
+ 
++	config CCACHE_DIR
++		string "Set ccache directory" if CCACHE
++		default ""
++		help
++		  Store ccache in this directory.
++		  If not set, uses './.ccache'
++
+ 	config BUILD_LOG
+ 		bool "Enable log files during build process"
+ 		help
+diff --git a/target/sdk/files/Makefile b/target/sdk/files/Makefile
+index dca8bbe2..89c6a109 100644
+--- a/target/sdk/files/Makefile
++++ b/target/sdk/files/Makefile
+@@ -15,6 +15,8 @@ export TOPDIR LC_ALL LANG SDK
+ world:
+ 
+ DISTRO_PKG_CONFIG:=$(shell $(TOPDIR)/scripts/command_all.sh pkg-config | grep '/usr' -m 1)
++
++export ORIG_PATH:=$(if $(ORIG_PATH),$(ORIG_PATH),$(PATH))
+ export PATH:=$(TOPDIR)/staging_dir/host/bin:$(PATH)
+ 
+ ifneq ($(OPENWRT_BUILD),1)
+diff --git a/target/sdk/files/README.SDK b/target/sdk/files/README.md
+similarity index 100%
+rename from target/sdk/files/README.SDK
+rename to target/sdk/files/README.md
+-- 
+2.30.2
+

@@ -167,9 +167,10 @@ menu "Global build settings"
 		  Adds LTO flags to the CFLAGS and LDFLAGS.
 		  Packages can choose to opt-out via setting PKG_BUILD_FLAGS:=no-lto
 
+# Entware specifics: GCC-8.x
 	config MOLD
 		depends on (aarch64 || arm || i386 || i686 || m68k || powerpc || powerpc64 || sh4 || x86_64)
-		depends on !GCC_USE_VERSION_11
+		depends on !(GCC_USE_VERSION_8 || GCC_USE_VERSION_11)
 		def_bool $(shell, ./config/check-hostcxx.sh 10 2 12)
 
 	config USE_MOLD
@@ -294,6 +295,8 @@ menu "Global build settings"
 #			bool "Regular"
 #		config PKG_CC_STACKPROTECTOR_STRONG
 #			bool "Strong"
+#		config PKG_CC_STACKPROTECTOR_ALL
+#			bool "All"
 #	endchoice
 
 #	choice

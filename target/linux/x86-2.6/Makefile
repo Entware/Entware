@@ -1,23 +1,20 @@
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# Copyright (C) 2011-2017 Entware
-#
-# This is free software, licensed under the GNU General Public License v2.
-# See /LICENSE for more information.
-#
+# Copyright (C) 2011-2024 Entware
 
 include $(TOPDIR)/rules.mk
 
 ARCH:=i386
 BOARD:=x86-2.6
-BOARDNAME:=Entware (intel x86,kernel-2.6)
+BOARDNAME:=Entware (x86, Linux 2.6.36.4)
+CPU_TYPE:=pentium-mmx
 FEATURES:=gpio usb audio pci
 KERNEL_PATCHVER:=2.6.36
-DEFAULT_PACKAGES := toolchain
 
-include $(INCLUDE_DIR)/target.mk
+#include $(INCLUDE_DIR)/target.mk
 
 define Target/Description
-	Build Software Repository for ARM NASes, like QNAP and Synology.
+  Build Software Repository for Intel x86 NASes, like QNAP and Synology.
 endef
 
-$(eval $(call BuildTarget))
+#$(eval $(call BuildTarget))

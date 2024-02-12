@@ -1,0 +1,13 @@
+--- a/src/os/user/lookup.go
++++ b/src/os/user/lookup.go
+@@ -7,8 +7,8 @@ package user
+ import "sync"
+ 
+ const (
+-	userFile  = "/etc/passwd"
+-	groupFile = "/etc/group"
++	userFile  = "/opt/etc/passwd"
++	groupFile = "/opt/etc/group"
+ )
+ 
+ var colon = []byte{':'}

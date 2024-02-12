@@ -159,7 +159,7 @@ define Quilt/Template
 	}
 	@[ -f "$(1)/patches/series" ] || { \
 		echo "The source directory contains no quilt patches."; \
-		false; \
+		touch $(1)/patches/series $(1)/.quilt_no_patch; \
 	}
 	@[ -n "$$$$(ls $(1)/patches/series)" -o \
 	   "$$$$(cat $(1)/patches/series | $(MKHASH) md5)" = "$$(sort $(1)/patches/series | $(MKHASH) md5)" ] || { \
@@ -168,10 +168,12 @@ define Quilt/Template
 	}
 
   $(3)refresh: $(3)quilt-check
-	@cd "$(1)"; $(QUILT_CMD) pop -a -f >/dev/null 2>/dev/null
-	@cd "$(1)"; while $(QUILT_CMD) next 2>/dev/null >/dev/null && $(QUILT_CMD) push; do \
-		QUILT_DIFF_OPTS="-p" $(QUILT_CMD) refresh -p ab --no-index --no-timestamps; \
-	done; ! $(QUILT_CMD) next 2>/dev/null >/dev/null
+	@[ -f $(1)/.quilt_no_patch ] || { \
+		cd "$(1)"; $(QUILT_CMD) pop -a -f >/dev/null 2>/dev/null; \
+		while $(QUILT_CMD) next 2>/dev/null >/dev/null && $(QUILT_CMD) push; do \
+			QUILT_DIFF_OPTS="-p" $(QUILT_CMD) refresh -p ab --no-index --no-timestamps; \
+		done; ! $(QUILT_CMD) next 2>/dev/null >/dev/null; \
+	}
 	$(Quilt/Refresh/$(4))
 	
   $(3)update: $(3)quilt-check

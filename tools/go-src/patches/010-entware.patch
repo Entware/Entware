@@ -16,34 +16,6 @@
  	"/etc/ssl/certs",               // SLES10/SLES11, https://golang.org/issue/12139
  	"/etc/pki/tls/certs",           // Fedora/RHEL
  	"/system/etc/security/cacerts", // Android
---- a/src/time/zoneinfo_unix.go
-+++ b/src/time/zoneinfo_unix.go
-@@ -18,6 +18,7 @@ import (
- // Many systems use /usr/share/zoneinfo, Solaris 2 has
- // /usr/share/lib/zoneinfo, IRIX 6 has /usr/lib/locale/TZ.
- var platformZoneSources = []string{
-+	"/opt/share/zoneinfo/",		// Entware
- 	"/usr/share/zoneinfo/",
- 	"/usr/share/lib/zoneinfo/",
- 	"/usr/lib/locale/TZ/",
-@@ -34,7 +35,7 @@ func initLocal() {
- 	tz, ok := syscall.Getenv("TZ")
- 	switch {
- 	case !ok:
--		z, err := loadLocation("localtime", []string{"/etc"})
-+		z, err := loadLocation("localtime", []string{"/opt/etc"})
- 		if err == nil {
- 			localLoc = *z
- 			localLoc.name = "Local"
-@@ -47,7 +48,7 @@ func initLocal() {
- 		if tz != "" && tz[0] == '/' {
- 			if z, err := loadLocation(tz, []string{""}); err == nil {
- 				localLoc = *z
--				if tz == "/etc/localtime" {
-+				if tz == "/opt/etc/localtime" {
- 					localLoc.name = "Local"
- 				} else {
- 					localLoc.name = tz
 --- a/src/net/nss.go
 +++ b/src/net/nss.go
 @@ -13,7 +13,7 @@ import (
@@ -64,3 +36,31 @@
  	conf.lastChecked = time.Now()
  	conf.ch = make(chan struct{}, 1)
  }
+--- a/src/time/zoneinfo_unix.go
++++ b/src/time/zoneinfo_unix.go
+@@ -19,6 +19,7 @@ import (
+ // /usr/share/lib/zoneinfo, IRIX 6 has /usr/lib/locale/TZ,
+ // NixOS has /etc/zoneinfo.
+ var platformZoneSources = []string{
++	"/opt/share/zoneinfo/",		// Entware
+ 	"/usr/share/zoneinfo/",
+ 	"/usr/share/lib/zoneinfo/",
+ 	"/usr/lib/locale/TZ/",
+@@ -36,7 +37,7 @@ func initLocal() {
+ 	tz, ok := syscall.Getenv("TZ")
+ 	switch {
+ 	case !ok:
+-		z, err := loadLocation("localtime", []string{"/etc"})
++		z, err := loadLocation("localtime", []string{"/opt/etc"})
+ 		if err == nil {
+ 			localLoc = *z
+ 			localLoc.name = "Local"
+@@ -49,7 +50,7 @@ func initLocal() {
+ 		if tz != "" && tz[0] == '/' {
+ 			if z, err := loadLocation(tz, []string{""}); err == nil {
+ 				localLoc = *z
+-				if tz == "/etc/localtime" {
++				if tz == "/opt/etc/localtime" {
+ 					localLoc.name = "Local"
+ 				} else {
+ 					localLoc.name = tz
