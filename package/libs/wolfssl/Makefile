@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=wolfssl
 PKG_VERSION:=5.6.6-stable
-PKG_RELEASE:=1
+PKG_RELEASE:=1a
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://github.com/wolfSSL/wolfssl/archive/v$(PKG_VERSION)
@@ -100,8 +100,8 @@ This variant uses AES CPU instructions (Intel AESNI or ARMv8 Crypto Extension)
 endef
 
 define Package/libwolfsslcpu-crypto/config
-    if TARGET_armvirt && PACKAGE_libwolfsslcpu-crypto = y
-	comment "You are about to build libwolfsslcpu-crypto into an armvirt_64 image."
+    if TARGET_armsr && PACKAGE_libwolfsslcpu-crypto = y
+	comment "You are about to build libwolfsslcpu-crypto into an armsr_64 image."
 	comment "Ensure all of your installation targets support the Crypto Extension. "
 	comment "Look for the 'aes' feature in /proc/cpuinfo. This library does not do "
 	comment "run-time detection and will crash if the CPU does not support it.     "

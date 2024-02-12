@@ -419,10 +419,10 @@ define Package/libopenssl-conf/install
 #	touch $(1)/etc/config/openssl
 	$(if $(CONFIG_OPENSSL_ENGINE_BUILTIN_DEVCRYPTO),
 		$(CP) ./files/devcrypto.cnf $(1)/etc/ssl/modules.cnf.d/
-		echo -e "config engine 'devcrypto'\n\toption enabled '1'" >> $(1)/etc/config/openssl)
+		echo -e "config engine 'devcrypto'\n\toption enabled '1'\n\toption builtin '1'" >> $(1)/etc/config/openssl)
 	$(if $(CONFIG_OPENSSL_ENGINE_BUILTIN_PADLOCK),
 		$(CP) ./files/padlock.cnf $(1)/etc/ssl/modules.cnf.d/
-		echo -e "\nconfig engine 'padlock'\n\toption enabled '1'" >> $(1)/etc/config/openssl)
+		echo -e "\nconfig engine 'padlock'\n\toption enabled '1'\n\toption builtin '1'" >> $(1)/etc/config/openssl)
 endef
 
 define Package/openssl-util/install

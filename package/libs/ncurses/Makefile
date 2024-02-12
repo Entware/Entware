@@ -7,14 +7,14 @@
 # Entware specific:
 # * opkg binary segfaults when a real package is replaced by "provided" package.
 # we removed PROVIDES libncurses field in libncursesw and added a real libncurses package that
-# installes symlinks.
+# installes symlinks. Add ALTERNATIVES clear, reset.
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ncurses
 PKG_CPE_ID:=cpe:/a:gnu:ncurses
 PKG_VERSION:=6.4
-PKG_RELEASE:=2
+PKG_RELEASE:=2a
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@GNU/$(PKG_NAME)
@@ -62,6 +62,9 @@ define Package/libncurses-dev
   SUBMENU:=Libraries
   DEPENDS:=+zlib +libncurses
   TITLE:=Development files for the ncurses library
+  ALTERNATIVES:= \
+		300:/opt/bin/clear:/opt/bin/clear-ncurses \
+		300:/opt/bin/reset:/opt/bin/reset-ncurses
 endef
 
 TARGET_CFLAGS += $(FPIC)
@@ -174,6 +177,9 @@ endef
 define Package/libncurses-dev/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(CP) $(PKG_INSTALL_DIR)/opt/bin/* $(1)/opt/bin/
+	rm -f $(1)/opt/bin/{clear,reset}
+	$(CP) $(PKG_INSTALL_DIR)/opt/bin/clear $(1)/opt/bin/clear-ncurses
+	$(LN) tset $(1)/opt/bin/reset-ncurses
 	$(INSTALL_DIR) $(1)/opt/include
 	$(CP) $(PKG_INSTALL_DIR)/opt/include/*.h $(1)/opt/include/
 	$(INSTALL_DIR) $(1)/opt/lib

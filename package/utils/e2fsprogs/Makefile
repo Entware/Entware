@@ -269,7 +269,6 @@ endef
 define Package/tune2fs/install
 	$(INSTALL_DIR) $(1)/opt/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/sbin/tune2fs $(1)/opt/sbin/
-	$(LN) tune2fs $(1)/opt/sbin/findfs
 endef
 
 define Package/resize2fs/install

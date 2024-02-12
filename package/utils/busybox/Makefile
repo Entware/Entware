@@ -2,13 +2,13 @@
 #
 # Copyright (C) 2006-2021 OpenWrt.org
 #
-# Entware specific: postinst/prerm
+# Entware specific: postinst/prerm; no jsonfilter as deps; no configs
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=busybox
 PKG_VERSION:=1.36.1
-PKG_RELEASE:=1b
+PKG_RELEASE:=1c
 PKG_FLAGS:=essential
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -46,7 +46,7 @@ define Package/busybox/Default
   MAINTAINER:=Felix Fietkau <nbd@nbd.name>
   TITLE:=Core utilities for embedded Linux
   URL:=http://busybox.net/
-  DEPENDS:=+BUSYBOX_CONFIG_PAM:libpam +BUSYBOX_CONFIG_NTPD:jsonfilter
+  DEPENDS:=+BUSYBOX_CONFIG_PAM:libpam #+BUSYBOX_CONFIG_NTPD:jsonfilter
   USERID:=ntp=123:ntp=123
 endef
 
@@ -85,12 +85,12 @@ define Package/busybox/conffiles/crond
 endef
 endif
 
-define Package/busybox/conffiles
-$(Package/busybox/conffiles/syslog)
-$(Package/busybox/conffiles/crond)
-endef
+#define Package/busybox/conffiles
+#$(Package/busybox/conffiles/syslog)
+#$(Package/busybox/conffiles/crond)
+#endef
 
-Package/busybox-selinux/conffiles = $(Package/busybox/conffiles)
+#Package/busybox-selinux/conffiles = $(Package/busybox/conffiles)
 
 ifndef CONFIG_USE_MUSL
 LDLIBS:=m crypt
@@ -140,10 +140,8 @@ endef
 define Package/busybox/install
 	$(INSTALL_DIR) $(1)/opt/{bin,sbin}
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/bin/busybox $(1)/opt/bin/
-	chmod u+s $(1)/opt/bin/busybox
 	$(INSTALL_DIR) $(1)/opt/share
-	(cd $(PKG_INSTALL_DIR); \
-	    find ./opt -lname "*" | sed "s|^./opt/||g" > $(1)/opt/share/busybox_applets.lst.dist)
+	$(FIND) $(PKG_INSTALL_DIR) -lname "*" | sed "s|$(PKG_INSTALL_DIR)/opt/||g" > $(1)/opt/share/busybox_applets.lst.dist
 endef
 
 # The postinst & prerm scripts will work only when busybox has readlink applet.

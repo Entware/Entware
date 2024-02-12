@@ -108,6 +108,7 @@ define Build/InstallDev
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-genl-3.so $(1)/opt/lib/libnl-genl.so
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-nf-3.so $(1)/opt/lib/libnl-nf.so
 	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-route-3.so $(1)/opt/lib/libnl-route.so
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-cli-3.so $(1)/opt/lib/libnl-cli.so
 endef
 
 define Package/libnl-core/install

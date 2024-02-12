@@ -42,13 +42,13 @@ endif
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig $(1)/opt/include/libnl-tiny
 	$(CP) $(PKG_INSTALL_DIR)/opt/include/libnl-tiny/* $(1)/opt/include/libnl-tiny
-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/libnl-tiny.so $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-tiny.so* $(1)/opt/lib/
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/libnl-tiny.pc $(1)/opt/lib/pkgconfig
 endef
 
 define Package/libnl-tiny/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/libnl-tiny.so $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libnl-tiny.so.* $(1)/opt/lib/
 endef
 
 $(eval $(call BuildPackage,libnl-tiny))

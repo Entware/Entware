@@ -12,11 +12,7 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=iptables
 PKG_VERSION:=1.4.21
-PKG_RELEASE:=3
-
-ifdef CONFIG_PACKAGE_opt-ndmsv2
-PKG_RELEASE:=3a
-endif
+PKG_RELEASE:=4
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=http://www.netfilter.org/projects/iptables/files \
@@ -28,7 +24,7 @@ PKG_HASH:=52004c68021da9a599feed27f65defcfb22128f7da2c0531c0f75de0f479d3e0
 PKG_FIXUP:=autoreconf
 
 PKG_INSTALL:=1
-PKG_BUILD_FLAGS:=gc-sections
+PKG_BUILD_FLAGS:=gc-sections no-lto
 PKG_BUILD_PARALLEL:=1
 PKG_LICENSE:=GPL-2.0
 PKG_CPE_ID:=cpe:/a:netfilter_core_team:iptables

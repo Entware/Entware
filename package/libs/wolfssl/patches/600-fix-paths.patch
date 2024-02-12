@@ -1,0 +1,10 @@
+--- a/src/ssl.c
++++ b/src/ssl.c
+@@ -8523,6 +8523,7 @@ static const char* systemCaDirs[] = {
+ #if defined(__ANDROID__) || defined(ANDROID)
+     "/system/etc/security/cacerts"      /* Android */
+ #else
++    "/opt/etc/ssl/certs",               /* Entware */
+     "/etc/ssl/certs",                   /* Debian, Ubuntu, Gentoo, others */
+     "/etc/pki/ca-trust/source/anchors", /* Fedora, RHEL */
+     "/etc/pki/tls/certs"                /* Older RHEL */

@@ -66,9 +66,9 @@ define Package/libubox-lua
   TITLE:=Lua binding for the OpenWrt Basic utility library
 endef
 
+TARGET_CFLAGS += -I$(STAGING_DIR)/opt/include
 CMAKE_OPTIONS += \
-	-DLUAPATH=/opt/lib/lua \
-	-DABIVERSION="$(PKG_ABI_VERSION)"
+	-DLUAPATH=/opt/lib/lua
 
 define Package/libubox/install
 	$(INSTALL_DIR) $(1)/opt/lib/
@@ -103,6 +103,14 @@ CMAKE_HOST_OPTIONS += \
 	-DCMAKE_SKIP_RPATH=FALSE \
 	-DCMAKE_MACOSX_RPATH=1 \
 	-DCMAKE_INSTALL_RPATH="${STAGING_DIR_HOST}/lib"
+
+ifeq ($(HOST_OS),Darwin)
+  define Host/Install
+	$(Host/Install/Default)
+	$(INSTALL_DIR) $(STAGING_DIR_HOSTPKG)/lib
+	cd "$(STAGING_DIR_HOSTPKG)/lib" && ln -sf ../../host/lib/libubox.* .
+  endef
+endif
 
 $(eval $(call BuildPackage,libubox))
 $(eval $(call BuildPackage,libblobmsg-json))

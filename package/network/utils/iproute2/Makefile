@@ -6,13 +6,13 @@
 #
 # Entware specific: We will keep this version because arm feed use 3.2 kernel.
 # We use 3.2 kernels because Synology still use it on arm NASes.
-#
+# ALTERNATIVES
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=iproute2
 PKG_VERSION:=4.4.0
-PKG_RELEASE:=10a
+PKG_RELEASE:=10b
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/utils/net/iproute2
@@ -39,6 +39,7 @@ $(call Package/iproute2/Default)
  TITLE:=Routing control utility (Minimal)
  VARIANT:=tiny
  PROVIDES:=ip
+ ALTERNATIVES:=200:/opt/sbin/ip:/opt/libexec/ip-tiny
 endef
 
 define Package/ip-full
@@ -46,6 +47,7 @@ $(call Package/iproute2/Default)
  TITLE:=Routing control utility (Full)
  VARIANT:=full
  PROVIDES:=ip
+ ALTERNATIVES:=300:/opt/sbin/ip:/opt/libexec/ip-full
 endef
 
 define Package/tc
@@ -95,6 +97,7 @@ MAKE_FLAGS += \
 	KERNEL_INCLUDE="$(LINUX_DIR)/include" \
 	SHARED_LIBS="" \
 	LDFLAGS="$(TARGET_LDFLAGS) -Wl,--gc-sections" \
+	LIBDIR="/opt/lib" \
 	IP_CONFIG_TINY=$(IP_CONFIG_TINY) \
 	CONFDIR="/opt/etc/iproute2" \
 	FPIC="$(FPIC)"
@@ -111,15 +114,15 @@ define Build/InstallDev
 endef
 
 define Package/ip-tiny/install
-	$(INSTALL_DIR) $(1)/opt/sbin
 	$(INSTALL_DIR) $(1)/opt/etc/iproute2
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ip/ip $(1)/opt/sbin/
+	$(INSTALL_DIR) $(1)/opt/libexec
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ip/ip $(1)/opt/libexec/ip-tiny
 endef
 
 define Package/ip-full/install
-	$(INSTALL_DIR) $(1)/opt/sbin
 	$(INSTALL_DIR) $(1)/opt/etc/iproute2
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ip/ip $(1)/opt/sbin/
+	$(INSTALL_DIR) $(1)/opt/libexec
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ip/ip $(1)/opt/libexec/ip-full
 endef
 
 define Package/tc/install
