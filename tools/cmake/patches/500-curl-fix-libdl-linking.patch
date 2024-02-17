@@ -1,0 +1,31 @@
+FAILED: Utilities/cmcurl/curltest
+/bin/ld: .../lib/libcrypto.a(dso_dlfcn.o): in function `dlfcn_globallookup':
+dso_dlfcn.c:(.text+0x13): undefined reference to `dlopen'
+/bin/ld: dso_dlfcn.c:(.text+0x26): undefined reference to `dlsym'
+/bin/ld: dso_dlfcn.c:(.text+0x31): undefined reference to `dlclose'
+/bin/ld: .../lib/libcrypto.a(dso_dlfcn.o): in function `dlfcn_bind_func':
+dso_dlfcn.c:(.text+0x1b7): undefined reference to `dlsym'
+/bin/ld: dso_dlfcn.c:(.text+0x282): undefined reference to `dlerror'
+/bin/ld: .../lib/libcrypto.a(dso_dlfcn.o): in function `dlfcn_load':
+dso_dlfcn.c:(.text+0x2f1): undefined reference to `dlopen'
+/bin/ld: dso_dlfcn.c:(.text+0x369): undefined reference to `dlclose'
+/bin/ld: dso_dlfcn.c:(.text+0x3a5): undefined reference to `dlerror'
+/bin/ld: .../lib/libcrypto.a(dso_dlfcn.o): in function `dlfcn_pathbyaddr':
+dso_dlfcn.c:(.text+0x452): undefined reference to `dladdr'
+/bin/ld: dso_dlfcn.c:(.text+0x4c3): undefined reference to `dlerror'
+/bin/ld: .../lib/libcrypto.a(dso_dlfcn.o): in function `dlfcn_unload':
+dso_dlfcn.c:(.text+0x6a4): undefined reference to `dlclose'
+
+--- a/Utilities/cmcurl/CMakeLists.txt
++++ b/Utilities/cmcurl/CMakeLists.txt
+@@ -658,6 +658,10 @@ if(CURL_USE_OPENSSL)
+   if(HAVE_PTHREAD)
+     list(APPEND OPENSSL_LIBRARIES pthread)
+   endif()
++  check_library_exists("dl" dlopen "" HAVE_LIBDL)
++  if (HAVE_LIBDL)
++    list(APPEND OPENSSL_LIBRARIES dl)
++  endif ()
+   list(APPEND CURL_LIBS ${OPENSSL_LIBRARIES})
+   include_directories(${OPENSSL_INCLUDE_DIR})
+ 
