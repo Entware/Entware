@@ -15,6 +15,8 @@ PKG_LICENSE:=GPL-3.0
 PKG_LICENSE_FILES:=COPYING
 PKG_CPE_ID:=cpe:/a:gnu:$(PKG_NAME)
 
+HOST_BUILD_DEPENDS:=libiconv-full/host
+
 include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/package.mk
 
@@ -37,7 +39,7 @@ TARGET_CFLAGS += $(FPIC)
 HOST_CONFIGURE_ARGS += \
 	--enable-static \
 	--disable-shared \
-	--without-libiconv-prefix \
+	--with-libiconv-prefix=$(STAGING_DIR_HOSTPKG) \
 	--with-pic
 
 CONFIGURE_ARGS += \
