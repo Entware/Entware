@@ -373,7 +373,7 @@ sub and_condition($) {
 
 sub gen_condition ($) {
 	my $condition = shift;
-	# remove '!()', just as include/package-ipkg.mk does
+	# remove '!()', just as include/package-pack.mk does
 	$condition =~ s/[()!]//g;
 	return join("", map(and_condition($_), split('\|\|', $condition)));
 }
@@ -655,7 +655,7 @@ sub dump_cyclonedxsbom_json {
 		serialNumber => "urn:uuid:$uuid",
 		version => 1,
 		metadata => {
-			timestamp => gmtime->datetime,
+			timestamp => gmtime->datetime . 'Z',
 		},
 		"components" => [@components],
 	};
@@ -677,6 +677,7 @@ sub gen_image_cyclonedxsbom() {
 		license => "GPL-2.0",
 		cpe_id  => "cpe:/o:linux:linux_kernel",
 		name    => "kernel",
+		category  => "operating-system",
 	};
 
 	my %abimap;
@@ -705,6 +706,7 @@ sub gen_image_cyclonedxsbom() {
 		if ($pkg->{category}) {
 			my $category = $pkg->{category};
 			my %cat_type = (
+				"operating-system"        => "operating-system",
 				"Firmware"        => "firmware",
 				"Libraries"       => "library"
 			);
@@ -720,7 +722,7 @@ sub gen_image_cyclonedxsbom() {
 		if ($image_packages{$name}) {
 			$version = $image_packages{$name};
 		}
-		$version =~ s/-\d+$// if $version;
+		$version =~ s/-r\d+$// if $version;
 		if ($name =~ /^(kernel|kmod-)/ and $version =~ /^(\d+\.\d+\.\d+)/) {
 			$version = $1;
 		}
@@ -773,7 +775,7 @@ sub gen_package_cyclonedxsbom() {
 		}
 
 		my $version = $pkg->{version};
-		$version =~ s/-\d+$// if $version;
+		$version =~ s/-r\d+$// if $version;
 		if ($name =~ /^(kernel|kmod-)/ and $version =~ /^(\d+\.\d+\.\d+)/) {
 			$version = $1;
 		}
