@@ -7,7 +7,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=cmake
-PKG_VERSION:=3.28.3
+PKG_VERSION:=3.29.5
 PKG_VERSION_MAJOR:=$(word 1,$(subst ., ,$(PKG_VERSION))).$(word 2,$(subst ., ,$(PKG_VERSION)))
 PKG_RELEASE:=1
 PKG_CPE_ID:=cpe:/a:kitware:cmake
@@ -15,7 +15,7 @@ PKG_CPE_ID:=cpe:/a:kitware:cmake
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://github.com/Kitware/CMake/releases/download/v$(PKG_VERSION)/ \
 		https://cmake.org/files/v$(PKG_VERSION_MAJOR)/
-PKG_HASH:=72b7570e5c8593de6ac4ab433b73eab18c5fb328880460c86ce32608141ad5c1
+PKG_HASH:=dd63da7d763c0db455ca232f2c443f5234fe0b11f8bd6958a81d29cc987dfd6e
 
 HOST_BUILD_PARALLEL:=1
 HOST_CONFIGURE_PARALLEL:=1

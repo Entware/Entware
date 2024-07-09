@@ -7,14 +7,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mkimage
-PKG_VERSION:=2024.01
+PKG_VERSION:=2024.07
 
 PKG_SOURCE:=u-boot-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:= \
 	https://mirror.cyberbits.eu/u-boot \
 	https://ftp.denx.de/pub/u-boot \
 	ftp://ftp.denx.de/pub/u-boot
-PKG_HASH:=b99611f1ed237bf3541bdc8434b68c96a6e05967061f992443cb30aabebef5b3
+PKG_HASH:=f591da9ab90ef3d6b3d173766d0ddff90c4ed7330680897486117df390d83c8f
 
 HOST_BUILD_DIR:=$(BUILD_DIR_HOST)/u-boot-$(PKG_VERSION)
 
