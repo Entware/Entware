@@ -1,10 +1,12 @@
-commit 07ea72976168461d9a243a4201a8d1e6cf529715 (HEAD -> master, origin/master, origin/main, origin/HEAD)
-Author: Nick Hainke <vincent@systemli.org>
-Date:   Tue Feb 6 12:26:33 2024 +0100
+commit 75cd4ef48dffea8c659605786cf426962dd6bfc4 (HEAD -> master, origin/master, origin/main, origin/HEAD)
+Author: Martin Schiller <ms@dev.tdt.de>
+Date:   Wed Jun 26 10:39:18 2024 +0200
 
-    toolchain: binutils: add support for version 2.42
+    lantiq: replace gswip patches with upstream version
     
-    Release Notes:
-    https://lists.gnu.org/archive/html/info-gnu/2024-01/msg00016.html
+    Replace recently added patches with version accepted upstream.
     
-    Signed-off-by: Nick Hainke <vincent@systemli.org>
+    Signed-off-by: Martin Schiller <ms@dev.tdt.de>
+    Link: https://github.com/openwrt/openwrt/pull/15811
+    Signed-off-by: Hauke Mehrtens <hauke@hauke-m.de>
+
