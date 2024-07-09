@@ -26,7 +26,7 @@ HOST_STAMP_CONFIGURED:=$(HOST_BUILD_DIR)/.configured
 HOST_STAMP_BUILT:=$(HOST_BUILD_DIR)/.built
 HOST_BUILD_PREFIX?=$(if $(IS_PACKAGE_BUILD),$(STAGING_DIR_HOSTPKG),$(STAGING_DIR_HOST))
 HOST_STAMP_INSTALLED:=$(HOST_BUILD_PREFIX)/stamp/.$(PKG_NAME)_installed
-HOST_STAMP_PROGRAMS:=$(foreach program,$(PKG_PROGRAMS),$(subst $(PKG_NAME),$(program),$(HOST_STAMP_INSTALLED)) )
+HOST_STAMP_PROGRAMS:=$(foreach program,$(PKG_PROGRAMS),$(dir $(HOST_STAMP_INSTALLED))$(subst $(PKG_NAME),$(program),$(notdir $(HOST_STAMP_INSTALLED))) )
 
 override MAKEFLAGS=
 
@@ -35,13 +35,11 @@ include $(INCLUDE_DIR)/autotools.mk
 _host_target:=$(if $(HOST_QUILT),,.)
 
 Host/Patch:=$(Host/Patch/Default)
-ifneq ($(strip $(HOST_UNPACK)),)
-  define Host/Prepare/Default
-	$(HOST_UNPACK)
+define Host/Prepare/Default
+	$(if $(strip $(HOST_UNPACK)),$(HOST_UNPACK))
 	[ ! -d ./src/ ] || $(CP) ./src/* $(HOST_BUILD_DIR)
 	$(Host/Patch)
-  endef
-endif
+endef
 
 define Host/Prepare
   $(call Host/Prepare/Default)
@@ -68,6 +66,10 @@ HOST_CONFIGURE_ARGS = \
 	--sysconfdir=$(HOST_BUILD_PREFIX)/etc \
 	--localstatedir=$(HOST_BUILD_PREFIX)/var \
 	--sbindir=$(HOST_BUILD_PREFIX)/bin
+
+ifneq ($(YEAR_2038),y)
+  HOST_CONFIGURE_ARGS += --disable-year2038
+endif
 
 HOST_MAKE_VARS = \
 	CFLAGS="$(HOST_CFLAGS)" \

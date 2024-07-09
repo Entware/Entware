@@ -43,6 +43,17 @@ opkg = \
 	--add-arch all:100 \
 	--add-arch $(if $(ARCH_PACKAGES),$(ARCH_PACKAGES),$(BOARD)):200
 
+apk = \
+  IPKG_INSTROOT=$(1) \
+  $(FAKEROOT) $(STAGING_DIR_HOST)/bin/apk \
+	--root $(1) \
+	--repositories-file /dev/zero \
+	--keys-dir $(TOPDIR) \
+	--no-cache \
+	--no-logfile \
+	--preserve-env \
+	--repository file://$(PACKAGE_DIR_ALL)/packages.adb
+
 TARGET_DIR_ORIG := $(TARGET_ROOTFS_DIR)/root.orig-$(BOARD)
 
 ifdef CONFIG_CLEAN_IPKG
@@ -92,6 +103,7 @@ define prepare_rootfs
 	rm -rf \
 		$(1)/boot \
 		$(1)/tmp/* \
+		$(1)/opt/lib/apk/db/*.post-install* \
 		$(1)/opt/lib/opkg/info/*.postinst* \
 		$(1)/opt/lib/opkg/lists/* \
 		$(1)/var/lock/*.lock
