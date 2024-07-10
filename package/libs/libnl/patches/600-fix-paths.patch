@@ -2,7 +2,7 @@
 
 --- a/lib/route/qdisc/netem.c
 +++ b/lib/route/qdisc/netem.c
-@@ -917,6 +917,7 @@ int rtnl_netem_set_delay_distribution(st
+@@ -952,6 +952,7 @@ int rtnl_netem_set_delay_distribution(st
  	char *test_path[] = {
  		"",
  		"./",

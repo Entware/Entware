@@ -36,12 +36,12 @@ define Package/libmd/description
 endef
 
 define Build/InstallDev
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
-	$(INSTALL_DIR) $(1)/usr/include
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libmd.a $(1)/usr/lib/
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/pkgconfig/libmd*.pc $(1)/usr/lib/pkgconfig/
-	$(CP) $(PKG_INSTALL_DIR)/usr/include/* $(1)/usr/include/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
+	$(INSTALL_DIR) $(1)/opt/include
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libmd.a $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/libmd*.pc $(1)/opt/lib/pkgconfig/
+	$(CP) $(PKG_INSTALL_DIR)/opt/include/* $(1)/opt/include/
 endef
 
 $(eval $(call BuildPackage,libmd))

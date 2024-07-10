@@ -1,0 +1,31 @@
+--- a/examples/CMakeLists.txt
++++ b/examples/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-cmake_minimum_required(VERSION 2.6)
++cmake_minimum_required(VERSION 3.5)
+ 
+ IF (BUILD_EXAMPLES)
+     PROJECT(ubox-examples C)
+--- a/lua/CMakeLists.txt
++++ b/lua/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-cmake_minimum_required(VERSION 2.6)
++cmake_minimum_required(VERSION 3.5)
+ 
+ PROJECT(uloop C)
+ 
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -21,6 +21,12 @@ IF(JSONC_FOUND)
+   INCLUDE_DIRECTORIES(${JSONC_INCLUDE_DIRS})
+ ENDIF()
+ 
++PKG_SEARCH_MODULE(LUA lua)
++IF(LUA_FOUND)
++  ADD_DEFINITIONS(-DLUA)
++  INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIRS})
++ENDIF()
++
+ SET(SOURCES avl.c avl-cmp.c blob.c blobmsg.c uloop.c usock.c ustream.c ustream-fd.c vlist.c utils.c safe_list.c runqueue.c md5.c kvlist.c ulog.c base64.c udebug.c udebug-remote.c)
+ 
+ ADD_LIBRARY(ubox SHARED ${SOURCES})

@@ -1,0 +1,23 @@
+--- a/apps/openssl.cnf
++++ b/apps/openssl.cnf
+@@ -57,7 +57,7 @@ engines = engines_sect
+ # List of providers to load
+ [provider_sect]
+ default = default_sect
+-.include /var/etc/ssl/providers.cnf
++#.include /opt/var/etc/ssl/providers.cnf
+ 
+ # The fips section name should match the section name inside the
+ # included fipsmodule.cnf.
+@@ -75,9 +75,9 @@ default = default_sect
+ activate = 1
+ 
+ [engines_sect]
+-.include /var/etc/ssl/engines.cnf
++#.include /opt/var/etc/ssl/engines.cnf
+ 
+-.include /etc/ssl/modules.cnf.d
++.include /opt/etc/ssl/modules.cnf.d
+ 
+ 
+ 

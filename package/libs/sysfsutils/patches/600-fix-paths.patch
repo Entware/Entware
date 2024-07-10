@@ -1,0 +1,11 @@
+--- a/cmd/systool.c
++++ b/cmd/systool.c
+@@ -655,7 +655,7 @@ int main(int argc, char *argv[])
+ 	char *show_root = NULL;
+ 	int retval = 0;
+ 	int opt;
+-        char *pci_id_file = "/usr/local/share/pci.ids";
++        char *pci_id_file = "/opt/share/hwdata/pci.ids";
+ 	
+ 	while((opt = getopt(argc, argv, cmd_options)) != EOF) {
+ 		switch(opt) {

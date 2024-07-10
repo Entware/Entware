@@ -1,0 +1,11 @@
+--- a/src/pidfile.c
++++ b/src/pidfile.c
+@@ -104,7 +104,7 @@ pidfile_open(const char *path, mode_t mo
+ 		return (NULL);
+ 
+ 	if (path == NULL) {
+-		len = asprintf(&pfh->pf_path, "/var/run/%s.pid", getprogname());
++		len = asprintf(&pfh->pf_path, "/opt/var/run/%s.pid", getprogname());
+ 		if (len < 0) {
+ 			free(pfh);
+ 			return (NULL);

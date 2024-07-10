@@ -33,17 +33,17 @@ endef
 TARGET_CFLAGS += -D_LARGEFILE64_SOURCE
 
 define Build/InstallDev
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
-	$(INSTALL_DIR) $(1)/usr/include
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libbsd.{la,so*} $(1)/usr/lib/
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/pkgconfig/libbsd*.pc $(1)/usr/lib/pkgconfig/
-	$(CP) $(PKG_INSTALL_DIR)/usr/include/* $(1)/usr/include/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
+	$(INSTALL_DIR) $(1)/opt/include
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libbsd.{la,so*} $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/libbsd*.pc $(1)/opt/lib/pkgconfig/
+	$(CP) $(PKG_INSTALL_DIR)/opt/include/* $(1)/opt/include/
 endef
 
 define Package/libbsd/install
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libbsd.so.* $(1)/usr/lib/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libbsd.so.* $(1)/opt/lib/
 endef
 
 $(eval $(call BuildPackage,libbsd))
