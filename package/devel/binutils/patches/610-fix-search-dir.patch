@@ -1,6 +1,6 @@
 --- a/ld/configure.tgt
 +++ b/ld/configure.tgt
-@@ -1094,7 +1094,7 @@ loongarch64-*)		targ_emul=elf64loongarch
+@@ -1105,7 +1105,7 @@ loongarch64-*)		targ_emul=elf64loongarch
  
  esac
  

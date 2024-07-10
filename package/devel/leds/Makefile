@@ -70,5 +70,5 @@ define Package/ledhwbmon/install
 		$(1)/usr/bin/ledhwbmon
 endef
 
-$(eval $(call BuildPackage,ledumon))
-$(eval $(call BuildPackage,ledhwbmon))
+#$(eval $(call BuildPackage,ledumon))
+#$(eval $(call BuildPackage,ledhwbmon))
