@@ -76,6 +76,11 @@ ac_cv_va_val_copy=yes
 as_cv_unaligned_access=yes
 ac_cv_func_malloc_0_nonnull=yes
 ac_cv_func_realloc_0_nonnull=yes
-### getentropy
+# getrandom since Linux 3.17 & getentropy glibc 2.25
 ac_cv_func_getentropy=no
 ac_cv_have_decl_getentropy=no
+# fix Y2038 problem since Linux 5.4(?) & glibc 2.32
+ac_cv_sys_year2038_opts='none needed'
+# statx syscall since Linux 4.11 & glibc 2.28
+ac_cv_func_statx=no
+ac_cv_member_struct_statx_stx_btime=no

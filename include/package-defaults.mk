@@ -22,7 +22,7 @@ define Package/Default
   EXTRA_DEPENDS:=
   MAINTAINER:=$(PKG_MAINTAINER)
   SOURCE:=$(patsubst $(TOPDIR)/%,%,$(patsubst $(TOPDIR)/package/%,feeds/base/%,$(CURDIR)))
-# Entware s[esific - NO -r before $(PKG_RELEASE)
+# Entware spesific - NO -r before $(PKG_RELEASE)
   ifneq ($(PKG_VERSION),)
     ifneq ($(PKG_RELEASE),)
       VERSION:=$(PKG_VERSION)-$(PKG_RELEASE)
@@ -93,8 +93,8 @@ CONFIGURE_ARGS = \
 		--sysconfdir=/opt/etc \
 		--datadir=$(CONFIGURE_PREFIX)/share \
 		--localstatedir=/opt/var \
-		--mandir=$(CONFIGURE_PREFIX)/man \
-		--infodir=$(CONFIGURE_PREFIX)/info \
+		--mandir=$(CONFIGURE_PREFIX)/share/man \
+		--infodir=$(CONFIGURE_PREFIX)/share/info \
 		$(DISABLE_NLS) \
 		$(DISABLE_IPV6)
 

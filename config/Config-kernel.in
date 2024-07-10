@@ -157,10 +157,11 @@ config KERNEL_UBSAN_TRAP
 	  locks held, etc), which may destabilize the system. For some system
 	  builders this is an acceptable trade-off.
 
+# Entware specific: kernels too old
 config KERNEL_KASAN
 	bool "Compile the kernel with KASan: runtime memory debugger"
 	select KERNEL_SLUB_DEBUG
-	depends on (x86_64 || aarch64 || arm || powerpc || riscv64)
+	depends on (x86_64 || aarch64 || arm || powerpc || riscv64) && !(LINUX_3_2||LINUX_3_10)
 	help
 	  Enables kernel address sanitizer - runtime memory debugger,
 	  designed to find out-of-bounds accesses and use-after-free bugs.
@@ -555,11 +556,11 @@ config KERNEL_AIO
 	bool "Compile the kernel with asynchronous IO support"
 	default y if !SMALL_FLASH
 
+# Entware specific: kernels too old (fake deps)
 config KERNEL_IO_URING
 	bool "Compile the kernel with io_uring support"
-	depends on !SMALL_FLASH
+	depends on !SMALL_FLASH && LINUX_5_4
 	default y if (x86_64 || aarch64)
-	depends on LINUX_5_4
 	help
 	  Entware uses old kernels.
 
@@ -863,11 +864,12 @@ if KERNEL_CGROUPS
 		bool
 		default y if KERNEL_MEMCG
 
+# Entware specific: kernels too old
 	config KERNEL_MEMCG
 		bool "Memory Resource Controller for Control Groups"
 		default y
 		select KERNEL_FREEZER
-		depends on KERNEL_RESOURCE_COUNTERS || !(LINUX_2_6_36||LINUX_3_2||LINUX_3_4||LINUX_3_10)
+		depends on KERNEL_RESOURCE_COUNTERS && !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
 		help
 		  Provides a memory resource controller that manages both anonymous
 		  memory and page cache. (See Documentation/cgroups/memory.txt)
@@ -1101,14 +1103,15 @@ config KERNEL_POSIX_MQUEUE
 	  operations on message queues.
 
 
+# Entware specific: kernels too old
 config KERNEL_SECCOMP_FILTER
 	bool
-	depends on !(LINUX_2_6_36||LINUX_3_2||LINUX_3_4||LINUX_3_10)
+	depends on !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
 	default y if !SMALL_FLASH
 
 config KERNEL_SECCOMP
 	bool "Enable seccomp support"
-		depends on !(TARGET_uml||LINUX_2_6_36||LINUX_3_2||LINUX_3_4||LINUX_3_10)
+		depends on !(TARGET_uml) && !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
 		select KERNEL_SECCOMP_FILTER
 		default y if !SMALL_FLASH
 		help
@@ -1344,9 +1347,10 @@ config KERNEL_SQUASHFS_XATTR
 #
 # compile optimization setting
 #
+# Entware specific: kernels too old
 choice
 	prompt "Compiler optimization level"
-	depends on !(LINUX_2_6_36||LINUX_3_2||LINUX_3_4||LINUX_3_10)
+	depends on !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
 	default KERNEL_CC_OPTIMIZE_FOR_SIZE if SMALL_FLASH
 
 config KERNEL_CC_OPTIMIZE_FOR_PERFORMANCE

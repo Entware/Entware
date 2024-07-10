@@ -15,7 +15,7 @@ c_args = [@CFLAGS@]
 c_link_args = [@LDFLAGS@]
 cpp_args = [@CXXFLAGS@]
 cpp_link_args = [@LDFLAGS@]
-prefix = '/usr'
+prefix = '/opt'
 
 [host_machine]
 system = 'linux'

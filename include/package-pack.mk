@@ -6,7 +6,7 @@ ifndef DUMP
   include $(INCLUDE_DIR)/feeds.mk
 endif
 
-IPKG_STATE_DIR:=$(TARGET_DIR)/usr/lib/opkg
+IPKG_STATE_DIR:=$(TARGET_DIR)/opt/lib/opkg
 
 # Generates a make statement to return a wildcard for candidate ipkg files
 # 1: package name
@@ -291,27 +291,27 @@ else
 		echo "default_prerm"; \
 	) > $$(ADIR_$(1))/pre-deinstall;
 
-	if [ -n "$(USERID)" ]; then echo $(USERID) > $$(IDIR_$(1))/lib/apk/packages/$(1).rusers; fi;
-	if [ -n "$(ALTERNATIVES)" ]; then echo $(ALTERNATIVES) > $$(IDIR_$(1))/lib/apk/packages/$(1).alternatives; fi;
-	(cd $$(IDIR_$(1)) && find . -type f,l -printf "/%P\n" > $$(IDIR_$(1))/lib/apk/packages/$(1).list)
+	if [ -n "$(USERID)" ]; then echo $(USERID) > $$(IDIR_$(1))/opt/lib/apk/packages/$(1).rusers; fi;
+	if [ -n "$(ALTERNATIVES)" ]; then echo $(ALTERNATIVES) > $$(IDIR_$(1))/opt/lib/apk/packages/$(1).alternatives; fi;
+	(cd $$(IDIR_$(1)) && find . -type f,l -printf "/%P\n" > $$(IDIR_$(1))/opt/lib/apk/packages/$(1).list)
 	# Move conffiles to IDIR and build conffiles_static with csums
 	if [ -f $$(ADIR_$(1))/conffiles ]; then \
-		mv -f $$(ADIR_$(1))/conffiles $$(IDIR_$(1))/lib/apk/packages/$(1).conffiles; \
-		for file in $$$$(cat $$(IDIR_$(1))/lib/apk/packages/$(1).conffiles); do \
+		mv -f $$(ADIR_$(1))/conffiles $$(IDIR_$(1))/opt/lib/apk/packages/$(1).conffiles; \
+		for file in $$$$(cat $$(IDIR_$(1))/opt/lib/apk/packages/$(1).conffiles); do \
 			[ -f $$(IDIR_$(1))/$$$$file ] || continue; \
 			csum=$$$$($(MKHASH) sha256 $$(IDIR_$(1))/$$$$file); \
-			echo $$$$file $$$$csum >> $$(IDIR_$(1))/lib/apk/packages/$(1).conffiles_static; \
+			echo $$$$file $$$$csum >> $$(IDIR_$(1))/opt/lib/apk/packages/$(1).conffiles_static; \
 		done; \
 	fi
 
 	# Some package (base-files) manually append stuff to conffiles
 	# Append stuff from it and delete the CONTROL directory since everything else should be migrated
 	if [ -f $$(IDIR_$(1))/CONTROL/conffiles ]; then \
-		echo $$$$(IDIR_$(1))/CONTROL/conffiles >> $$(IDIR_$(1))/lib/apk/packages/$(1).conffiles; \
+		echo $$$$(IDIR_$(1))/CONTROL/conffiles >> $$(IDIR_$(1))/opt/lib/apk/packages/$(1).conffiles; \
 		for file in $$$$(cat $$(IDIR_$(1))/CONTROL/conffiles); do \
 			[ -f $$(IDIR_$(1))/$$$$file ] || continue; \
 			csum=$$$$($(MKHASH) sha256 $$(IDIR_$(1))/$$$$file); \
-			echo $$$$file $$$$csum >> $$(IDIR_$(1))/lib/apk/packages/$(1).conffiles_static; \
+			echo $$$$file $$$$csum >> $$(IDIR_$(1))/opt/lib/apk/packages/$(1).conffiles_static; \
 		done; \
 		rm -rf $$(IDIR_$(1))/CONTROL/conffiles; \
 	fi
