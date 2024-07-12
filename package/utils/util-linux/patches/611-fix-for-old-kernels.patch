@@ -1,0 +1,74 @@
+--- a/libmount/src/utils.c
++++ b/libmount/src/utils.c
+@@ -33,6 +33,11 @@
+ #include "sysfs.h"
+ #include "namespace.h"
+ 
++/* STATX_TYPE | STATX_MODE | STATX_INO since Linux 4.11 */
++#ifndef LINUX_VERSION_CODE
++#include <linux/version.h>
++#endif
++
+ /*
+  * Return 1 if the file is not accessible or empty
+  */
+@@ -111,6 +116,7 @@ static int safe_stat(const char *target,
+ 
+ 	memset(st, 0, sizeof(struct stat));
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,11,0)
+ #if defined(HAVE_STATX) && defined(HAVE_STRUCT_STATX) && defined(AT_STATX_DONT_SYNC)
+ 	{
+ 		int rc;
+@@ -138,6 +144,7 @@ static int safe_stat(const char *target,
+ 			return rc;
+ 	}
+ #endif
++#endif
+ 
+ #ifdef AT_NO_AUTOMOUNT
+ 	return fstatat(AT_FDCWD, target, st,
+--- a/sys-utils/hwclock-rtc.c
++++ b/sys-utils/hwclock-rtc.c
+@@ -21,6 +21,11 @@
+ #include <time.h>
+ #include <unistd.h>
+ 
++/* RTC_VL_CLR | RTC_VL_READ since Linux 3.5 */
++#ifndef LINUX_VERSION_CODE
++#include <linux/version.h>
++#endif
++
+ #include "monotonic.h"
+ #include "strutils.h"
+ #include "xalloc.h"
+@@ -562,6 +567,7 @@ int rtc_vl_read(const struct hwclock_con
+ 		return 1;
+ 	}
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,5,0)
+ 	if (ioctl(rtc_fd, RTC_VL_READ, &vl) == -1) {
+ 		warn(_("ioctl(%d, RTC_VL_READ) on %s failed"),
+ 		     rtc_fd, rtc_dev_name);
+@@ -572,6 +578,7 @@ int rtc_vl_read(const struct hwclock_con
+ 		printf(_("ioctl(%d, RTC_VL_READ) on %s returned 0x%x\n"),
+ 		       rtc_fd, rtc_dev_name, vl);
+ 	}
++#endif
+ 
+ 	for (i = 0; i < ARRAY_SIZE(vl_bits); ++i) {
+ 		const struct vl_bit *vlb = &vl_bits[i];
+@@ -597,11 +604,13 @@ int rtc_vl_clear(const struct hwclock_co
+ 		return 1;
+ 	}
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,5,0)
+ 	if (ioctl(rtc_fd, RTC_VL_CLR) == -1) {
+ 		warn(_("ioctl(%d, RTC_VL_CLEAR) on %s failed"),
+ 		     rtc_fd, rtc_dev_name);
+ 		return 1;
+ 	}
++#endif
+ 
+ 	if (ctl->verbose)
+ 		printf(_("ioctl(%d, RTC_VL_CLEAR) on %s succeeded.\n"),

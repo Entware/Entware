@@ -2,7 +2,7 @@
 
 --- a/misc-utils/meson.build
 +++ b/misc-utils/meson.build
-@@ -162,6 +162,6 @@ fadvise_sources = files(
+@@ -193,9 +193,9 @@ fadvise_sources = files(
    'fadvise.c',
  )
  
@@ -12,13 +12,16 @@
 +#waitpid_sources = files(
 +#  'waitpid.c',
 +#)
+ 
+ lsclocks_sources = files(
+   'lsclocks.c',
 --- a/meson.build
 +++ b/meson.build
-@@ -2876,20 +2876,20 @@ if not is_disabler(exe)
+@@ -3085,20 +3085,20 @@ if opt and not is_disabler(exe)
    bashcompletions += ['fadvise']
  endif
  
--if LINUX and conf.get('HAVE_PIDFD_OPEN') != false
+-if LINUX and conf.get('HAVE_PIDFD_OPEN').to_string() == '1'
 -  exe = executable(
 -    'waitpid',
 -    waitpid_sources,
@@ -32,7 +35,7 @@
 -    bashcompletions += ['waitpid']
 -  endif
 -endif
-+#if LINUX and conf.get('HAVE_PIDFD_OPEN') != false
++#if LINUX and conf.get('HAVE_PIDFD_OPEN').to_string() == '1'
 +#  exe = executable(
 +#    'waitpid',
 +#    waitpid_sources,
@@ -47,5 +50,5 @@
 +#  endif
 +#endif
  
- ############################################################
- 
+ syscalls_h = custom_target('syscalls.h',
+   input : 'tools/all_syscalls',

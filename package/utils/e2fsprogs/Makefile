@@ -20,7 +20,7 @@ PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=NOTICE
 PKG_CPE_ID:=cpe:/a:e2fsprogs_project:e2fsprogs
 
-PKG_BUILD_DEPENDS:=util-linux e2fsprogs/host
+PKG_BUILD_DEPENDS:=util-linux
 PKG_INSTALL:=1
 
 PKG_BUILD_PARALLEL:=1
@@ -35,7 +35,7 @@ define Package/e2fsprogs
   SUBMENU:=Filesystem
   TITLE:=Ext2/3/4 filesystem utilities
   URL:=http://e2fsprogs.sourceforge.net/
-  DEPENDS:=+libuuid +libext2fs
+  DEPENDS:=+libuuid +libext2fs +libe2p
 endef
 
 define Package/e2fsprogs/description
@@ -54,6 +54,20 @@ endef
 
 define Package/libext2fs/description
  libext2fs is a library which can access ext2, ext3 and ext4 filesystems.
+endef
+
+define Package/libe2p
+  SECTION:=libs
+  CATEGORY:=Libraries
+  TITLE:=ext2fs userspace programs utility library
+  URL:=http://e2fsprogs.sourceforge.net/
+  DEPENDS:=+libuuid
+  ABI_VERSION:=2
+endef
+
+define Package/libe2p/description
+ This package contains libe2p, ext2fs userspace programs utility library
+ bundled with e2fsprogs.
 endef
 
 define Package/libss
@@ -190,16 +204,19 @@ define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/lib/pkgconfig
 	$(CP) $(PKG_BUILD_DIR)/lib/ext2fs/ext2fs.pc $(1)/opt/lib/pkgconfig
 	$(CP) $(PKG_BUILD_DIR)/lib/et/com_err.pc $(1)/opt/lib/pkgconfig
+	$(CP) $(PKG_BUILD_DIR)/lib/e2p/e2p.pc $(1)/opt/lib/pkgconfig
+	$(CP) $(PKG_BUILD_DIR)/lib/ss/ss.pc $(1)/opt/lib/pkgconfig
 
 	$(INSTALL_DIR) $(1)/opt/lib
 	$(CP) $(PKG_BUILD_DIR)/lib/libext2fs.{so,a}* $(1)/opt/lib
 	$(CP) $(PKG_BUILD_DIR)/lib/libcom_err.{so,a}* $(1)/opt/lib
 	$(CP) $(PKG_BUILD_DIR)/lib/libss.{so,a}* $(1)/opt/lib
+	$(CP) $(PKG_BUILD_DIR)/lib/libe2p.{so,a}* $(1)/opt/lib
 
 	$(INSTALL_DIR) $(1)/opt/include/ext2fs
 	$(CP) $(PKG_BUILD_DIR)/lib/ext2fs/*.h $(1)/opt/include/ext2fs
 	$(INSTALL_DIR) $(1)/opt/include/et
-	$(CP) $(PKG_BUILD_DIR)/lib/et/*.h $(1)/opt/include/et
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/lib/et/*.h $(1)/opt/include/et
 	# Apparently there is some confusion
 	echo "#include <et/com_err.h>" > $(1)/opt/include/com_err.h
 	$(INSTALL_DIR) $(1)/opt/include/ss
@@ -207,23 +224,8 @@ define Build/InstallDev
 		$(PKG_BUILD_DIR)/lib/ss/ss.h \
 		$(PKG_BUILD_DIR)/lib/ss/ss_err.h \
 		$(1)/opt/include/ss/
-endef
-
-define Host/Compile
-	$(MAKE) $(PKG_JOBS) -C $(HOST_BUILD_DIR)/lib/ss mk_cmds
-	$(MAKE) $(PKG_JOBS) -C $(HOST_BUILD_DIR)/lib/et compile_et
-endef
-
-define Host/Install
-	$(INSTALL_DIR) $(1)/share/et
-	$(CP) $(HOST_BUILD_DIR)/lib/et/et_[ch].awk $(1)/share/et/
-	$(INSTALL_DIR) $(1)/share/ss
-	$(CP) $(HOST_BUILD_DIR)/lib/ss/ct_c.{sed,awk} $(1)/share/ss/
-	$(INSTALL_DIR) $(1)/bin
-	$(CP) \
-		$(HOST_BUILD_DIR)/lib/et/compile_et \
-		$(HOST_BUILD_DIR)/lib/ss/mk_cmds \
-		$(1)/bin/
+	$(INSTALL_DIR) $(1)/opt/include/e2p
+	$(CP) $(PKG_BUILD_DIR)/lib/e2p/e2p.h $(1)/opt/include/e2p
 endef
 
 define Package/e2fsprogs/conffiles
@@ -241,9 +243,13 @@ define Package/e2fsprogs/install
 	$(LN) e2fsck $(1)/opt/sbin/fsck.ext3
 	$(LN) e2fsck $(1)/opt/sbin/fsck.ext4
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libe2p.so.* $(1)/opt/lib/
 	$(INSTALL_DIR) $(1)/opt/etc
 	$(INSTALL_DATA) ./files/e2fsck.conf $(1)/opt/etc/e2fsck.conf
+endef
+
+define Package/libe2p/install
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libe2p.so.* $(1)/opt/lib/
 endef
 
 define Package/libcomerr/install
@@ -320,6 +326,7 @@ endef
 $(eval $(call BuildPackage,libcomerr))
 $(eval $(call BuildPackage,libss))
 $(eval $(call BuildPackage,libext2fs))
+$(eval $(call BuildPackage,libe2p))
 $(eval $(call BuildPackage,e2fsprogs))
 $(eval $(call BuildPackage,tune2fs))
 $(eval $(call BuildPackage,resize2fs))

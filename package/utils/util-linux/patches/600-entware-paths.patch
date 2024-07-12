@@ -22,8 +22,21 @@
  #endif
  
  #define	_PATH_HUSHLOGIN		".hushlogin"
-@@ -57,11 +57,11 @@
- #define _PATH_TERMCOLORS_DIR	"/etc/" _PATH_TERMCOLORS_DIRNAME
+@@ -39,7 +39,7 @@
+ #define _PATH_NOLOGIN_TXT	"/etc/nologin.txt"
+ 
+ #ifndef _PATH_MAILDIR
+-# define _PATH_MAILDIR		"/var/spool/mail"
++# define _PATH_MAILDIR		"/opt/var/spool/mail"
+ #endif
+ #define	_PATH_MOTDFILE		"/usr/share/misc/motd:/run/motd:/etc/motd"
+ #ifndef _PATH_NOLOGIN
+@@ -54,17 +54,17 @@
+ #define _PATH_POWEROFF		"/sbin/poweroff"
+ 
+ #define _PATH_TERMCOLORS_DIRNAME "terminal-colors.d"
+-#define _PATH_TERMCOLORS_DIR	"/etc/" _PATH_TERMCOLORS_DIRNAME
++#define _PATH_TERMCOLORS_DIR	"/opt/etc/" _PATH_TERMCOLORS_DIRNAME
  
  /* login paths */
 -#define _PATH_PASSWD		"/etc/passwd"
@@ -38,4 +51,19 @@
 +#define _PATH_SHELLS		"/opt/etc/shells"
  
  #ifndef _PATH_TMP
- # define _PATH_TMP		"/tmp/"
+-# define _PATH_TMP		"/tmp/"
++# define _PATH_TMP		"/opt/tmp/"
+ #endif
+ 
+ #ifndef _PATH_BTMP
+@@ -77,8 +77,8 @@
+ #define _PATH_ISSUE		"/etc/" _PATH_ISSUE_FILENAME
+ #define _PATH_ISSUEDIR		"/etc/" _PATH_ISSUE_DIRNAME
+ 
+-#define _PATH_OS_RELEASE_ETC	"/etc/os-release"
+-#define _PATH_OS_RELEASE_USR	"/usr/lib/os-release"
++#define _PATH_OS_RELEASE_ETC	"/opt/etc/os-release"
++#define _PATH_OS_RELEASE_USR	"/opt/usr/lib/os-release"
+ #define _PATH_NUMLOCK_ON	_PATH_RUNSTATEDIR "/numlock-on"
+ #define _PATH_LOGINDEFS		"/etc/login.defs"
+ 

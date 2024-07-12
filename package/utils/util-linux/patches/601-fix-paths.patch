@@ -1,18 +1,20 @@
 --- a/meson.build
 +++ b/meson.build
-@@ -21,7 +21,7 @@ sbindir = join_paths(prefixdir, get_opti
+@@ -29,8 +29,8 @@ sbindir = join_paths(prefixdir, get_opti
  sysconfstaticdir = join_paths(prefixdir, 'lib')
  docdir = join_paths(prefixdir, get_option('datadir'), 'doc', 'util-linux')
  mandir = join_paths(prefixdir, get_option('mandir'))
 -runstatedir = '/run'
+-localstatedir = '/var'
 +runstatedir = '/opt/var/run'
++localstatedir = '/opt/var'
  execprefixdir = prefixdir
  sysconfdir = join_paths(prefixdir, get_option('sysconfdir'))
  usrbin_exec_dir = join_paths(execprefixdir, bindir)
-@@ -63,8 +63,8 @@ conf.set('usrsbin_execdir', usrsbin_exec
- conf.set('docdir', docdir)
+@@ -76,8 +76,8 @@ conf.set('docdir', docdir)
  conf.set_quoted('_PATH_SYSCONFSTATICDIR', sysconfstaticdir)
  conf.set_quoted('_PATH_RUNSTATEDIR', runstatedir)
+ conf.set_quoted('_PATH_LOCALSTATEDIR', localstatedir)
 -conf.set_quoted('CONFIG_ADJTIME_PATH', '/etc/adjtime')
 -conf.set_quoted('ADJTIME_PATH', '/etc/adjtime') # yes, both are used :(
 +conf.set_quoted('CONFIG_ADJTIME_PATH', '/opt/etc/adjtime')
@@ -20,7 +22,7 @@
  
  conf.set_quoted('_PATH_VENDORDIR', vendordir)
  conf.set('USE_VENDORDIR', vendordir == '' ? false : 1)
-@@ -3427,7 +3427,7 @@ if asciidoctor.found()
+@@ -3764,7 +3764,7 @@ if asciidoctor.found()
  	  '-b', 'manpage',
  	  '-a', 'VERSION=' + meson.project_version(),
  	  '-a', 'release-version=' + meson.project_version(),
@@ -29,3 +31,14 @@
  	  '-a', 'package-docdir=' + docdir,
  	  '--base-dir=' + meson.current_source_dir(),
            '--destination-dir=' + meson.current_build_dir(),
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -258,7 +258,7 @@ option('allow-32bit-time', type: 'boolea
+ 
+ option('fs-search-path',
+        type : 'string',
+-       value : '/sbin:/sbin/fs.d:/sbin/fs',
++       value : '/opt/sbin:/opt/sbin/fs.d:/opt/sbin/fs',
+        description : 'default search path for fs helpers')
+ option('fs-search-path-extra',
+        type : 'string',

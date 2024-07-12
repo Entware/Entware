@@ -18,20 +18,9 @@
  static char *fsck_path;
  
  
---- a/lib/shells.c
-+++ b/lib/shells.c
-@@ -26,7 +26,7 @@ extern int is_known_shell(const char *sh
- 
- 	error = econf_readDirs(&key_file,
- 			       _PATH_VENDORDIR,
--			       "/etc",
-+			       "/opt/etc",
- 			       "shells",
- 			       NULL,
- 			       "", /* key only */
 --- a/libblkid/src/blkidP.h
 +++ b/libblkid/src/blkidP.h
-@@ -304,15 +304,15 @@ struct blkid_struct_cache
+@@ -307,15 +307,15 @@ struct blkid_struct_cache
  #define BLKID_BIC_FL_CHANGED	0x0004	/* Cache has changed from disk */
  
  /* config file */
@@ -52,12 +41,14 @@
  #define BLKID_ERR_SYSFS	 9
 --- a/libuuid/src/uuidP.h
 +++ b/libuuid/src/uuidP.h
-@@ -39,7 +39,7 @@
+@@ -39,8 +39,8 @@
  
  #include "uuid.h"
  
--#define LIBUUID_CLOCK_FILE	"/var/lib/libuuid/clock.txt"
-+#define LIBUUID_CLOCK_FILE	"/opt/var/lib/libuuid/clock.txt"
+-#define LIBUUID_CLOCK_FILE	_PATH_LOCALSTATEDIR "/lib/libuuid/clock.txt"
+-#define LIBUUID_CLOCK_CONT_FILE	_PATH_LOCALSTATEDIR "/lib/libuuid/clock-cont.txt"
++#define LIBUUID_CLOCK_FILE		"/opt/var/lib/libuuid/clock.txt"
++#define LIBUUID_CLOCK_CONT_FILE	"/opt/var/lib/libuuid/clock-cont.txt"
  
  /*
   * Offset between 15-Oct-1582 and 1-Jan-70
@@ -139,7 +130,7 @@
  	"/usr/src/lib/libc/net/*",
 --- a/term-utils/agetty.c
 +++ b/term-utils/agetty.c
-@@ -159,7 +159,7 @@
+@@ -141,7 +141,7 @@
  # include <sys/inotify.h>
  # include <linux/netlink.h>
  # include <linux/rtnetlink.h>
@@ -148,3 +139,20 @@
  # define AGETTY_RELOAD_FDNONE	-2			/* uninitialized fd */
  static int inotify_fd = AGETTY_RELOAD_FDNONE;
  static int netlink_fd = AGETTY_RELOAD_FDNONE;
+--- a/sys-utils/eject.c
++++ b/sys-utils/eject.c
+@@ -661,11 +661,11 @@ static void umount_one(const struct ejec
+ 		if (drop_permissions() != 0)
+ 			err(EXIT_FAILURE, _("drop permissions failed"));
+ 		if (ctl->p_option)
+-			execl("/bin/umount", "/bin/umount", name, "-n", (char *)NULL);
++			execl("/opt/bin/umount", "/opt/bin/umount", name, "-n", (char *)NULL);
+ 		else
+-			execl("/bin/umount", "/bin/umount", name, (char *)NULL);
++			execl("/opt/bin/umount", "/opt/bin/umount", name, (char *)NULL);
+ 
+-		errexec("/bin/umount");
++		errexec("/opt/bin/umount");
+ 
+ 	case -1:
+ 		warn( _("unable to fork"));
