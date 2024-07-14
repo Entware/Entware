@@ -1,89 +1,51 @@
-# Strip is not recommended for go binaries. It may make binaries unusable
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# Copyright (C) 2016-2024 Entware
+
+include $(TOPDIR)/feeds/golang/go_env.mk
+
+# Strip is not recommended for go binaries. It may make binaries unusable.
 RSTRIP:=:
 STRIP:=:
 
-GO_BIN:=$(GOROOT)/bin/go
+GO_BIN:=$(STAGING_DIR_HOST)/go/bin/go
+#GO_BIN:=go
+GO_BUILD_DIR ?= $(PKG_BUILD_DIR)$(if $(GO_SRC_SUBDIR),/$(GO_SRC_SUBDIR))
 
-#GO_LDFLAGS:=
-GO_TARGET ?= .
-GO_VARS ?=
+GO_BIN_GENERATE:= \
+	$(GO_ENV_COMMON) \
+	$(GO_BIN) generate
 
-GO_LDFLAGS = -s -w
+GO_BIN_MOD_TIDY:= \
+	$(GO_ENV_COMMON) \
+	$(GO_BIN) mod tidy \
+	$(if $(findstring s,$(OPENWRT_VERBOSE)),-v)
 
-ifeq ($(PKG_CGO_ENABLED),1)
-GO_LDFLAGS += -I /opt/lib/$(DYNLINKER)
-GO_VARS += \
-	CGO_ENABLED=1 \
-	CC=$(TARGET_CC) \
-	CXX=$(TARGET_CXX)
-else
-GO_VARS += \
-	CGO_ENABLED=0
-endif
+# strip bins
+GO_LDFLAGS ?= -buildid= -s -w
 
-GO_VARS += GOOS=linux
+GO_BUILD_CMD ?= build
 
-ifeq ($(ARCH),aarch64)
-GOARCH:=arm64
-endif
-
-ifeq ($(ARCH),arm)
-GOARCH:=arm
-  ifeq ($(ARCH_SUFFIX),_cortex-a9)
-    ifeq ($(BUILD_VARIANT),nohf)
-	GO_VARS += GOARM=5
-    else
-	GO_VARS += GOARM=7
-    endif
-  else
-	GO_VARS += GOARM=5
-  endif
-endif
-
-ifeq ($(ARCH),i386)
-GOARCH:=386
-endif
-
-ifeq ($(ARCH),mips)
-GOARCH:=mips
-GO_VARS += GOMIPS=softfloat
-endif
-
-ifeq ($(ARCH),mipsel)
-GOARCH:=mipsle
-GO_VARS += GOMIPS=softfloat
-endif
-
-ifeq ($(ARCH),x86_64)
-GOARCH:=amd64
-endif
-
-GO_VARS += \
-	GOARCH=$(GOARCH) \
-	GOPATH=$(TMP_DIR)/go-build
-
-GO_BUILD_CMD ?= $(GO_VARS) $(GO_BIN) build
-# verbose
-GO_BUILD_CMD += $(if $(OPENWRT_VERBOSE),-v -x)
-# -some1 -some2
-GO_BUILD_CMD += -trimpath $(if $(GO_BUILD_ARGS),$(GO_BUILD_ARGS))
-# PKG_INSTALL_DIR
+# path to install bins
 GO_BUILD_CMD += -o $(PKG_INSTALL_DIR)/bin/
-# -X '$(PKG_GOGET).some1=some2'
-GO_BUILD_CMD += -ldflags="$(GO_LDFLAGS)"
-# -tags=some
-GO_BUILD_CMD += $(if $(GO_TAGS),$(GO_TAGS))
-# ./cmd/... ./dir/path1 ./dir/path2
-GO_BUILD_CMD += $(GO_TARGET)
+# enable verbose
+GO_BUILD_CMD += $(if $(findstring s,$(OPENWRT_VERBOSE)),-v -x)
+# build args: -arg1 -arg2
+GO_BUILD_CMD += $(if $(strip $(GO_BUILD_ARGS)),$(GO_BUILD_ARGS))
+# disable VCS & strip FS paths
+GO_BUILD_CMD += -buildvcs=false -trimpath
+# add ext ldflags: -X '$(XIMPORTPATH).name1=value1'
+GO_BUILD_CMD += -ldflags $(if $(strip $(GO_LDFLAGS)),"$(GO_LDFLAGS)")
+# add tags: -tags "tag1,tag2"
+GO_BUILD_CMD += $(if $(strip $(GO_TAGS)),-tags "$(subst $(space),,$(GO_TAGS))")
+# add targets: ./path1/to/target1 ./path2/to/target2
+GO_BUILD_CMD += $(if $(strip $(GO_TARGET)),$(GO_TARGET))
 
 define Build/Configure/Go
 endef
 
 define Build/Compile/Go
-	( \
-		cd $(PKG_BUILD_DIR)$(if $(GO_SRC_SUBDIR),/$(GO_SRC_SUBDIR)); \
-		$(GO_BUILD_CMD); \
-	)
+	( cd $(GO_BUILD_DIR); $(GO_VARS) $(GO_BIN) $(GO_BUILD_CMD); )
 endef
 
 define Build/Install/Go
