@@ -17,7 +17,7 @@ PKG_MIRROR_HASH:=b3ba2ab5ffa1af55f8da2cae5a90df486474b97ed4c359ec40c986aa6e82c30
 PKG_LICENSE:=GPL-2.0
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
-PKG_BUILD_DEPENDS:=bpf-headers
+#PKG_BUILD_DEPENDS:=bpf-headers
 
 PKG_BUILD_PARALLEL:=1
 
