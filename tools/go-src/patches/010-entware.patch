@@ -1,6 +1,6 @@
 --- a/src/crypto/x509/root_linux.go
 +++ b/src/crypto/x509/root_linux.go
-@@ -8,6 +8,7 @@
+@@ -8,6 +8,7 @@ import "internal/goos"
  
  // Possible certificate files; stop after finding one.
  var certFiles = []string{
@@ -8,7 +8,7 @@
  	"/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
  	"/etc/pki/tls/certs/ca-bundle.crt",                  // Fedora/RHEL 6
  	"/etc/ssl/ca-bundle.pem",                            // OpenSUSE
-@@ -18,6 +19,7 @@
+@@ -18,6 +19,7 @@ var certFiles = []string{
  
  // Possible directories with certificate files; all will be read.
  var certDirectories = []string{
