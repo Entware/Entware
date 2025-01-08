@@ -6,30 +6,18 @@
 ifneq ($(__target_inc),1)
 __target_inc=1
 
-ifneq ($(DUMP),)
-  # Parse generic config that might be set before a .config is generated to modify the
-  # default package configuration
-  # Keep DYNAMIC_DEF_PKG_CONF in sync with toplevel.mk to reflect the same configs
-  DYNAMIC_DEF_PKG_CONF := CONFIG_USE_APK CONFIG_SELINUX CONFIG_SMALL_FLASH CONFIG_SECCOMP
-  ifneq ($(wildcard $(TOPDIR)/.config),)
-    $(foreach config, $(DYNAMIC_DEF_PKG_CONF), \
-      $(eval $(config) := $(shell grep "$(config)=y" $(TOPDIR)/.config 2>/dev/null)) \
-    )
-  # Init config that are enabled by default. Dependency are checked matching the one in
-  # the config.
-  else
-    ifeq ($(filter $(BOARD), uml),)
-    ifneq ($(filter $(ARCH), aarch64 arm armeb mips mipsel mips64 mips64el i386 powerpc x86_64),)
-      CONFIG_SECCOMP := y
-    endif
-    endif
-  endif
-endif
 
-# default device type
+##@
+# @brief Default device type ( basic | nas | router ).
+##
 DEVICE_TYPE?=router
 
-# Default packages - the really basic set
+##@
+# @brief Default packages.
+#
+# The really basic set. Additional packages are added based on @DEVICE_TYPE and
+# @CONFIG_* values.
+##
 DEFAULT_PACKAGES:=\
 	dropbear \
 	entware-opt \
@@ -38,27 +26,13 @@ DEFAULT_PACKAGES:=\
 	libgcc \
 	opkg
 
-ifneq ($(CONFIG_SELINUX),)
-DEFAULT_PACKAGES+=busybox-selinux procd-selinux
-else
-DEFAULT_PACKAGES+=busybox
-endif
-
-# Entware specific: unused
-# include ujail on systems with enough storage
-#ifeq ($(CONFIG_SMALL_FLASH),)
-#DEFAULT_PACKAGES+=procd-ujail
-#endif
-
-# Entware specific: unused
-# include seccomp ld-preload hooks if kernel supports it
-#ifneq ($(CONFIG_SECCOMP),)
-#DEFAULT_PACKAGES+=procd-seccomp
-#endif
-
-# For the basic set
+##@
+# @brief Default packages for @DEVICE_TYPE basic.
+##
 DEFAULT_PACKAGES.basic:=
-# For nas targets
+##@
+# @brief Default packages for @DEVICE_TYPE nas.
+##
 DEFAULT_PACKAGES.nas:=\
 	block-mount \
 	fdisk \
@@ -368,6 +342,7 @@ define BuildTargets/DumpCurrent
 	 echo 'Target-Description:'; \
 	 echo "$$$$DESCRIPTION"; \
 	 echo '@@'; \
+	 $(if $(DEFAULT_PROFILE),echo 'Target-Default-Profile: $(DEFAULT_PROFILE)';) \
 	 echo 'Default-Packages: $(DEFAULT_PACKAGES) $(call extra_packages,$(DEFAULT_PACKAGES))'; \
 	 $(DUMPINFO)
 	$(if $(CUR_SUBTARGET),$(SUBMAKE) -r --no-print-directory -C image -s DUMP=1 SUBTARGET=$(CUR_SUBTARGET))
