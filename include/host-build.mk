@@ -45,6 +45,15 @@ define Host/Prepare
   $(call Host/Prepare/Default)
 endef
 
+define Host/Gnulib/Prepare
+  $(STAGING_DIR_HOST)/bin/gnulib-tool \
+	--local-dir=$(STAGING_DIR_HOST)/share/gnulib \
+	--source-base=$(PKG_GNULIB_BASE) \
+	$(PKG_GNULIB_ARGS) \
+	$(PKG_GNULIB_MODS) \
+  ;
+endef
+
 HOST_CONFIGURE_VARS = \
 	CC="$(HOSTCC)" \
 	CFLAGS="$(HOST_CFLAGS)" \
@@ -102,19 +111,25 @@ define Host/Configure
   $(call Host/Configure/Default)
 endef
 
+HOST_MAKE_PATH ?= .
+
 define Host/Compile/Default
 	+$(HOST_MAKE_VARS) \
-	$(MAKE) $(HOST_JOBS) -C $(HOST_BUILD_DIR) \
+	$(MAKE) $(HOST_JOBS) -C $(HOST_BUILD_DIR)/$(HOST_MAKE_PATH) \
 		$(HOST_MAKE_FLAGS) \
 		$(1)
 endef
 
 define Host/Compile
-  $(call Host/Compile/Default)
+  $(call Host/Compile/Default,$(if $(PKG_SUBDIRS),SUBDIRS='$$$$(wildcard $(PKG_SUBDIRS))'))
+endef
+
+define Host/Gnulib/Compile
+  $(call Host/Compile/Default,SUBDIRS='$$$$(wildcard $(PKG_GNULIB_BASE))')
 endef
 
 define Host/Install/Default
-	$(call Host/Compile/Default,install)
+  $(call Host/Compile/Default,$(if $(PKG_SUBDIRS),SUBDIRS='$$$$(wildcard $(PKG_SUBDIRS))') install)
 endef
 
 define Host/Install
