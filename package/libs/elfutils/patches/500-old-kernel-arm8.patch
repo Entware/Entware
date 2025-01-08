@@ -1,0 +1,43 @@
+--- a/backends/aarch64_initreg.c
++++ b/backends/aarch64_initreg.c
+@@ -36,7 +36,6 @@
+ # include <sys/uio.h>
+ # include <sys/user.h>
+ # include <sys/ptrace.h>
+-# include <asm/ptrace.h>
+ /* Deal with old glibc defining user_pt_regs instead of user_regs_struct.  */
+ # ifndef HAVE_SYS_USER_REGS
+ #  define user_regs_struct user_pt_regs
+@@ -58,18 +57,12 @@
+ 
+   /* General registers.  */
+   struct user_regs_struct gregs;
+-  struct user_pac_mask pac_mask;
+   struct iovec iovec;
+   iovec.iov_base = &gregs;
+   iovec.iov_len = sizeof (gregs);
+   if (ptrace (PTRACE_GETREGSET, tid, NT_PRSTATUS, &iovec) != 0)
+     return false;
+ 
+-  iovec.iov_base = &pac_mask;
+-  iovec.iov_len = sizeof (pac_mask);
+-  if (ptrace (PTRACE_GETREGSET, tid, NT_ARM_PAC_MASK, &iovec) != 0)
+-    pac_mask.insn_mask = 0;
+-
+   /* X0..X30 plus SP.  */
+   if (! setfunc (0, 32, (Dwarf_Word *) &gregs.regs[0], arg))
+     return false;
+@@ -78,13 +71,8 @@
+   if (! setfunc (-1, 1, (Dwarf_Word *) &gregs.pc, arg))
+     return false;
+ 
+-  if (! setfunc (-2, 1, (Dwarf_Word *) &pac_mask.insn_mask, arg))
+-    return false;
+-
+   /* ELR cannot be found.  */
+ 
+-  /* RA_SIGN_STATE cannot be found */
+-
+   /* FP registers (only 64bits are used).  */
+   struct user_fpsimd_struct fregs;
+   iovec.iov_base = &fregs;
