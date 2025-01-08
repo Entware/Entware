@@ -8,6 +8,10 @@ endif
 
 IPKG_STATE_DIR:=$(TARGET_DIR)/opt/lib/opkg
 
+define description_escape
+$(subst `,\`,$(subst $$,\$$,$(subst ",\",$(subst \,\\,$(1)))))
+endef
+
 # Generates a make statement to return a wildcard for candidate ipkg files
 # 1: package name
 define gen_package_wildcard
@@ -108,6 +112,13 @@ endif
     IDIR_$(1):=$(PKG_BUILD_DIR)/ipkg-$(PKGARCH)/$(1)
     ADIR_$(1):=$(PKG_BUILD_DIR)/apk-$(PKGARCH)/$(1)
     KEEP_$(1):=$(strip $(call Package/$(1)/conffiles))
+    APK_SCRIPTS_$(1):=\
+    --script "post-install:$$(ADIR_$(1))/post-install" \
+    --script "pre-deinstall:$$(ADIR_$(1))/pre-deinstall"
+
+    ifdef Package/$(1)/postrm
+        APK_SCRIPTS_$(1)+=--script "post-deinstall:$$(ADIR_$(1))/postrm"
+    endif
 
     TARGET_VARIANT:=$$(if $(ALL_VARIANTS),$$(if $$(VARIANT),$$(filter-out *,$$(VARIANT)),$(firstword $(ALL_VARIANTS))))
     ifeq ($(BUILD_VARIANT),$$(if $$(TARGET_VARIANT),$$(TARGET_VARIANT),$(BUILD_VARIANT)))
@@ -259,6 +270,21 @@ ifeq ($(CONFIG_USE_APK),)
 			echo "$$$$CONTROL"; \
 			printf "Description: "; echo "$$$$DESCRIPTION" | sed -e 's,^[[:space:]]*, ,g'; \
 		) > control; \
+		chmod 644 control; \
+		( \
+			echo "#!/bin/sh"; \
+			echo "[ \"\$$$${IPKG_NO_SCRIPT}\" = \"1\" ] && exit 0"; \
+			echo "[ -s "\$$$${IPKG_INSTROOT}/lib/functions.sh" ] || exit 0"; \
+			echo ". \$$$${IPKG_INSTROOT}/lib/functions.sh"; \
+			echo "default_postinst \$$$$0 \$$$$@"; \
+		) > postinst; \
+		( \
+			echo "#!/bin/sh"; \
+			echo "[ -s "\$$$${IPKG_INSTROOT}/lib/functions.sh" ] || exit 0"; \
+			echo ". \$$$${IPKG_INSTROOT}/lib/functions.sh"; \
+			echo "default_prerm \$$$$0 \$$$$@"; \
+		) > prerm; \
+		chmod 0755 postinst prerm; \
 		$($(1)_COMMANDS) \
 	)
 
@@ -277,8 +303,8 @@ else
 		echo 'export root="$$$${IPKG_INSTROOT}"'; \
 		echo 'export pkgname="$(1)"'; \
 		echo "add_group_and_user"; \
-		[ ! -f $$(ADIR_$(1))/postinst-pkg ] || cat "$$(ADIR_$(1))/postinst-pkg"; \
 		echo "default_postinst"; \
+		[ ! -f $$(ADIR_$(1))/postinst-pkg ] || cat "$$(ADIR_$(1))/postinst-pkg"; \
 	) > $$(ADIR_$(1))/post-install;
 
 	( \
@@ -287,8 +313,8 @@ else
 		echo ". \$$$${IPKG_INSTROOT}/lib/functions.sh"; \
 		echo 'export root="$$$${IPKG_INSTROOT}"'; \
 		echo 'export pkgname="$(1)"'; \
-		[ ! -f $$(ADIR_$(1))/prerm-pkg ] || cat "$$(ADIR_$(1))/prerm-pkg"; \
 		echo "default_prerm"; \
+		[ ! -f $$(ADIR_$(1))/prerm-pkg ] || cat "$$(ADIR_$(1))/prerm-pkg"; \
 	) > $$(ADIR_$(1))/pre-deinstall;
 
 	if [ -n "$(USERID)" ]; then echo $(USERID) > $$(IDIR_$(1))/opt/lib/apk/packages/$(1).rusers; fi;
@@ -326,14 +352,24 @@ else
 	$(FAKEROOT) $(STAGING_DIR_HOST)/bin/apk mkpkg \
 	  --info "name:$(1)$$(ABIV_$(1))" \
 	  --info "version:$(VERSION)" \
-	  --info "description:" \
-	  --info "arch:$(PKGARCH)" \
+	  --info "description:$$(call description_escape,$$(strip $$(Package/$(1)/description)))" \
+	  $(if $(findstring all,$(PKGARCH)),--info "arch:noarch",--info "arch:$(PKGARCH)") \
 	  --info "license:$(LICENSE)" \
 	  --info "origin:$(SOURCE)" \
-	  --info "provides:$$(foreach prov,$$(filter-out $(1)$$(ABIV_$(1)),$(PROVIDES)$$(if $$(ABIV_$(1)), \
-		$(1) $(foreach provide,$(PROVIDES),$(provide)$$(ABIV_$(1))))),$$(prov)=$(VERSION) )" \
-	  --script "post-install:$$(ADIR_$(1))/post-install" \
-	  --script "pre-deinstall:$$(ADIR_$(1))/pre-deinstall" \
+	  --info "url:$(URL)" \
+	  --info "maintainer:$(MAINTAINER)" \
+	  --info "provides:$$(foreach prov,\
+			$$(filter-out $(1)$$(ABIV_$(1)), \
+			$(PROVIDES)$$(if $$(ABIV_$(1)), \
+				$(1)=$(VERSION) $(foreach provide, \
+					$(PROVIDES), \
+					$(provide)$$(ABIV_$(1))=$(VERSION) \
+				) \
+			) \
+		), \
+		$$(prov) )" \
+	  $(if $(DEFAULT_VARIANT),--info "provider-priority:100",$(if $(PROVIDES),--info "provider-priority:1")) \
+	  $$(APK_SCRIPTS_$(1)) \
 	  --info "depends:$$(foreach depends,$$(subst $$(comma),$$(space),$$(subst $$(space),,$$(subst $$(paren_right),,$$(subst $$(paren_left),,$$(Package/$(1)/DEPENDS))))),$$(depends))" \
 	  --files "$$(IDIR_$(1))" \
 	  --output "$$(PACK_$(1))" \
