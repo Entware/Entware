@@ -8,17 +8,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mbedtls
-PKG_VERSION:=3.6.0
+PKG_VERSION:=3.6.2
 PKG_RELEASE:=1
 PKG_BUILD_FLAGS:=no-mips16 gc-sections no-lto
 
-PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=https://github.com/Mbed-TLS/mbedtls.git
-PKG_SOURCE_VERSION:=2ca6c285a0dd3f33982dd57299012dacab1ff206
-PKG_MIRROR_HASH:=a684012126590b4e0b6ab41e244cc2af0d2bcfc4b6c94bf42fc37d2d08f0553e
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+PKG_SOURCE_URL=https://github.com/Mbed-TLS/$(PKG_NAME)/releases/download/$(PKG_NAME)-$(PKG_VERSION)
+PKG_HASH:=8b54fb9bcf4d5a7078028e0520acddefb7900b3e66fec7f7175bb5b7d85ccdca
 
 PKG_LICENSE:=GPL-2.0-or-later
-PKG_LICENSE_FILES:=gpl-2.0.txt
+PKG_LICENSE_FILES:=LICENSE
 PKG_CPE_ID:=cpe:/a:arm:mbed_tls
 
 MBEDTLS_BUILD_OPTS_CURVES= \
@@ -38,6 +37,7 @@ MBEDTLS_BUILD_OPTS_CURVES= \
 
 MBEDTLS_BUILD_OPTS_CIPHERS= \
   CONFIG_MBEDTLS_AES_C \
+  CONFIG_MBEDTLS_ARIA_C \
   CONFIG_MBEDTLS_CAMELLIA_C \
   CONFIG_MBEDTLS_CCM_C \
   CONFIG_MBEDTLS_CMAC_C \
@@ -88,7 +88,7 @@ include $(INCLUDE_DIR)/cmake.mk
 
 define Package/mbedtls/Default
   TITLE:=Embedded SSL
-  URL:=https://tls.mbed.org
+  URL:=https://www.trustedfirmware.org/projects/mbed-tls/
 endef
 
 define Package/mbedtls/Default/description
@@ -138,8 +138,9 @@ CMAKE_OPTIONS += \
 	-DENABLE_PROGRAMS:Bool=ON
 
 define Build/Prepare
-	$(call Build/Prepare/Default)
-	$(if $(strip $(foreach opt,$(MBEDTLS_BUILD_OPTS),$($(opt)))),
+       $(call Build/Prepare/Default)
+
+       $(if $(strip $(foreach opt,$(MBEDTLS_BUILD_OPTS),$($(opt)))),
 	 $(foreach opt,$(MBEDTLS_BUILD_OPTS),
 	 $(PKG_BUILD_DIR)/scripts/config.py \
 	 -f $(PKG_BUILD_DIR)/include/mbedtls/mbedtls_config.h \
