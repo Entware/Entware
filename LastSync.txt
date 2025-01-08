@@ -1,12 +1,19 @@
-commit 75cd4ef48dffea8c659605786cf426962dd6bfc4 (HEAD -> master, origin/master, origin/main, origin/HEAD)
-Author: Martin Schiller <ms@dev.tdt.de>
-Date:   Wed Jun 26 10:39:18 2024 +0200
+commit 3ec7f3a512a27f8ca6402954ad2a997176103b4b (HEAD -> master, origin/master, origin/main, origin/HEAD)
+Author: David Bauer <mail@david-bauer.net>
+Date:   Sun Dec 22 02:56:12 2024 +0100
 
-    lantiq: replace gswip patches with upstream version
+    mac80211: set basic-rate for mesh interfaces
     
-    Replace recently added patches with version accepted upstream.
+    Basic rates were not set for mesh-interfaces, resulting in the undesired
+    behavior where 11s frames might be sent with a rate which was not
+    configured.
     
-    Signed-off-by: Martin Schiller <ms@dev.tdt.de>
-    Link: https://github.com/openwrt/openwrt/pull/15811
-    Signed-off-by: Hauke Mehrtens <hauke@hauke-m.de>
+    Depending on the driver, the basic rate might also be used to determine
+    the beacon rate configured to the chip. One such example are MediaTek
+    MT7915 platforms.
+    
+    Signed-off-by: David Bauer <mail@david-bauer.net>
 
+commit 381f6624cfb5a1beb763cb09967cb931bcd98427
+Author: Shiji Yang <yangshiji66@qq.com>
+Date:   Sat Jan 4 15:59:57 2025 +0800
