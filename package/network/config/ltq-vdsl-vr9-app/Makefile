@@ -9,7 +9,7 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=ltq-vdsl-vr9-app
 PKG_VERSION:=4.17.18.6
-PKG_RELEASE:=5
+PKG_RELEASE:=7
 PKG_BASE_NAME:=dsl_cpe_control
 PKG_SOURCE:=$(PKG_BASE_NAME)_vrx-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@OPENWRT
@@ -29,7 +29,7 @@ define Package/ltq-vdsl-vr9-app
   CATEGORY:=Network
   TITLE:=Lantiq VDSL userland tool
   URL:=http://www.lantiq.com/
-  DEPENDS:=@TARGET_lantiq_xrx200 +libpthread +librt +ltq-dsl-base +libubox +libubus
+  DEPENDS:=@(TARGET_lantiq_xrx200||TARGET_lantiq_xrx200_legacy) +libpthread +librt +ltq-dsl-base +libubox +libubus
   PROVIDES:=ltq-dsl-app
 endef
 
