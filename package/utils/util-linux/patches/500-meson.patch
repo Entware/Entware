@@ -1,0 +1,33 @@
+From f22aa4beb9ae9d502e28dd4a66d0683e1ecfec8a Mon Sep 17 00:00:00 2001
+From: "Satadru Pramanik, DO, MPH, MEng" <satadru@gmail.com>
+Date: Fri, 19 Jul 2024 13:52:26 -0400
+Subject: [PATCH] Add thread dep to libuuid meson.build
+
+Fixes: https://github.com/util-linux/util-linux/issues/3131
+(cherry picked from commit 51369aa1e11b14af26cdb91f5fff6bbbf1d306af)
+---
+ libuuid/meson.build | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/libuuid/meson.build b/libuuid/meson.build
+index b67b3d5e722..597487fd084 100644
+--- a/libuuid/meson.build
++++ b/libuuid/meson.build
+@@ -28,6 +28,8 @@ if cc.has_link_argument('-Wl,--version-script=@0@'.format(libuuid_sym_path))
+ 	libuuid_link_args += ['-Wl,--version-script=@0@'.format(libuuid_sym_path)]
+ endif
+ 
++thread_dep = dependency('threads')
++
+ lib_uuid = both_libraries(
+   'uuid',
+   list_h,
+@@ -42,7 +44,7 @@ lib_uuid = both_libraries(
+   link_depends : libuuid_link_depends,
+   version : libuuid_version,
+   link_args : libuuid_link_args,
+-  dependencies : [socket_libs,
++  dependencies : [socket_libs, thread_dep,
+                   build_libuuid ? [] : disabler()],
+   install : build_libuuid)
+ uuid_dep = declare_dependency(link_with: lib_uuid, include_directories: dir_libuuid)
