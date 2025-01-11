@@ -1,0 +1,11 @@
+--- a/configure.ac
++++ b/configure.ac
+@@ -287,7 +287,7 @@
+ 
+      arm*)
+         AC_MSG_RESULT([ok (${host_cpu})])
+-        VGCONF_PLATFORM_ARM_ARCH="-march=armv6"
++        VGCONF_PLATFORM_ARM_ARCH="-march=armv7-a"
+         ARCH_MAX="arm"
+         ;;
+ 
