@@ -296,7 +296,7 @@ foreach my $mirror (@ARGV) {
 }
 
 projectsmirrors '@OPENWRT';
-push @mirrors, 'https://src.entware.net';
+unshift @mirrors, 'https://src.entware.net';
 
 if (-f "$target/$filename") {
 	$hash_cmd and do {
