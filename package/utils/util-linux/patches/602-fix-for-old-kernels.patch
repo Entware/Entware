@@ -2,7 +2,7 @@
 
 --- a/config.h.in
 +++ b/config.h.in
-@@ -360,7 +360,8 @@
+@@ -373,7 +373,8 @@
  #undef HAVE_LINUX_NET_NAMESPACE_H
  
  /* Define to 1 if you have the <linux/nsfs.h> header file. */
@@ -14,7 +14,7 @@
  #undef HAVE_LINUX_PR_H
 --- a/meson.build
 +++ b/meson.build
-@@ -195,7 +195,6 @@ headers = '''
+@@ -223,7 +223,6 @@ headers = '''
          linux/landlock.h
          linux/kcmp.h
          linux/net_namespace.h

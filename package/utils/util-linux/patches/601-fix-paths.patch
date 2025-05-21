@@ -1,16 +1,16 @@
 --- a/meson.build
 +++ b/meson.build
-@@ -29,8 +29,8 @@ sbindir = join_paths(prefixdir, get_opti
- sysconfstaticdir = join_paths(prefixdir, 'lib')
- docdir = join_paths(prefixdir, get_option('datadir'), 'doc', 'util-linux')
- mandir = join_paths(prefixdir, get_option('mandir'))
+@@ -29,8 +29,8 @@ sbindir = prefixdir / get_option('sbindi
+ sysconfstaticdir = prefixdir / 'lib'
+ docdir = prefixdir / get_option('datadir') / 'doc' / 'util-linux'
+ mandir = prefixdir / get_option('mandir')
 -runstatedir = '/run'
 -localstatedir = '/var'
-+runstatedir = '/opt/var/run'
-+localstatedir = '/opt/var'
++runstatedir = prefixdir / 'var/run'
++localstatedir = prefixdir / 'var'
  execprefixdir = prefixdir
- sysconfdir = join_paths(prefixdir, get_option('sysconfdir'))
- usrbin_exec_dir = join_paths(execprefixdir, bindir)
+ sysconfdir = prefixdir / get_option('sysconfdir')
+ usrbin_exec_dir = execprefixdir / bindir
 @@ -76,8 +76,8 @@ conf.set('docdir', docdir)
  conf.set_quoted('_PATH_SYSCONFSTATICDIR', sysconfstaticdir)
  conf.set_quoted('_PATH_RUNSTATEDIR', runstatedir)
@@ -22,7 +22,7 @@
  
  conf.set_quoted('_PATH_VENDORDIR', vendordir)
  conf.set('USE_VENDORDIR', vendordir == '' ? false : 1)
-@@ -3764,7 +3764,7 @@ if asciidoctor.found()
+@@ -4053,7 +4053,7 @@ if asciidoctor.found()
  	  '-b', 'manpage',
  	  '-a', 'VERSION=' + meson.project_version(),
  	  '-a', 'release-version=' + meson.project_version(),
@@ -33,7 +33,7 @@
            '--destination-dir=' + meson.current_build_dir(),
 --- a/meson_options.txt
 +++ b/meson_options.txt
-@@ -258,7 +258,7 @@ option('allow-32bit-time', type: 'boolea
+@@ -298,7 +298,7 @@ option('allow-32bit-time', type: 'boolea
  
  option('fs-search-path',
         type : 'string',
