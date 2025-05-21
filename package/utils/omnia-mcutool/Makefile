@@ -27,7 +27,7 @@ define Package/omnia-mcutool
   CATEGORY:=Utilities
   URL:=https://gitlab.nic.cz/turris/$(PKG_NAME)
   TITLE:=CZ.NIC Turris Omnia MCU utility
-  DEPENDS:=+libopenssl #+omnia-mcu-firmware
+  DEPENDS:=+libopenssl +omnia-mcu-firmware
 endef
 
 define Package/omnia-mcutool/description
@@ -51,4 +51,4 @@ define Package/omnia-mcutool/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/omnia-mcutool $(1)/usr/bin/
 endef
 
-$(eval $(call BuildPackage,omnia-mcutool))
+#$(eval $(call BuildPackage,omnia-mcutool))
