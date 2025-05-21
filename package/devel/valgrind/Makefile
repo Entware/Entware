@@ -98,7 +98,8 @@ else
 	BITS := 32bit
 endif
 
-ifeq ($(CONFIG_arm_v7),y)
+# XXX Entware specific: add target
+ifeq ($(or $(CONFIG_arm_v7),$(CONFIG_TARGET_armv7_3_2)),y)
 	CONFIGURE_ARGS += --host=armv7-openwrt-linux$(if $(TARGET_SUFFIX),-$(TARGET_SUFFIX))
 endif
 
