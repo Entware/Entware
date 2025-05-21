@@ -18,13 +18,14 @@ DEVICE_TYPE?=router
 # The really basic set. Additional packages are added based on @DEVICE_TYPE and
 # @CONFIG_* values.
 ##
+# Entware specific: drop unused:
+# base-files,ca-bundle,fstools,libustream-mbedtls,logd,mtd,netifd,uci,uclient-fetch,urandom-seed,urngd
 DEFAULT_PACKAGES:=\
 	dropbear \
 	entware-opt \
 	entware-release \
 	libc \
-	libgcc \
-	opkg
+	libgcc
 
 ##@
 # @brief Default packages for @DEVICE_TYPE basic.
@@ -38,7 +39,11 @@ DEFAULT_PACKAGES.nas:=\
 	fdisk \
 	lsblk \
 	mdadm
-# For router targets
+##@
+# @brief Default packages for @DEVICE_TYPE router.
+##
+# Entware specific: drop unused:
+# dnsmasq,firewall4,nftables,kmod-nft-offload,odhcp6c,odhcpd-ipv6only,ppp,ppp-mod-pppoe
 DEFAULT_PACKAGES.router:=
 
 ifneq ($(DUMP),)
@@ -72,10 +77,27 @@ else
   endif
 endif
 
+# Entware specific: drop unused: procd-ujail
+# include ujail on systems with enough storage
+#ifeq ($(filter small_flash,$(FEATURES)),)
+#  DEFAULT_PACKAGES+=procd-ujail
+#endif
+
 # Add device specific packages (here below to allow device type set from subtarget)
 DEFAULT_PACKAGES += $(DEFAULT_PACKAGES.$(DEVICE_TYPE))
 
+##@
+# @brief Filter out packages, prepended with `-`.
+#
+# @param 1: Package list.
+##
 filter_packages = $(filter-out -% $(patsubst -%,%,$(filter -%,$(1))),$(1))
+
+##@
+# @brief Append extra package dependencies.
+#
+# @param 1: Package list.
+##
 extra_packages = $(if $(filter wpad wpad-% nas,$(1)),iwinfo)
 
 define ProfileDefault
