@@ -69,7 +69,7 @@ endef
 
 define Package/libreadline/install
 	$(INSTALL_DIR) $(1)/opt/lib
-	$(CP) $(PKG_INSTALL_DIR)/opt/lib/lib{history,readline}.so.* $(1)/opt/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/lib{history,readline}.so* $(1)/opt/lib/
 endef
 
 $(eval $(call HostBuild))
