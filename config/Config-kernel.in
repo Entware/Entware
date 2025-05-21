@@ -579,10 +579,11 @@ config KERNEL_AIO
 	bool "Compile the kernel with asynchronous IO support"
 	default y if !SMALL_FLASH
 
-# Entware specific: kernels too old (fake deps)
+# Entware specific: kernels too old (io_uring since Linux 5.4)
 config KERNEL_IO_URING
 	bool "Compile the kernel with io_uring support"
-	depends on !SMALL_FLASH && LINUX_5_4
+	depends on !SMALL_FLASH
+	depends on !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
 	default y if (x86_64 || aarch64)
 	help
 	  Entware uses old kernels.
@@ -617,10 +618,12 @@ choice
 		depends on !LINUX_6_6
 endchoice
 
+# TRANSPARENT_HUGEPAGE since Linux 4.18(?)
 config KERNEL_ARM64_CONTPTE
 	bool "Compile the kernel with Contiguous PTE mappings for user memory"
 	depends on KERNEL_ARM64
 	depends on KERNEL_TRANSPARENT_HUGEPAGE
+	depends on !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
 	depends on !LINUX_6_6
 	default y
 
@@ -821,8 +824,10 @@ config KERNEL_BIG_KEYS
 # CGROUP support symbols
 #
 
+# Entware specific -> no CGROUPS
 config KERNEL_CGROUPS
 	bool "Enable kernel cgroups"
+	depends on !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
 	default y if !SMALL_FLASH
 
 if KERNEL_CGROUPS
@@ -915,12 +920,11 @@ if KERNEL_CGROUPS
 		bool
 		default y if KERNEL_MEMCG
 
-# Entware specific: kernels too old
 	config KERNEL_MEMCG
 		bool "Memory Resource Controller for Control Groups"
 		default y
 		select KERNEL_FREEZER
-		depends on KERNEL_RESOURCE_COUNTERS && !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
+		depends on KERNEL_RESOURCE_COUNTERS
 		help
 		  Provides a memory resource controller that manages both anonymous
 		  memory and page cache. (See Documentation/cgroups/memory.txt)
@@ -1170,7 +1174,7 @@ config KERNEL_POSIX_MQUEUE
 	  operations on message queues.
 
 
-# Entware specific: kernels too old
+# Entware specific -> no SECCOMP*
 config KERNEL_SECCOMP_FILTER
 	bool
 	depends on !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
@@ -1178,7 +1182,7 @@ config KERNEL_SECCOMP_FILTER
 
 config KERNEL_SECCOMP
 	bool "Enable seccomp support"
-		depends on !(TARGET_uml) && !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
+		depends on !(LINUX_3_2||LINUX_3_4||LINUX_3_10||TARGET_uml)
 		select KERNEL_SECCOMP_FILTER
 		default y if !SMALL_FLASH
 		help
@@ -1263,8 +1267,10 @@ config KERNEL_NET_L3_MASTER_DEV
 	  drivers to support L3 master devices like VRF.
   	  Increases the compressed kernel size by ~4kB (as of Linux 6.6).
 
+# Entware specific: no DBC
 config KERNEL_DCB
 	bool "Data Center Bridging support"
+	depends on !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
 	default y if TARGET_armsr_armv8
 	default y if TARGET_x86_64
 	help
@@ -1300,10 +1306,12 @@ config KERNEL_PAGE_POOL_STATS
 
 config KERNEL_MPTCP
 	bool "Multi-Path TCP support"
+	depends on !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
 	default y if !SMALL_FLASH
 	help
 	   Select this option to enable support for Multi-Path TCP.
 	   Increases the compressed kernel size by ~214kB (as of Linux 6.6).
+	   Entware uses old kernels (MPTCP since LINUX 5.6).
 
 if KERNEL_IPV6
 config KERNEL_MPTCP_IPV6
@@ -1469,7 +1477,7 @@ config KERNEL_SQUASHFS_XATTR
 #
 # compile optimization setting
 #
-# Entware specific: kernels too old
+# Entware specific: no KERNEL_CC_OPTIMIZE_FOR_*
 choice
 	prompt "Compiler optimization level"
 	depends on !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
