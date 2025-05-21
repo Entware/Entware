@@ -7,7 +7,7 @@
 menu "Miscellaneous Utilities"
 
 config BUSYBOX_CONFIG_ADJTIMEX
-	bool "adjtimex (4.7 kb)"
+	bool "adjtimex (4.9 kb)"
 	default BUSYBOX_DEFAULT_ADJTIMEX
 	help
 	Adjtimex reads and optionally sets adjustment parameters for
