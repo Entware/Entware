@@ -200,6 +200,14 @@ choice
 EOF
 	foreach my $target (@target) {
 		my $profile = $target->{profiles}->[0];
+		foreach my $p (@{$target->{profiles}}) {
+			last unless $target->{default_profile};
+			my $name = $p->{id};
+			$name =~ s/^DEVICE_//;
+			next unless $name eq $target->{default_profile};
+			$profile = $p;
+			last;
+		}
 		$profile or next;
 		print <<EOF;
 	default TARGET_$target->{conf}_$profile->{id} if TARGET_$target->{conf} && !BUILDBOT
