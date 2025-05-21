@@ -107,6 +107,7 @@ CONFIGURE_VARS += \
 HOST_CFLAGS += $(HOST_FPIC)
 
 HOST_CONFIGURE_ARGS += \
+	--enable-pc-files \
 	--without-cxx \
 	--without-cxx-binding \
 	--without-ada \
@@ -158,6 +159,7 @@ ifneq ($(HOST_OS),FreeBSD)
 		a/ansi \
 		a/alacritty \
 		d/dumb \
+		f/foot \
 		l/linux \
 		r/rxvt \
 		r/rxvt-unicode \
@@ -228,6 +230,8 @@ define Build/InstallDev
 	$(SED) 's,^\(prefix\|exec_prefix\)=.*,\1=$(STAGING_DIR)/opt,g' -e 's/$$$$INCS //g' \
 		$(2)/bin/ncursesw6-config
 	ln -sf $(STAGING_DIR)/host/bin/ncursesw6-config $(1)/opt/bin/ncursesw6-config
+	$(SED) 's,$(TOOLCHAIN_DIR),$(STAGING_DIR),g' \
+		$(1)/opt/lib/pkgconfig/ncursesw.pc
 endef
 
 define Host/Compile
