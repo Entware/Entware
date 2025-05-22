@@ -77,6 +77,8 @@ ac_cv_func_malloc_0_nonnull=yes
 ac_cv_func_realloc_0_nonnull=yes
 # getrandom since Linux 3.17 & getentropy glibc 2.25
 ac_cv_func_getrandom=no
+ac_cv_have_decl_getrandom=no
+ac_cv_header_sys_random_h=no
 ac_cv_func_getentropy=no
 ac_cv_have_decl_getentropy=no
 # fix Y2038 problem since Linux 5.4(?) & glibc 2.32
