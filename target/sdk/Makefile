@@ -158,14 +158,10 @@ $(BIN_DIR)/$(SDK_NAME).tar.zst: clean
 		./files/include/prepare.mk \
 		./files/README.md \
 		$(SDK_BUILD_DIR)/
-	mkdir -p $(SDK_BUILD_DIR)/package/kernel
 	$(CP) \
 		$(TOPDIR)/package/Makefile \
 		$(TOPDIR)/package/libs/toolchain \
 		$(SDK_BUILD_DIR)/package/
-	$(CP) \
-		$(TOPDIR)/package/kernel/linux \
-		$(SDK_BUILD_DIR)/package/kernel/
 
 	-rm -rf $(SDK_BUILD_DIR)/$(STAGING_SUBDIR_HOST)/.prereq-build
 	-rm -rf $(SDK_BUILD_DIR)/$(STAGING_SUBDIR_HOST)/doc
