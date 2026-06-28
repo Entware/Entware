@@ -1,0 +1,11 @@
+name: Telegram push notification
+
+on:
+  push:
+    branches:
+      - "master"
+
+jobs:
+  telegram-push:
+    uses: Entware/.github/.github/workflows/telegram-push.yml@master
+    secrets: inherit
