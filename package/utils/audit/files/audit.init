@@ -4,13 +4,13 @@
 START=11
 
 USE_PROCD=1
-PROG=/usr/sbin/auditd
+PROG=/opt/sbin/auditd
 
 start_service() {
-	mkdir -p /var/log/audit
+	mkdir -p /opt/var/log/audit
 	procd_open_instance
 	procd_set_param command "$PROG" -n
 	procd_set_param respawn
 	procd_close_instance
-	test -f /etc/audit/rules.d/audit.rules && /usr/sbin/auditctl -R /etc/audit/rules.d/audit.rules
+	test -f /opt/etc/audit/rules.d/audit.rules && /opt/sbin/auditctl -R /opt/etc/audit/rules.d/audit.rules
 }
