@@ -18,7 +18,7 @@ SDK_BUILD_DIR:=$(BUILD_DIR)/$(SDK_NAME)
 
 STAGING_SUBDIR_HOST := staging_dir/host
 STAGING_SUBDIR_TARGET := staging_dir/$(TARGET_DIR_NAME)
-STAGING_SUBDIR_TOOLCHAIN := staging_dir/toolchain-$(ARCH)$(ARCH_SUFFIX)_gcc-$(GCCV)_$(LIBC)$(if $(CONFIG_arm),_eabi)
+STAGING_SUBDIR_TOOLCHAIN := staging_dir/$(TOOLCHAIN_DIR_NAME)
 
 BUNDLER_PATH := $(subst $(space),:,$(filter-out $(TOPDIR)/%,$(subst :,$(space),$(PATH))))
 BUNDLER_COMMAND := PATH=$(BUNDLER_PATH) $(XARGS) $(SCRIPT_DIR)/bundle-libraries.sh $(SDK_BUILD_DIR)/$(STAGING_SUBDIR_HOST)
@@ -158,14 +158,10 @@ $(BIN_DIR)/$(SDK_NAME).tar.zst: clean
 		./files/include/prepare.mk \
 		./files/README.md \
 		$(SDK_BUILD_DIR)/
-	mkdir -p $(SDK_BUILD_DIR)/package/kernel
 	$(CP) \
 		$(TOPDIR)/package/Makefile \
 		$(TOPDIR)/package/libs/toolchain \
 		$(SDK_BUILD_DIR)/package/
-	$(CP) \
-		$(TOPDIR)/package/kernel/linux \
-		$(SDK_BUILD_DIR)/package/kernel/
 
 	-rm -rf $(SDK_BUILD_DIR)/$(STAGING_SUBDIR_HOST)/.prereq-build
 	-rm -rf $(SDK_BUILD_DIR)/$(STAGING_SUBDIR_HOST)/doc
