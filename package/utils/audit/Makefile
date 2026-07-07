@@ -175,7 +175,7 @@ define Package/auditd/install
 	# af_unix plugin is not installed. Remove it's .conf.
 	if [[ -f $(1)/opt/etc/audit/plugins.d/af_unix.conf ]] ; then rm $(1)/opt/etc/audit/plugins.d/af_unix.conf ; fi
 	$(INSTALL_DIR) $(1)/opt/etc/init.d
-	$(INSTALL_BIN) ./files/audit.init $(1)/opt/etc/init.d/audit
+	$(INSTALL_BIN) ./files/S02auditd $(1)/opt/etc/init.d/S02auditd
 	$(INSTALL_DIR) $(1)/opt/sbin
 	$(CP) $(PKG_INSTALL_DIR)/opt/sbin/auditd $(1)/opt/sbin/
 endef
