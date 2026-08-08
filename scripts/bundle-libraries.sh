@@ -125,6 +125,18 @@ _patch_glibc() {
 	fi
 }
 
+_bundle_nss() {
+	local srcdir="${1%/*}"
+	local destdir="$2"
+	local nss
+
+	for nss in libnss_dns.so.2 libnss_files.so.2 libresolv.so.2; do
+		[ -f "$srcdir/$nss" -a ! -f "$destdir/$nss" ] && {
+			_cp "$srcdir/$nss" "$destdir/$nss"
+		}
+	done
+}
+
 should_be_patched() {
 	local bin="$1"
 
@@ -182,7 +194,10 @@ for BIN in "$@"; do
 					_cp "$token" "$dest"
 					case "$token" in
 						*/ld-*.so*) _patch_ldso "$dest" ;;
-						*/libc.so.6) _patch_glibc "$dest" ;;
+						*/libc.so.6)
+							_patch_glibc "$dest"
+							_bundle_nss "$token" "$ddir"
+						;;
 					esac
 				}
 			;; esac
