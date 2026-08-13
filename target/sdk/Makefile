@@ -95,7 +95,8 @@ USERSPACE_UTILS_FILES := \
 	tools/scripts \
 	tools/spi \
 	tools/thermal/tmon \
-	tools/usb/usbip
+	tools/usb/usbip \
+	drivers/staging/usbip/userspace
 
 USERSPACE_FILES := $(patsubst $(TOPDIR)/%,%,$(wildcard $(addprefix $(LINUX_DIR)/,$(USERSPACE_UTILS_FILES))))
 
