@@ -1,0 +1,10 @@
+#!/bin/sh
+
+ENABLED=yes
+PROCS=auditd
+PRECMD="mkdir -p /opt/var/log/audit"
+POSTCMD="test -f /opt/etc/audit/audit.rules && /opt/sbin/auditctl -R /opt/etc/audit/audit.rules"
+DESC=$PROCS
+PATH=/opt/sbin:/opt/bin:/opt/usr/sbin:/opt/usr/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+. /opt/etc/init.d/rc.func

@@ -82,7 +82,7 @@ $(call Package/audit/Default)
   SECTION:=admin
   CATEGORY:=Administration
   TITLE+= (daemon)
-  DEPENDS:= +libaudit +libauparse +audit-utils +libev
+  DEPENDS:= +libaudit +libauparse +audit-utils +libev +libpthread
 endef
 
 define Package/auditd/description
@@ -141,43 +141,43 @@ endef
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include
-	$(CP) $(PKG_INSTALL_DIR)/usr/include/* $(1)/usr/include/
+	$(CP) $(PKG_INSTALL_DIR)/opt/include/* $(1)/usr/include/
 	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/pkgconfig/*.pc $(1)/usr/lib/pkgconfig/
+	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/opt/lib/pkgconfig/*.pc $(1)/usr/lib/pkgconfig/
 	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/* $(1)/usr/lib/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/* $(1)/usr/lib/
 endef
 
 define Package/libaudit/install
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libaudit.so* $(1)/usr/lib/
-	$(INSTALL_DIR) $(1)/etc
-	$(CP) $(PKG_INSTALL_DIR)/etc/libaudit.conf $(1)/etc/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libaudit.so* $(1)/opt/lib/
+	$(INSTALL_DIR) $(1)/opt/etc
+	$(CP) $(PKG_INSTALL_DIR)/opt/etc/libaudit.conf $(1)/opt/etc/
 endef
 
 define Package/libauparse/install
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libauparse.so* $(1)/usr/lib/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libauparse.so* $(1)/opt/lib/
 endef
 
 define Package/audit-utils/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(CP) $(PKG_INSTALL_DIR)/usr/bin/* $(1)/usr/bin/
-	$(INSTALL_DIR) $(1)/usr/sbin
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(CP) $(PKG_INSTALL_DIR)/opt/bin/* $(1)/opt/bin/
+	$(INSTALL_DIR) $(1)/opt/sbin
 	$(CP) \
-		$(PKG_INSTALL_DIR)/usr/sbin/{audisp-remote,audisp-syslog,auditctl,augenrules,aureport,ausearch,autrace} \
-		$(1)/usr/sbin/
+		$(PKG_INSTALL_DIR)/opt/sbin/{audisp-remote,audisp-syslog,auditctl,augenrules,aureport,ausearch,autrace} \
+		$(1)/opt/sbin/
 endef
 
 define Package/auditd/install
-	$(INSTALL_DIR) $(1)/etc/audit
-	$(CP) $(PKG_INSTALL_DIR)/etc/audit/* $(1)/etc/audit/
+	$(INSTALL_DIR) $(1)/opt/etc/audit
+	$(CP) $(PKG_INSTALL_DIR)/opt/etc/audit/* $(1)/opt/etc/audit/
 	# af_unix plugin is not installed. Remove it's .conf.
-	if [[ -f $(1)/etc/audit/plugins.d/af_unix.conf ]] ; then rm $(1)/etc/audit/plugins.d/af_unix.conf ; fi
-	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/audit.init $(1)/etc/init.d/audit
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/auditd $(1)/usr/sbin/
+	if [[ -f $(1)/opt/etc/audit/plugins.d/af_unix.conf ]] ; then rm $(1)/opt/etc/audit/plugins.d/af_unix.conf ; fi
+	$(INSTALL_DIR) $(1)/opt/etc/init.d
+	$(INSTALL_BIN) ./files/S02auditd $(1)/opt/etc/init.d/S02auditd
+	$(INSTALL_DIR) $(1)/opt/sbin
+	$(CP) $(PKG_INSTALL_DIR)/opt/sbin/auditd $(1)/opt/sbin/
 endef
 
 $(eval $(call HostBuild))
