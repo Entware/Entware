@@ -1,0 +1,86 @@
+--- a/init.d/auditd.conf
++++ b/init.d/auditd.conf
+@@ -6,3 +6,3 @@
+ write_logs = yes
+-log_file = /var/log/audit/audit.log
++log_file = /opt/var/log/audit/audit.log
+ log_group = root
+@@ -33,3 +33,3 @@
+ krb5_principal = auditd
+-##krb5_key_file = /etc/audit/audit.key
++##krb5_key_file = /opt/etc/audit/audit.key
+ distribute_network = no
+@@ -38,3 +38,3 @@
+ max_restarts = 10
+-plugin_dir = /etc/audit/plugins.d
++plugin_dir = /opt/etc/audit/plugins.d
+ end_of_event_timeout = 2
+--- a/audisp/plugins/syslog/syslog.conf
++++ b/audisp/plugins/syslog/syslog.conf
+@@ -10,3 +10,3 @@
+ direction = out
+-path = /sbin/audisp-syslog
++path = /opt/sbin/audisp-syslog
+ type = always 
+--- a/audisp/plugins/remote/au-remote.conf
++++ b/audisp/plugins/remote/au-remote.conf
+@@ -7,3 +7,3 @@
+ direction = out
+-path = /sbin/audisp-remote
++path = /opt/sbin/audisp-remote
+ type = always
+--- a/audisp/plugins/remote/audisp-remote.conf
++++ b/audisp/plugins/remote/audisp-remote.conf
+@@ -9,3 +9,3 @@
+ transport = tcp
+-queue_file = /var/spool/audit/remote.log
++queue_file = /opt/var/spool/audit/remote.log
+ mode = immediate
+@@ -31,2 +31,2 @@
+ ##krb5_client_name = auditd
+-##krb5_key_file = /etc/audisp/audisp-remote.key
++##krb5_key_file = /opt/etc/audisp/audisp-remote.key
+--- a/src/auditd-config.h	2026-07-07 00:28:40.845424682 +0800
++++ b/src/auditd-config.h	2026-07-07 00:28:40.850424676 +0800
+@@ -27,3 +27,3 @@
+ #include <grp.h>
+-#define CONFIG_FILE "/etc/audit/auditd.conf"
++#define CONFIG_FILE "/opt/etc/audit/auditd.conf"
+ #define MEGABYTE 1048576UL
+--- a/src/auditd-config.c	2026-07-07 00:28:40.846424681 +0800
++++ b/src/auditd-config.c	2026-07-07 00:28:40.854424672 +0800
+@@ -312,3 +312,3 @@
+ 	config->write_logs = 1;
+-	config->log_file = strdup("/var/log/audit/audit.log");
++	config->log_file = strdup("/opt/var/log/audit/audit.log");
+ 	config->log_format = LF_ENRICHED;
+@@ -351,3 +351,3 @@
+ 	config->max_restarts = 10;
+-	config->plugin_dir = strdup("/etc/audit/plugins.d");
++	config->plugin_dir = strdup("/opt/etc/audit/plugins.d");
+ 	config->config_dir = NULL;
+@@ -1955,3 +1955,3 @@
+ 		const char *dir = dirname(path);
+-		if (dir && strcmp(dir, "/var/log") == 0) {
++		if (dir && strcmp(dir, "/opt/var/log") == 0) {
+ 			audit_msg(LOG_ERR,
+--- a/src/auditd.c	2026-07-07 00:28:40.847424679 +0800
++++ b/src/auditd.c	2026-07-07 00:28:40.857424669 +0800
+@@ -72,4 +72,4 @@
+ static struct daemon_conf config;
+-static const char *pidfile = "/var/run/auditd.pid";
+-static const char *state_file = "/var/run/auditd.state";
++static const char *pidfile = "/opt/var/run/auditd.pid";
++static const char *state_file = "/opt/var/run/auditd.state";
+ static int init_pipe[2];
+--- a/src/auditd-listen.c	2026-07-07 00:28:40.848424679 +0800
++++ b/src/auditd-listen.c	2026-07-07 00:28:40.858424668 +0800
+@@ -1100,7 +1100,7 @@
+ 		if (config->krb5_key_file)
+ 			key_file = config->krb5_key_file;
+ 		else
+-			key_file = "/etc/audit/audit.key";
++			key_file = "/opt/etc/audit/audit.key";
+ 		setenv ("KRB5_KTNAME", key_file, 1);
+ 
+ 		if (stat(key_file, &st) == 0) {
