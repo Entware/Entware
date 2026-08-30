@@ -1,0 +1,42 @@
+#!/bin/sh
+PROCS=uhttpd
+DESC=$PROCS
+PATH=/opt/sbin:/opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+uget() { uci -q get "uhttpd.main.$1"; }
+
+home=$(uget home); home=${home:-/opt/www}
+cgi_prefix=$(uget cgi_prefix); cgi_prefix=${cgi_prefix:-/cgi-bin}
+script_timeout=$(uget script_timeout); script_timeout=${script_timeout:-60}
+network_timeout=$(uget network_timeout); network_timeout=${network_timeout:-30}
+http_keepalive=$(uget http_keepalive)
+tcp_keepalive=$(uget tcp_keepalive)
+ubus_prefix=$(uget ubus_prefix)
+ubus_socket=$(uget ubus_socket)
+
+ARGS="-f -h $home -x $cgi_prefix -t $script_timeout -T $network_timeout"
+[ -n "$http_keepalive" ] && ARGS="$ARGS -k $http_keepalive"
+[ -n "$tcp_keepalive" ] && ARGS="$ARGS -A $tcp_keepalive"
+[ "$(uget rfc1918_filter)" = "1" ] && ARGS="$ARGS -R"
+[ -n "$ubus_prefix" ] && ARGS="$ARGS -u $ubus_prefix"
+[ -n "$ubus_socket" ] && ARGS="$ARGS -U $ubus_socket"
+
+for l in $(uget listen_http); do
+	ARGS="$ARGS -p $l"
+done
+
+for m in $(uget ucode_prefix); do
+	uprefix="${m%%=*}"
+	upath="${m#*=}"
+	ARGS="$ARGS -o $uprefix -O $upath"
+done
+
+for m in $(uget lua_prefix); do
+	lprefix="${m%%=*}"
+	lpath="${m#*=}"
+	ARGS="$ARGS -l $lprefix -L $lpath"
+done
+
+ENABLED=yes
+PREARGS=""
+. /opt/etc/init.d/rc.func

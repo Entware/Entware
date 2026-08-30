@@ -1,0 +1,20 @@
+--- a/main.c
++++ b/main.c
+@@ -61,7 +61,7 @@ static void uh_config_parse(void)
+ 	char *eol;
+ 
+ 	if (!path)
+-		path = "/etc/httpd.conf";
++		path = "/opt/etc/httpd.conf";
+ 
+ 	c = fopen(path, "r");
+ 	if (!c)
+@@ -190,7 +190,7 @@ static void init_defaults_pre(void)
+ 	conf.max_connections = 100;
+ 	conf.realm = "Protected Area";
+ 	conf.cgi_prefix = "/cgi-bin";
+-	conf.cgi_path = "/sbin:/usr/sbin:/bin:/usr/bin";
++	conf.cgi_path = "/opt/sbin:/opt/bin";
+ 	INIT_LIST_HEAD(&conf.cgi_alias);
+ 	INIT_LIST_HEAD(&conf.lua_prefix);
+ #if HAVE_UCODE

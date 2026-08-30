@@ -15,7 +15,7 @@ PKG_SOURCE_URL=$(PROJECT_GIT)/project/uhttpd.git
 PKG_SOURCE_DATE:=2025-10-03
 PKG_SOURCE_VERSION:=ebb92e6b339b88bbc6b76501b6603c52d4887ba1
 PKG_MIRROR_HASH:=2d00da72db0ec08132bb169f2bad0b153bd998ea1eee0700b4ec01e65c35127d
-PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
+PKG_MAINTAINER:=Entware team, https://entware.net
 PKG_LICENSE:=ISC
 
 PKG_ASLR_PIE_REGULAR:=1
@@ -34,7 +34,7 @@ endef
 
 define Package/uhttpd
   $(Package/uhttpd/default)
-  DEPENDS:= +USE_GLIBC:libcrypt-compat +libubox +libblobmsg-json +libjson-script +libjson-c
+  DEPENDS:= +libubox +libblobmsg-json +libjson-script +libjson-c
 endef
 
 define Package/uhttpd/description
@@ -44,9 +44,9 @@ define Package/uhttpd/description
 endef
 
 define Package/uhttpd/conffiles
-/etc/config/uhttpd
-/etc/uhttpd.crt
-/etc/uhttpd.key
+/opt/etc/uci-config/uhttpd
+/opt/etc/uhttpd.crt
+/opt/etc/uhttpd.key
 endef
 
 
@@ -89,34 +89,34 @@ ifneq ($(CONFIG_USE_GLIBC),)
 endif
 
 define Package/uhttpd/install
-	$(INSTALL_DIR) $(1)/etc/init.d $(1)/etc/config $(1)/usr/sbin
-	$(INSTALL_BIN) ./files/uhttpd.init $(1)/etc/init.d/uhttpd
-	$(INSTALL_CONF) ./files/uhttpd.config $(1)/etc/config/uhttpd
-	$(VERSION_SED_SCRIPT) $(1)/etc/config/uhttpd
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uhttpd $(1)/usr/sbin/uhttpd
+	$(INSTALL_DIR) $(1)/opt/etc/init.d $(1)/opt/etc/uci-config $(1)/opt/sbin $(1)/opt/www
+	$(INSTALL_BIN) ./files/S55uhttpd $(1)/opt/etc/init.d/
+	$(INSTALL_CONF) ./files/uhttpd.config $(1)/opt/etc/uci-config/uhttpd
+	$(VERSION_SED_SCRIPT) $(1)/opt/etc/uci-config/uhttpd
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uhttpd $(1)/opt/sbin/uhttpd
 endef
 
 define Package/uhttpd-mod-lua/install
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uhttpd_lua.so $(1)/usr/lib/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uhttpd_lua.so $(1)/opt/lib/
 endef
 
 define Package/uhttpd-mod-ubus/install
-	$(INSTALL_DIR) $(1)/usr/lib $(1)/etc/uci-defaults
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uhttpd_ubus.so $(1)/usr/lib/
-	$(INSTALL_DATA) ./files/ubus.default $(1)/etc/uci-defaults/00_uhttpd_ubus
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uhttpd_ubus.so $(1)/opt/lib/
 endef
 
 define Package/uhttpd-mod-ubus/postinst
 #!/bin/sh
-if [ -z "$${IPKG_INSTROOT}" ]; then
-	/etc/init.d/uhttpd reload
+if [ -z "$${IPKG_INSTROOT}" ] && pidof uhttpd >/dev/null; then
+	/opt/etc/init.d/S55uhttpd reconfigure
 fi
+exit 0
 endef
 
 define Package/uhttpd-mod-ucode/install
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uhttpd_ucode.so $(1)/usr/lib/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uhttpd_ucode.so $(1)/opt/lib/
 endef
 
 
