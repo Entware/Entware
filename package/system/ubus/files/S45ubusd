@@ -1,0 +1,8 @@
+#!/bin/sh
+ENABLED=yes
+PROCS=ubusd
+ARGS="-s /opt/var/run/ubus/ubus.sock"
+PREARGS=""
+DESC=$PROCS
+PATH=/opt/sbin:/opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+. /opt/etc/init.d/rc.func

@@ -13,7 +13,7 @@ CMAKE_INSTALL:=1
 
 PKG_LICENSE:=LGPL-2.1
 PKG_LICENSE_FILES:=
-PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
+PKG_MAINTAINER:=Entware team, https://entware.net
 
 PKG_BUILD_FLAGS:=lto
 PKG_ASLR_PIE_REGULAR:=1
@@ -51,30 +51,31 @@ define Package/libubus-lua
   TITLE:=Lua binding for the OpenWrt RPC client
 endef
 
-TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include
+TARGET_CFLAGS += -I$(STAGING_DIR)/opt/include
 
 CMAKE_OPTIONS += \
-	-DLUAPATH=/usr/lib/lua \
+	-DLUAPATH=/opt/lib/lua \
 	-DABIVERSION="$(PKG_ABI_VERSION)"
 
 define Package/ubus/install
-	$(INSTALL_DIR) $(1)/bin
-	$(CP) $(PKG_INSTALL_DIR)/usr/bin/ubus $(1)/bin/
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(CP) $(PKG_INSTALL_DIR)/opt/bin/ubus $(1)/opt/bin/
 endef
 
 define Package/ubusd/install
-	$(INSTALL_DIR) $(1)/sbin
-	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/ubusd $(1)/sbin/
+	$(INSTALL_DIR) $(1)/opt/sbin $(1)/opt/etc/init.d
+	$(CP) $(PKG_INSTALL_DIR)/opt/sbin/ubusd $(1)/opt/sbin/
+	$(INSTALL_BIN) ./files/S45ubusd $(1)/opt/etc/init.d/
 endef
 
 define Package/libubus/install
-	$(INSTALL_DIR) $(1)/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libubus.so.* $(1)/lib/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libubus.so.* $(1)/opt/lib/
 endef
 
 define Package/libubus-lua/install
-	$(INSTALL_DIR) $(1)/usr/lib/lua
-	$(CP) $(PKG_BUILD_DIR)/lua/ubus.so $(1)/usr/lib/lua/
+	$(INSTALL_DIR) $(1)/opt/lib/lua
+	$(CP) $(PKG_BUILD_DIR)/lua/ubus.so $(1)/opt/lib/lua/
 endef
 
 $(eval $(call BuildPackage,libubus))
