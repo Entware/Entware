@@ -15,7 +15,7 @@ PKG_SOURCE_URL=https://github.com/jow-/ucode.git
 PKG_SOURCE_DATE:=2026-01-16
 PKG_SOURCE_VERSION:=85922056ef7abeace3cca3ab28bc1ac2d88e31b1
 PKG_MIRROR_HASH:=8c6f586f90e704827dc8736bf3726d15989a978c6a726a52d51e33f8019403b6
-PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
+PKG_MAINTAINER:=Entware team, https://entware.net
 PKG_LICENSE:=ISC
 
 PKG_ABI_VERSION:=20230711
@@ -109,27 +109,27 @@ define UcodeModule
  endef
 
  define Package/ucode-mod-$(strip $(1))/install
-	$(INSTALL_DIR) $$(1)/usr/lib/ucode
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/lib/ucode/$(strip $(1)).so $$(1)/usr/lib/ucode/
+	$(INSTALL_DIR) $$(1)/opt/lib/ucode
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/opt/lib/ucode/$(strip $(1)).so $$(1)/opt/lib/ucode/
  endef
 endef
 
 
 define Build/InstallDev
-	$(INSTALL_DIR) $(1)/usr/lib $(1)/usr/include/ucode
-	$(CP) $(PKG_INSTALL_DIR)/usr/include/ucode/*.h $(1)/usr/include/ucode/
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libucode.so* $(1)/usr/lib/
+	$(INSTALL_DIR) $(1)/opt/lib $(1)/opt/include/ucode
+	$(CP) $(PKG_INSTALL_DIR)/opt/include/ucode/*.h $(1)/opt/include/ucode/
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libucode.so* $(1)/opt/lib/
 endef
 
 
 define Package/ucode/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(CP) $(PKG_INSTALL_DIR)/usr/bin/u* $(1)/usr/bin/
+	$(INSTALL_DIR) $(1)/opt/bin
+	$(CP) $(PKG_INSTALL_DIR)/opt/bin/u* $(1)/opt/bin/
 endef
 
 define Package/libucode/install
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libucode.so.* $(1)/usr/lib/
+	$(INSTALL_DIR) $(1)/opt/lib
+	$(CP) $(PKG_INSTALL_DIR)/opt/lib/libucode.so.* $(1)/opt/lib/
 endef
 
 
