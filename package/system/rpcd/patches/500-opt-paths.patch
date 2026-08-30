@@ -1,0 +1,154 @@
+--- a/include/rpcd/uci.h
++++ b/include/rpcd/uci.h
+@@ -30,11 +30,11 @@
+ #include <libubus.h>
+ #include <uci.h>
+ 
+-#define RPC_UCI_DIR_PREFIX	"/var/run/rpcd"
++#define RPC_UCI_DIR_PREFIX	"/opt/var/run/rpcd"
+ #define RPC_UCI_SAVEDIR_PREFIX	RPC_UCI_DIR_PREFIX "/uci-"
+ #define RPC_SNAPSHOT_FILES	RPC_UCI_DIR_PREFIX "/snapshot-files/"
+ #define RPC_SNAPSHOT_DELTA	RPC_UCI_DIR_PREFIX "/snapshot-delta/"
+-#define RPC_UCI_DIR		"/etc/config/"
++#define RPC_UCI_DIR		"/opt/etc/uci-config/"
+ #define RPC_APPLY_TIMEOUT	60
+ 
+ int rpc_uci_api_init(struct ubus_context *ctx);
+--- a/include/rpcd/session.h
++++ b/include/rpcd/session.h
+@@ -33,7 +33,7 @@
+ #define RPC_SID_LEN	32
+ #define RPC_DEFAULT_SESSION_TIMEOUT	300
+ #define RPC_DEFAULT_SESSION_ID	"00000000000000000000000000000000"
+-#define RPC_SESSION_DIRECTORY	"/var/run/rpcd/sessions"
++#define RPC_SESSION_DIRECTORY	"/opt/var/run/rpcd/sessions"
+ #define RPC_SESSION_ACL_DIR		INSTALL_PREFIX "/share/rpcd/acl.d"
+ 
+ extern char apply_sid[RPC_SID_LEN + 1];
+--- a/rc.c
++++ b/rc.c
+@@ -206,7 +206,7 @@ static void rc_list_readdir(struct rc_li
+ 	c->entry.start = -1;
+ 	c->entry.stop = -1;
+ 
+-	snprintf(c->entry.path, sizeof(c->entry.path), "/etc/init.d/%s", e->d_name);
++	snprintf(c->entry.path, sizeof(c->entry.path), "/opt/etc/init.d/%s", e->d_name);
+ 	if (rc_check_script(c->entry.path))
+ 		goto next;
+ 
+@@ -240,7 +240,7 @@ static void rc_list_readdir(struct rc_li
+ 		fclose(fp);
+ 
+ 		if (c->entry.start >= 0) {
+-			snprintf(path, sizeof(path), "/etc/rc.d/S%02d%s", c->entry.start, c->entry.d_name);
++			snprintf(path, sizeof(path), "/opt/etc/init.d/S%02d%s", c->entry.start, c->entry.d_name);
+ 			if (!stat(path, &s) && (s.st_mode & S_IXUSR))
+ 				c->entry.enabled = true;
+ 		}
+@@ -275,7 +275,7 @@ static int rc_list(struct ubus_context *
+ 
+ 	c->ctx = ctx;
+ 	c->buf = &buf;
+-	c->dir = opendir("/etc/init.d");
++	c->dir = opendir("/opt/etc/init.d");
+ 	if (!c->dir) {
+ 		free(c);
+ 		return UBUS_STATUS_UNKNOWN_ERROR;
+@@ -336,7 +336,7 @@ static int rc_init(struct ubus_context *
+ 	if (strchr(name, '/'))
+ 		return UBUS_STATUS_INVALID_ARGUMENT;
+ 
+-	snprintf(path, sizeof(path), "/etc/init.d/%s", name);
++	snprintf(path, sizeof(path), "/opt/etc/init.d/%s", name);
+ 
+ 	/* Validate script privileges */
+ 	err = rc_check_script(path);
+--- a/uci.c
++++ b/uci.c
+@@ -617,7 +617,7 @@ rpc_uci_getcommon(struct ubus_context *c
+ 	ptr.package = blobmsg_data(tb[RPC_G_CONFIG]);
+ 
+ 	if (use_state)
+-		uci_set_savedir(cursor, "/var/state");
++		uci_set_savedir(cursor, "/opt/var/state");
+ 
+ 	if (uci_load(cursor, ptr.package, &p))
+ 		return rpc_uci_status();
+@@ -1716,7 +1716,7 @@ rpc_uci_reload(struct ubus_context *ctx,
+                  struct ubus_request_data *req, const char *method,
+                  struct blob_attr *msg)
+ {
+-	char * const cmd[2] = { "/sbin/reload_config", NULL };
++	char * const cmd[2] = { "/opt/sbin/reload_config", NULL };
+ 
+ 	if (!fork()) {
+ 		/* wait for the RPC call to complete */
+--- a/exec.c
++++ b/exec.c
+@@ -64,7 +64,7 @@ rpc_exec_lookup(const char *cmd)
+ 	search = getenv("PATH");
+ 
+ 	if (!search)
+-		search = "/bin:/usr/bin:/sbin:/usr/sbin";
++		search = "/opt/bin:/opt/sbin";
+ 
+ 	p = search;
+ 
+--- a/file.c
++++ b/file.c
+@@ -731,7 +731,7 @@ rpc_file_exec_lookup(const char *cmd)
+ 	search = getenv("PATH");
+ 
+ 	if (!search)
+-		search = "/bin:/usr/bin:/sbin:/usr/sbin";
++		search = "/opt/bin:/opt/sbin";
+ 
+ 	p = search;
+ 
+--- a/sys.c
++++ b/sys.c
+@@ -89,7 +89,7 @@ rpc_cgi_password_set(struct ubus_context
+ 	struct blob_attr *tb[__RPC_P_MAX];
+ 	ssize_t n;
+ 	int ret;
+-	const char *const passwd = "/bin/passwd";
++	const char *const passwd = "/opt/bin/passwd";
+ 	const struct timespec ts = {0, 100 * 1000 * 1000};
+ 
+ 	blobmsg_parse(rpc_password_policy, __RPC_P_MAX, tb,
+@@ -229,13 +229,13 @@ rpc_sys_packagelist(struct ubus_context
+ 	if (tb[RPC_PACKAGELIST_ALL] && blobmsg_get_bool(tb[RPC_PACKAGELIST_ALL]))
+ 		all = true;
+ 
+-	FILE *f = fopen("/lib/apk/db/installed", "r");
++	FILE *f = fopen("/opt/lib/apk/db/installed", "r");
+ 	if (!f)
+ 		return UBUS_STATUS_NOT_FOUND;
+ 
+ 	if (!all) {
+ 		/* We return only those items appearing in 'world' file. */
+-		int world_fd = open("/etc/apk/world", O_RDONLY);
++		int world_fd = open("/opt/etc/apk/world", O_RDONLY);
+ 		if (world_fd == -1)
+ 			return rpc_errno_status();
+ 
+@@ -363,8 +363,8 @@ rpc_sys_upgrade_start(struct ubus_contex
+                         struct blob_attr *msg)
+ {
+ 	struct blob_attr *tb[__RPC_UPGRADE_MAX];
+-	char * const cmd[4] = { "/sbin/sysupgrade", "-n", "/tmp/firmware.bin", NULL };
+-	char * const cmd_keep[3] = { "/sbin/sysupgrade", "/tmp/firmware.bin", NULL };
++	char * const cmd[4] = { "/opt/sbin/sysupgrade", "-n", "/tmp/firmware.bin", NULL };
++	char * const cmd_keep[3] = { "/opt/sbin/sysupgrade", "/tmp/firmware.bin", NULL };
+ 	char * const * c = cmd;
+ 
+ 	blobmsg_parse(rpc_upgrade_policy, __RPC_UPGRADE_MAX, tb,
+@@ -398,7 +398,7 @@ rpc_sys_factory(struct ubus_context *ctx
+                  struct ubus_request_data *req, const char *method,
+                  struct blob_attr *msg)
+ {
+-	char * const cmd[4] = { "/sbin/jffs2reset", "-y", "-r", NULL };
++	char * const cmd[4] = { "/opt/sbin/jffs2reset", "-y", "-r", NULL };
+ 
+ 	if (!fork()) {
+ 		/* wait for the RPC call to complete */

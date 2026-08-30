@@ -1,0 +1,12 @@
+#!/bin/sh
+PROCS=rpcd
+DESC=$PROCS
+PATH=/opt/sbin:/opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+socket=$(uci -q get rpcd.@rpcd[0].socket)
+timeout=$(uci -q get rpcd.@rpcd[0].timeout)
+
+ENABLED=yes
+ARGS="${socket:+-s $socket} ${timeout:+-t $timeout}"
+PREARGS=""
+. /opt/etc/init.d/rc.func
