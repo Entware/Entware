@@ -1,0 +1,15 @@
+--- a/uci.h
++++ b/uci.h
+@@ -36,9 +36,10 @@ extern "C" {
+ #include <stdint.h>
+ #include <stddef.h>
+ 
+-#define UCI_CONFDIR "/etc/config"
++/* TODO: change to /opt/etc/config once Entware drops the old plain-config format */
++#define UCI_CONFDIR "/opt/etc/uci-config"
+ #define UCI_SAVEDIR "/tmp/.uci"
+-#define UCI_CONF2DIR "/var/run/uci"
++#define UCI_CONF2DIR "/opt/var/run/uci"
+ #define UCI_DIRMODE 0700
+ #define UCI_FILEMODE 0600
+ 
