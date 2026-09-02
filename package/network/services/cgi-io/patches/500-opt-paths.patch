@@ -1,0 +1,29 @@
+--- a/main.c
++++ b/main.c
+@@ -159,7 +159,7 @@ checksum(const char *applet, size_t suml
+ 		close(fds[0]);
+ 		close(fds[1]);
+ 
+-		if (execl("/bin/busybox", "/bin/busybox", applet, file, NULL))
++		if (execl("/opt/bin/busybox", "/opt/bin/busybox", applet, file, NULL))
+ 			return NULL;
+ 
+ 		break;
+@@ -649,7 +649,7 @@ main_backup(int argc, char **argv)
+ 		if (r < 0)
+ 			return failure(500, errno, "Failed chdir('/')");
+ 
+-		execl("/sbin/sysupgrade", "/sbin/sysupgrade",
++		execl("/opt/sbin/sysupgrade", "/opt/sbin/sysupgrade",
+ 		      "--create-backup", "-", NULL);
+ 
+ 		return -1;
+@@ -702,7 +702,7 @@ lookup_executable(const char *cmd)
+ 	search = getenv("PATH");
+ 
+ 	if (!search)
+-		search = "/bin:/usr/bin:/sbin:/usr/sbin";
++		search = "/opt/bin:/opt/sbin";
+ 
+ 	p = search;
+ 
