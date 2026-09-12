@@ -8,7 +8,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=busybox
 PKG_VERSION:=1.37.0
-PKG_RELEASE:=6
+PKG_RELEASE:=7
 PKG_FLAGS:=essential
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -211,7 +211,9 @@ done
 endef
 
 define Package/busybox/preinst
-#!/opt/bin/busybox sh
+#!/bin/sh
+
+[ -x /opt/bin/busybox ] || exit 0
 
 /opt/bin/busybox ln -snf busybox /opt/bin/[
 /opt/bin/busybox ln -snf busybox /opt/bin/basename
