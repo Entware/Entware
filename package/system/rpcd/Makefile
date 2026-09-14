@@ -65,6 +65,7 @@ define Package/rpcd/install
 	$(INSTALL_DIR) $(1)/opt/etc/uci-config
 	$(INSTALL_CONF) ./files/rpcd.config $(1)/opt/etc/uci-config/rpcd
 	$(INSTALL_DIR) $(1)/opt/etc/uci-defaults
+	$(INSTALL_BIN) ./files/40_rpcd-login-username $(1)/opt/etc/uci-defaults/
 endef
 
 

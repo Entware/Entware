@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# Entware runs alongside third-party firmware whose uid-0 account isn't
+# necessarily named "root" (e.g. AsusWrt-Merlin uses "admin") -- rpcd's
+# default login section only matches the literal username "root", so
+# redirect it to whoever is actually uid 0 if that's a different name.
+
+real_root="$(awk -F: '$3 == 0 { print $1; exit }' /opt/etc/passwd)"
+
+[ -n "$real_root" ] && [ "$real_root" != "root" ] || exit 0
+
+uci set rpcd.@login[0].username="$real_root"
+uci set rpcd.@login[0].password="\$p\$$real_root"
+uci commit rpcd
+
+exit 0
