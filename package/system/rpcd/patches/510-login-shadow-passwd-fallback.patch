@@ -1,0 +1,46 @@
+--- a/session.c
++++ b/session.c
+@@ -19,6 +19,7 @@
+ 
+ #define _GNU_SOURCE	/* crypt() */
+ 
++#include <pwd.h>
+ #include <libubox/avl-cmp.h>
+ #include <libubox/blobmsg.h>
+ #include <libubox/utils.h>
+@@ -803,21 +804,27 @@ rpc_login_test_password(const char *hash
+ 	/* password hash refers to shadow/passwd */
+ 	else if (!strncmp(hash, "$p$", 3))
+ 	{
++		const char *pwhash = NULL;
++
+ #ifdef HAVE_SHADOW
+ 		struct spwd *sp = getspnam(hash + 3);
+ 
+-		if (!sp)
+-			return false;
++		if (sp)
++			pwhash = sp->sp_pwdp;
++#endif
+ 
+-		return rpc_login_test_password(sp->sp_pwdp, password);
+-#else
+-		struct passwd *pw = getpwnam(hash + 3);
++		if (!pwhash)
++		{
++			struct passwd *pw = getpwnam(hash + 3);
+ 
+-		if (!pw)
++			if (pw)
++				pwhash = pw->pw_passwd;
++		}
++
++		if (!pwhash)
+ 			return false;
+ 
+-		return rpc_login_test_password(pw->pw_passwd, password);
+-#endif
++		return rpc_login_test_password(pwhash, password);
+ 	}
+ 
+ 	crypt_hash = crypt(password, hash);
