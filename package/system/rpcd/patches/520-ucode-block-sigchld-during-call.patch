@@ -1,0 +1,44 @@
+rpcd-mod-ucode: block SIGCHLD around ucode method calls
+
+uloop's SIGCHLD handler reaps *any* exited child via waitpid(-1, ...),
+racing popen()/pclose() calls made by a ucode method handler (e.g.
+getFeatures() probing dnsmasq/odhcpd/ipset) and crashing rpcd if it
+loses; blocking SIGCHLD for the call's duration defers reaping until after.
+--- a/ucode.c
++++ b/ucode.c
+@@ -19,6 +19,7 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <dirent.h>
++#include <signal.h>
+ #include <limits.h>
+ 
+ #include <libubox/blobmsg.h>
+@@ -403,6 +404,7 @@ rpc_ucode_script_call(struct ubus_contex
+ 	rpc_ucode_call_ctx_t *callctx;
+ 	const char *extype;
+ 	size_t i;
++	sigset_t chldmask, oldmask;
+ 	int rv;
+ 
+ 	rv = rpc_ucode_validate_call_args(obj, ubus_method_name, msg, &args);
+@@ -443,6 +445,10 @@ rpc_ucode_script_call(struct ubus_contex
+ 	uc_vm_stack_push(&script->vm, ucv_get(func));
+ 	uc_vm_stack_push(&script->vm, ucv_get(reqobj));
+ 
++	sigemptyset(&chldmask);
++	sigaddset(&chldmask, SIGCHLD);
++	sigprocmask(SIG_BLOCK, &chldmask, &oldmask);
++
+ 	/* execute request handler function */
+ 	switch (uc_vm_call(&script->vm, false, 1)) {
+ 	case EXCEPTION_NONE:
+@@ -522,6 +528,8 @@ rpc_ucode_script_call(struct ubus_contex
+ 		break;
+ 	}
+ 
++	sigprocmask(SIG_SETMASK, &oldmask, NULL);
++
+ 	/* release request object */
+ 	ucv_put(reqobj);
+ 
