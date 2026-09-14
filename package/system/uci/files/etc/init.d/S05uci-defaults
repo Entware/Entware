@@ -1,0 +1,15 @@
+#!/bin/sh
+
+case "$1" in
+	start)
+		. /opt/lib/config/uci.sh
+		uci_apply_defaults
+		;;
+	stop|restart|check|kill|reconfigure)
+		exit 0
+		;;
+	*)
+		echo "Usage: $0 (start|stop|restart|check|kill|reconfigure)"
+		exit 1
+		;;
+esac

@@ -44,6 +44,12 @@ define Package/uci
   TITLE:=Utility for the Unified Configuration Interface (UCI)
 endef
 
+define Package/uci/postinst
+#!/bin/sh
+[ -n "$${IPKG_INSTROOT}" ] || { . /opt/lib/config/uci.sh; uci_apply_defaults; }
+exit 0
+endef
+
 define Package/libuci-lua
   SECTION=libs
   CATEGORY=Libraries

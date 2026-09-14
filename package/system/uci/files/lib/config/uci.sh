@@ -161,3 +161,26 @@ uci_commit() {
 	local PACKAGE="$1"
 	/opt/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} commit $PACKAGE
 }
+
+# Entware port of OpenWrt's uci_apply_defaults() (package/base-files/files/etc/init.d/boot),
+# which can't be used on Entware.
+uci_apply_defaults() {
+	local dir file files applied
+
+	dir=/opt/etc/uci-defaults
+	cd "$dir" 2>/dev/null || return 0
+
+	files="$(ls)"
+	[ -z "$files" ] && return 0
+
+	applied=""
+	for file in $files; do
+		if ( . "./$(basename "$file")" ); then
+			applied="$applied $file"
+		fi
+	done
+
+	/opt/sbin/uci ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} commit
+	sync
+	rm -f $applied
+}
