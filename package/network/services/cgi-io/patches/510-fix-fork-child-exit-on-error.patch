@@ -1,0 +1,60 @@
+cgi-io's forked children `return` (instead of `_exit()`) when the exec they
+were about to run fails. On stock OpenWrt this path is effectively dead
+because /bin/busybox and /sbin/sysupgrade always exist, but on Entware
+/opt/bin/busybox and /opt/sbin/sysupgrade are ordinary userland packages
+that can be absent. When that happens the "child" returns into the parent's
+call stack instead of terminating, so it keeps running the rest of the
+request handler with fd 1 still pointed at the pipe the parent is reading
+from - corrupting the response with a nested duplicate of it (this is what
+produced garbled "checksum"/"sha256sum" fields containing raw
+"Status: 200 OK" HTTP headers on a router without /opt/bin/busybox
+available at the time of the request).
+
+--- a/main.c
++++ b/main.c
+@@ -160,7 +160,7 @@ checksum(const char *applet, size_t suml
+ 		close(fds[1]);
+ 
+ 		if (execl("/opt/bin/busybox", "/opt/bin/busybox", applet, file, NULL))
+-			return NULL;
++			_exit(1);
+ 
+ 		break;
+ 
+@@ -647,12 +647,12 @@ main_backup(int argc, char **argv)
+ 
+ 		r = chdir("/");
+ 		if (r < 0)
+-			return failure(500, errno, "Failed chdir('/')");
++			_exit(1);
+ 
+ 		execl("/opt/sbin/sysupgrade", "/opt/sbin/sysupgrade",
+ 		      "--create-backup", "-", NULL);
+ 
+-		return -1;
++		_exit(1);
+ 
+ 	default:
+ 		close(fds[1]);
+@@ -815,17 +815,12 @@ main_exec(int argc, char **argv)
+ 		close(fds[0]);
+ 		close(fds[1]);
+ 
+-		if (chdir("/") < 0) {
+-			free(args);
+-			return failure(500, errno, "Failed chdir('/')");
+-		}
++		if (chdir("/") < 0)
++			_exit(1);
+ 
+-		if (execv(exe, args) < 0) {
+-			free(args);
+-			return failure(500, errno, "Failed execv(...)");
+-		}
++		execv(exe, args);
+ 
+-		return -1;
++		_exit(1);
+ 
+ 	default:
+ 		close(fds[1]);
