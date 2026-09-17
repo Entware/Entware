@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=busybox
 PKG_VERSION:=1.38.0
-PKG_RELEASE:=3
+PKG_RELEASE:=4
 PKG_FLAGS:=essential
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -182,6 +182,17 @@ for file in /opt/sbin/*; do
     fi
 done
 
+# Entware specific: Remove applet symlinks pointing to the preserved BusyBox binary
+if [ -f /opt/bin/.busybox.opkg-keep ]; then
+    keep_fc=`/opt/bin/busybox readlink -f /opt/bin/.busybox.opkg-keep`
+    for file in /opt/bin/* /opt/sbin/*; do
+        if [ -L "$$file" ] && [ "`/opt/bin/busybox readlink -f "$$file"`" = "$$keep_fc" ]; then
+           /opt/bin/busybox rm -f "$$file"
+        fi
+    done
+    /opt/bin/busybox rm -f /opt/bin/.busybox.opkg-keep
+fi
+
 cd /opt
 for applet in $$(/opt/bin/busybox cat share/busybox_applets.lst.dist)
 do
@@ -198,6 +209,18 @@ define Package/busybox/prerm
 #!/opt/bin/busybox sh
 
 bb_fc=`/opt/bin/busybox readlink -f /opt/bin/busybox`
+
+# Entware specific: Preserve the old BusyBox binary and redirect its applet symlinks during upgrade
+if [ "$$PKG_UPGRADE" = "1" ]; then
+    /opt/bin/busybox ln -f /opt/bin/busybox /opt/bin/.busybox.opkg-keep || exit 1
+    for file in /opt/bin/* /opt/sbin/*; do
+        if [ -L "$$file" ] && [ "`/opt/bin/busybox readlink -f "$$file"`" = "$$bb_fc" ]; then
+           /opt/bin/busybox ln -snf /opt/bin/.busybox.opkg-keep "$$file" || exit 1
+        fi
+    done
+    exit 0
+fi
+
 for file in /opt/bin/*; do
     if [ -L $$file  -a "`/opt/bin/busybox readlink -f $$file`" = $$bb_fc ]; then
        /opt/bin/busybox rm -f $$file
