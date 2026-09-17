@@ -8,7 +8,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=busybox
 PKG_VERSION:=1.37.0
-PKG_RELEASE:=7
+PKG_RELEASE:=8
 PKG_FLAGS:=essential
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -169,6 +169,16 @@ define Package/busybox/postinst
 #!/opt/bin/busybox sh
 
 bb_fc=`/opt/bin/busybox readlink -f /opt/bin/busybox`
+keep_fc=`/opt/bin/busybox readlink -f /opt/bin/.busybox.opkg-keep 2>/dev/null`
+
+# Clean up the temporary symlinks that kept other packages working during the upgrade
+for file in /opt/bin/* /opt/sbin/*; do
+    if [ -L $$file -a "`/opt/bin/busybox readlink -f $$file`" = $$keep_fc ]; then
+       /opt/bin/busybox rm -f $$file
+    fi
+done
+/opt/bin/busybox rm -f /opt/bin/.busybox.opkg-keep
+
 for file in /opt/bin/*; do
     if [ -L $$file  -a "`/opt/bin/busybox readlink -f $$file`" = $$bb_fc ]; then
        /opt/bin/busybox rm -f $$file
@@ -197,6 +207,20 @@ define Package/busybox/prerm
 #!/opt/bin/busybox sh
 
 bb_fc=`/opt/bin/busybox readlink -f /opt/bin/busybox`
+
+if [ "$$PKG_UPGRADE" = "1" ]; then
+    # Keep the old busybox around for the duration of the upgrade
+    /opt/bin/busybox ln -f /opt/bin/busybox /opt/bin/.busybox.opkg-keep
+
+    # Relink every applet symlink to the kept-alive copy instead of the old binary
+    for file in /opt/bin/* /opt/sbin/*; do
+        if [ -L $$file -a "`/opt/bin/busybox readlink -f $$file`" = $$bb_fc ]; then
+           /opt/bin/busybox ln -snf /opt/bin/.busybox.opkg-keep $$file
+        fi
+    done
+    exit 0
+fi
+
 for file in /opt/bin/*; do
     if [ -L $$file  -a "`/opt/bin/busybox readlink -f $$file`" = $$bb_fc ]; then
        /opt/bin/busybox rm -f $$file
@@ -208,16 +232,6 @@ for file in /opt/sbin/*; do
        /opt/bin/busybox rm -f $$file
     fi
 done
-endef
-
-define Package/busybox/preinst
-#!/bin/sh
-
-[ -x /opt/bin/busybox ] || exit 0
-
-/opt/bin/busybox ln -snf busybox /opt/bin/[
-/opt/bin/busybox ln -snf busybox /opt/bin/basename
-/opt/bin/busybox ln -snf busybox /opt/bin/sh
 endef
 
 $(eval $(call BuildPackage,busybox))
