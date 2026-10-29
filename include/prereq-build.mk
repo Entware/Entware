@@ -186,10 +186,6 @@ $(eval $(call SetupHostCommand,install,Please install 'install', \
 $(eval $(call SetupHostCommand,perl,Please install Perl 5.x, \
 	perl --version | grep "perl.*v5"))
 
-# Entware specific: we need python2 for building node_legacy
-$(eval $(call SetupHostCommand,python2,Please install Python 2.7, \
-	python2.7 -V 2>&1 | grep 'Python 2'))
-
 $(eval $(call SetupHostCommand,python,Please install Python >= 3.7, \
 	python3.13 -V 2>&1 | grep 'Python 3', \
 	python3.12 -V 2>&1 | grep 'Python 3', \
