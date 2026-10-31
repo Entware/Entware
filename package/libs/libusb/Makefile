@@ -8,19 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libusb
-ifeq ($(CONFIG_LINUX_2_6_36),y)
-PKG_VERSION:=1.0.22
-PKG_RELEASE:=4
-PKG_HASH:=75aeb9d59a4fdb800d329a545c2e6799f732362193b465ea198f2aa275518157
-else
 PKG_VERSION:=1.0.29
-PKG_RELEASE:=1
-PKG_HASH:=5977fc950f8d1395ccea9bd48c06b3f808fd3c2c961b44b0c2e6e29fc3a70a85
-endif
+PKG_RELEASE:=2
+
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:= \
-		https://github.com/libusb/libusb/releases/download/v$(PKG_VERSION) \
-		@SF/$(PKG_NAME)
+PKG_SOURCE_URL:=https://github.com/libusb/libusb/releases/download/v$(PKG_VERSION)
+PKG_HASH:=5977fc950f8d1395ccea9bd48c06b3f808fd3c2c961b44b0c2e6e29fc3a70a85
 
 PKG_MAINTAINER:= Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=LGPL-2.1-or-later
@@ -36,7 +29,7 @@ define Package/libusb-1.0
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=A library for accessing Linux USB devices
-  DEPENDS:=+libpthread +librt +libatomic
+  DEPENDS:=+libpthread +librt
   URL:=https://libusb.info/
   ABI_VERSION:=0
 endef
@@ -66,6 +59,9 @@ CONFIGURE_ARGS += \
 	--enable-examples-build \
 	--disable-log \
 	--disable-udev
+# after its 64-bit probe fails configure searches libatomic for the 4-byte
+# builtin, which every target inlines
+CONFIGURE_VARS += ac_cv_search___atomic_fetch_add_4="none required"
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/include/libusb-1.0
