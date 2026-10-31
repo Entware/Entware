@@ -1,18 +1,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_DISTNAME:=u-boot
-PKG_VERSION:=2026.01
-PKG_RELEASE:=1
+PKG_VERSION:=2026.10
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_DISTNAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:= \
-	https://ftp.denx.de/pub/u-boot \
-	https://mirror.cyberbits.eu/u-boot \
-	ftp://ftp.denx.de/pub/u-boot
-PKG_URL:=https://docs.u-boot.org/en/latest/
-PKG_HASH:=b60d5865cefdbc75da8da4156c56c458e00de75a49b80c1a2e58a96e30ad0d54
-PKG_SOURCE_SUBDIR:=$(PKG_DISTNAME)-$(PKG_VERSION)
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_DISTNAME)-$(PKG_VERSION)
+	https://git.u-boot-project.org/u-boot/u-boot/-/releases/v$(PKG_VERSION)/downloads
+PKG_URL:=https://docs.u-boot-project.org/en/latest/
+PKG_HASH:=3f856da3cbbc93af51ff95fde18588a348b4a26723b01d9841e999d988481015
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_DISTNAME)-v$(PKG_VERSION)
 
 #PKG_BUILD_DEPENDS:=fstools
 
@@ -68,8 +65,12 @@ endef
 
 define Build/Configure
 	$(call Build/Compile/Default,tools-only_defconfig)
-	$(SED) 's/CONFIG_TOOLS_LIBCRYPTO=y/# CONFIG_TOOLS_LIBCRYPTO is not set/' $(PKG_BUILD_DIR)/.config
-	$(SED) 's/CONFIG_TOOLS_KWBIMAGE=y/# CONFIG_TOOLS_KWBIMAGE is not set/' $(PKG_BUILD_DIR)/.config
+
+	$(PKG_BUILD_DIR)/scripts/config \
+		--file $(PKG_BUILD_DIR)/.config \
+		--disable TOOLS_KWBIMAGE \
+		--disable TOOLS_LIBCRYPTO \
+		--disable TOOLS_MKEFICAPSULE
 endef
 
 MAKE_FLAGS += \
