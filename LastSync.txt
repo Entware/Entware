@@ -1,15 +1,15 @@
-commit 55120e363ef1601e322629dbc1359ae24e8b17c3 (HEAD -> master, origin/master, origin/main, origin/HEAD)
-Author: Jonas Jelonek <jelonek.jonas@gmail.com>
-Date:   Sun Feb 8 16:17:49 2026 +0000
+commit feb8ac5e7e421a73fda862997175b77eaaf0c7aa (HEAD -> master, origin/master, origin/main, origin/HEAD)
+Author: Daniel Golle <daniel@makrotopia.org>
+Date:   Fri Oct 30 00:37:49 2026 +0000
 
-    realtek: pcs: rtl930x: drop conditional SerDes setup
+    rockchip: enable the RV1126 RGA
     
-    We can now setup most of the modes for RTL930x, recently XSGMII, QSGMII
-    and USXGMII-SX have been added. Thus we don't need a big list of allowed
-    modes anymore in SerDes setup. Drop this without replacement. Other
-    modes are still rejected in other places or will be rejected later with
-    a proper SerDes capability handling.
+    The RGA node of the RV1126 was added disabled, and no board enables
+    it, so the rockchip-rga module loads without a device to bind. The
+    engine has no pins or external interfaces, so like the RGA nodes of
+    the other Rockchip SoCs it carries no status property and is enabled
+    by the SoC dtsi. The driver binds through the rk3288-rga fallback
+    compatible of the node; the dts patches that follow the node are
+    re-contexted.
     
-    Signed-off-by: Jonas Jelonek <jelonek.jonas@gmail.com>
-    Link: https://github.com/openwrt/openwrt/pull/21930
-    Signed-off-by: Hauke Mehrtens <hauke@hauke-m.de>
+    Signed-off-by: Daniel Golle <daniel@makrotopia.org>
