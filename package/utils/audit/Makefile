@@ -82,7 +82,7 @@ $(call Package/audit/Default)
   SECTION:=admin
   CATEGORY:=Administration
   TITLE+= (daemon)
-  DEPENDS:= +libaudit +libauparse +audit-utils +libev +libpthread
+  DEPENDS:= +libaudit +libauparse +audit-utils +libev
 endef
 
 define Package/auditd/description
@@ -175,7 +175,7 @@ define Package/auditd/install
 	# af_unix plugin is not installed. Remove it's .conf.
 	if [[ -f $(1)/opt/etc/audit/plugins.d/af_unix.conf ]] ; then rm $(1)/opt/etc/audit/plugins.d/af_unix.conf ; fi
 	$(INSTALL_DIR) $(1)/opt/etc/init.d
-	$(INSTALL_BIN) ./files/S02auditd $(1)/opt/etc/init.d/S02auditd
+	$(INSTALL_BIN) ./files/S02auditd $(1)/opt/etc/init.d
 	$(INSTALL_DIR) $(1)/opt/sbin
 	$(CP) $(PKG_INSTALL_DIR)/opt/sbin/auditd $(1)/opt/sbin/
 endef
