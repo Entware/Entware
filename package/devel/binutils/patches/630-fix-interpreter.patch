@@ -1,6 +1,6 @@
 --- a/bfd/elf32-arm.c
 +++ b/bfd/elf32-arm.c
-@@ -2306,7 +2306,7 @@ typedef unsigned short int insn16;
+@@ -2314,7 +2314,7 @@ typedef unsigned short int insn16;
  
  /* The name of the dynamic interpreter.  This is put in the .interp
     section.  */
@@ -22,7 +22,7 @@
    (((1 << 25) - 1) << 2)
 --- a/bfd/elfxx-mips.c
 +++ b/bfd/elfxx-mips.c
-@@ -984,7 +984,7 @@ static bfd *reldyn_sorting_bfd;
+@@ -985,7 +985,7 @@ static bfd *reldyn_sorting_bfd;
  #define ELF_DYNAMIC_INTERPRETER(abfd)		\
     (ABI_N32_P (abfd) ? "/usr/lib32/libc.so.1"	\
      : ABI_64_P (abfd) ? "/usr/lib64/libc.so.1"	\
@@ -43,4 +43,4 @@
 +#define ELF64_DYNAMIC_INTERPRETER "/opt/lib/ld-linux-x86-64.so.2"
  #define ELFX32_DYNAMIC_INTERPRETER "/lib/ldx32.so.1"
  
- bool
+ /* ??? This repeats *COM* id of zero.  sec->id is supposed to be unique,

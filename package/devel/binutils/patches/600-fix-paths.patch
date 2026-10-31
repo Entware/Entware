@@ -27,15 +27,15 @@
 -	    fi ;;
 -	esac
 -      done
-       if test "${skip_lib}" = "no"; then
+ 
+       if test "${skip_lib}" = "no" && test "${LIBPATH_SKIP_NONNATIVE}" != "yes"; then
  	case :${lib_path1}:${lib_path2}: in
- 	  *:${lib}:*) ;;
-@@ -244,42 +221,6 @@ append_to_lib_path()
+@@ -245,42 +222,6 @@ append_to_lib_path()
    fi
  }
  
 -# Always search $(tooldir)/lib, aka /usr/local/TARGET/lib when native
--# except when LIBPATH=":".
+-# except when LIB_PATH=":".
 -if [ "${LIB_PATH}" != ":" ] ; then
 -  libs=
 -  if [ "x${TOOL_LIB}" = "x" ] ; then
