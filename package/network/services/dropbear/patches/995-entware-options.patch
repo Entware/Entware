@@ -15,7 +15,7 @@
  
  /* Set NON_INETD_MODE if you require daemon functionality (ie Dropbear listens
   * on chosen ports and keeps accepting connections. This is the default.
-@@ -229,7 +229,7 @@ group1 in Dropbear server too */
+@@ -235,7 +235,7 @@ group1 in Dropbear server too */
  
  /* Whether to print the message of the day (MOTD). */
  #define DO_MOTD 1
@@ -24,7 +24,7 @@
  #define MOTD_MAXSIZE 2000
  
  /* Authentication Types - at least one required.
-@@ -288,7 +288,7 @@ group1 in Dropbear server too */
+@@ -294,7 +294,7 @@ group1 in Dropbear server too */
  
  /* Set this to use PRNGD or EGD instead of /dev/urandom */
  #define DROPBEAR_USE_PRNGD 0
@@ -33,7 +33,7 @@
  
  /* Specify the number of clients we will allow to be connected but
   * not yet authenticated. After this limit, connections are rejected */
-@@ -319,7 +319,7 @@ group1 in Dropbear server too */
+@@ -343,7 +343,7 @@ group1 in Dropbear server too */
   * scripts etc. This can be overridden with the -P flag.
   * Homedir is prepended if path begins with ~/
   */
@@ -42,7 +42,7 @@
  
  /* The command to invoke for xauth when using X11 forwarding.
   * "-q" for quiet */
-@@ -332,11 +332,11 @@ group1 in Dropbear server too */
+@@ -356,11 +356,11 @@ group1 in Dropbear server too */
   * Homedir is prepended if path begins with ~/
   */
  #define DROPBEAR_SFTPSERVER 1
@@ -56,8 +56,8 @@
  
  /* Whether to log commands executed by a client. This only logs the
   * (single) command sent to the server, not what a user did in a
-@@ -372,7 +372,7 @@ be overridden at runtime with -I. 0 disa
- #define DEFAULT_IDLE_TIMEOUT 0
+@@ -400,8 +400,8 @@ runtime with -M. 0 disables this feature
+ #define DEFAULT_MAX_DURATION 0
  
  /* The default path. This will often get replaced by the shell */
 -#define DEFAULT_PATH "/usr/bin:/bin"
@@ -65,7 +65,8 @@
 +#define DEFAULT_PATH "/opt/usr/bin:/opt/bin:/usr/bin:/bin"
 +#define DEFAULT_ROOT_PATH "/opt/usr/sbin:/opt/usr/bin:/opt/sbin:/opt/bin:/usr/sbin:/usr/bin:/sbin:/bin"
  
- #endif /* DROPBEAR_DEFAULT_OPTIONS_H_ */
+ /* Features pending deletion. These will be removed in a future release
+    since they don't seem to be used much. Open a github issue if you
 --- a/src/sysoptions.h
 +++ b/src/sysoptions.h
 @@ -102,7 +102,7 @@
