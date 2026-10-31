@@ -5,7 +5,7 @@
 # See /LICENSE for more information.
 #
 
-# Entware specifics: remove deps USE_GLIBC:libcrypt-compat
+# Entware specific: remove deps USE_GLIBC:libcrypt-compat
 
 include $(TOPDIR)/rules.mk
 
@@ -284,10 +284,6 @@ define Package/dropbear/postinst
 
 if [ ! -f /opt/etc/dropbear/dropbear_rsa_host_key ]; then
     /opt/bin/dropbearkey -t rsa -f /opt/etc/dropbear/dropbear_rsa_host_key
-fi
-
-if [ ! -f /opt/etc/dropbear/dropbear_ecdsa_host_key ]; then
-    /opt/bin/dropbearkey -t ecdsa -f /opt/etc/dropbear/dropbear_ecdsa_host_key
 fi
 
 if [ ! -f /opt/etc/dropbear/dropbear_ed25519_host_key ]; then
