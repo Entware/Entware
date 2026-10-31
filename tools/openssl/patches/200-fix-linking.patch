@@ -1,0 +1,12 @@
+--- a/exporters/pkg-config/libcrypto.pc.in
++++ b/exporters/pkg-config/libcrypto.pc.in
+@@ -18,8 +18,7 @@ modulesdir=${libdir}/{- $OpenSSL::safe::
+ Name: OpenSSL-libcrypto
+ Description: OpenSSL cryptography library
+ Version: {- $OpenSSL::safe::installdata::VERSION -}
+-Libs: -L${libdir} -lcrypto
+-Libs.private: {- join(' ', @OpenSSL::safe::installdata::LDLIBS) -}
++Libs: -L${libdir} -lcrypto {- join(' ', @OpenSSL::safe::installdata::LDLIBS) -}
+ Cflags:{- $OUT = ' -I${includedir}';
+           if (scalar @OpenSSL::safe::installdata::INCLUDEDIR_REL_PREFIX > 1) {
+               $OUT = '';

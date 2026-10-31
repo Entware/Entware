@@ -5,7 +5,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openssl
-PKG_VERSION:=3.5.5
+PKG_VERSION:=3.5.9
 PKG_RELEASE:=1
 
 PKG_BASE:=$(subst $(space),.,$(wordlist 1,2,$(subst .,$(space),$(PKG_VERSION))))
@@ -14,13 +14,14 @@ PKG_SOURCE_URL:= \
 		https://www.openssl.org/source/ \
 		https://www.openssl.org/source/old/$(PKG_BASE)/ \
 		https://github.com/openssl/openssl/releases/download/$(PKG_NAME)-$(PKG_VERSION)/
-PKG_HASH:=b28c91532a8b65a1f983b4c28b7488174e4a01008e29ce8e69bd789f28bc2a89
+PKG_HASH:=603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a
 
 PKG_LICENSE:=Apache-2.0
 PKG_LICENSE_FILES:=LICENSE.txt
 PKG_CPE_ID:=cpe:/a:openssl:openssl
 
 HOST_BUILD_PARALLEL:=1
+HOST_CONFIGURE_CACHE:=1
 
 include $(INCLUDE_DIR)/host-build.mk
 
@@ -52,6 +53,7 @@ define Host/Configure
 		./Configure $(OPENSSL_TARGET) \
 		--prefix=$(STAGING_DIR_HOST) \
 		--libdir=lib \
+		--openssldir=$(STAGING_DIR_HOST)/etc/ssl \
 		$(HOST_CPPFLAGS) \
 		$(HOST_LDFLAGS) \
 		$(OPENSSL_OPTIONS); \
@@ -61,7 +63,7 @@ endef
 define Host/Compile
 	+$(MAKE) $(PKG_JOBS) -C $(HOST_BUILD_DIR) \
 		CC="$(HOSTCC)" \
-		install_dev install_programs
+		install_dev install_programs install_ssldirs
 endef
 
 define Host/Install
@@ -69,7 +71,7 @@ define Host/Install
 endef
 
 define Host/Uninstall
-	-$(call Host/Compile/Default,uninstall_dev uninstall_programs)
+	-$(call Host/Compile/Default,uninstall_dev uninstall_programs uninstall_ssldirs)
 endef
 
 $(eval $(call HostBuild))
