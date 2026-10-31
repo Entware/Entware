@@ -1,6 +1,6 @@
 --- a/src/ssl_load.c
 +++ b/src/ssl_load.c
-@@ -3180,6 +3180,7 @@ static const char* systemCaDirs[] = {
+@@ -3720,6 +3720,7 @@ static const char* systemCaDirs[] = {
  #if defined(__ANDROID__) || defined(ANDROID)
      "/system/etc/security/cacerts"      /* Android */
  #else
