@@ -1,15 +1,15 @@
 --- a/libbb/lineedit.c
 +++ b/libbb/lineedit.c
-@@ -1683,6 +1683,8 @@ static void remember_in_history(char *st
+@@ -1696,6 +1696,8 @@ static void remember_in_history(char *st
  # endif
  	}
- 	/* i <= state->max_history-1 */
+ 	/* i < state->max_history */
 +	if ( strstr(str,"precmd() { ")==NULL)
 +        if ( strstr(str,"cd \"`printf '%b'")==NULL){
  	state->history[i++] = xstrdup(str);
  	/* i <= state->max_history */
  	state->cur_history = i;
-@@ -1691,6 +1693,7 @@ static void remember_in_history(char *st
+@@ -1704,6 +1706,7 @@ static void remember_in_history(char *st
  	save_history(str);
  # endif
  }

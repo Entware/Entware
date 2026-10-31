@@ -1,6 +1,6 @@
 --- a/shell/ash.c
 +++ b/shell/ash.c
-@@ -14757,7 +14757,7 @@ int ash_main(int argc UNUSED_PARAM, char
+@@ -15093,7 +15093,7 @@ int ash_main(int argc UNUSED_PARAM, char
  		const char *hp;
  
  		state = 1;
@@ -11,7 +11,7 @@
  		hp = lookupvar("HOME");
 --- a/shell/hush.c
 +++ b/shell/hush.c
-@@ -10616,8 +10616,8 @@ int hush_main(int argc, char **argv)
+@@ -11247,8 +11247,8 @@ int hush_main(int argc, char **argv)
  		const char *hp = NULL;
  		HFILE *input;
  
@@ -21,15 +21,15 @@
 +		input = hfopen("/opt/etc/profile");
   run_profile:
  		if (input != NULL) {
- 			install_special_sighandlers();
+ 			parse_and_run_file(input);
 --- a/loginutils/adduser.c
 +++ b/loginutils/adduser.c
 @@ -227,7 +227,7 @@ int adduser_main(int argc UNUSED_PARAM,
  	die_if_bad_username(pw.pw_name);
  	if (!pw.pw_dir) {
  		/* create string for $HOME if not specified already */
--		pw.pw_dir = xasprintf("/home/%s", argv[0]);
-+		pw.pw_dir = xasprintf("/opt/home/%s", argv[0]);
+-		pw.pw_dir = concat_path_file("/home", argv[0]);
++		pw.pw_dir = concat_path_file("/opt/home", argv[0]);
  	}
  	pw.pw_passwd = (char *)"x";
  	if (opts & OPT_SYSTEM_ACCOUNT) {
