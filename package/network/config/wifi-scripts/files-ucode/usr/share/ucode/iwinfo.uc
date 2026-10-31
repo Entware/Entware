@@ -3,12 +3,14 @@
 import * as nl80211 from 'nl80211';
 import * as libubus from 'ubus';
 import { readfile, stat } from "fs";
+import { json_file_read, board_wlan } from 'wifi.utils';
 
-let wifi_devices = json(readfile('/usr/share/wifi_devices.json'));
-let countries = json(readfile('/usr/share/iso3166.json'));
-let board_data = json(readfile('/etc/board.json'));
+let wifi_devices = json_file_read('/usr/share/wifi_devices.json');
+let countries = json_file_read('/usr/share/iso3166.json');
+let wlan_data = board_wlan();
 
 let ubus = libubus.connect();
+let bss_ubus = libubus.connect(null, 2);
 
 export let phys;
 let interfaces;
@@ -64,7 +66,7 @@ function get_hardware_id(iface) {
 		for (let lookup in [ 'vendor', 'device', 'subsystem_vendor', 'subsystem_device' ])
 			push(data, trim(readfile(path + lookup), '\n'));
 		
-		for (let device in wifi_devices.pci) {
+		for (let device in wifi_devices?.pci) {
 			let match = 0;
 			for (let i = 0; i < 4; i++)
 				if (lc(data[i]) == lc(device[i]))
@@ -79,7 +81,7 @@ function get_hardware_id(iface) {
 	}
 
 	let compatible = trim(readfile(`/sys/class/net/${iface.ifname}/device/of_node/compatible`), '\n');
-	if (compatible && wifi_devices.compatible[compatible]) {
+	if (compatible && wifi_devices?.compatible?.[compatible]) {
 		hw.id = wifi_devices.compatible[compatible][0] + ' ' + wifi_devices.compatible[compatible][1];
 		hw.compatible = compatible;
 		hw.type = 'embedded';
@@ -95,7 +97,20 @@ const iftypes = [
 
 export let ifaces = {};
 
+function bss_info_get(daemon, ifname, timed_out) {
+	if (timed_out[daemon])
+		return null;
+
+	let bss_info = bss_ubus.call(daemon, 'bss_info', { iface: ifname });
+	if (bss_ubus.error(true) == libubus.STATUS_TIMEOUT)
+		timed_out[daemon] = true;
+
+	return bss_info;
+}
+
 export function update() {
+	let timed_out = {};
+
 	phys = nl80211.request(nl80211.const.NL80211_CMD_GET_WIPHY, nl80211.const.NLM_F_DUMP, { split_wiphy_dump: true });
 	interfaces = nl80211.request(nl80211.const.NL80211_CMD_GET_INTERFACE, nl80211.const.NLM_F_DUMP);
 	wireless_status = ubus.call('network.wireless', 'status');
@@ -112,9 +127,9 @@ export function update() {
 		iface.assoclist = nl80211.request(nl80211.const.NL80211_CMD_GET_STATION, nl80211.const.NLM_F_DUMP, { dev: v.ifname }) ?? [];
 		iface.hardware = get_hardware_id(iface);
 
-		iface.bss_info = ubus.call('hostapd', 'bss_info', { iface: v.ifname });
+		iface.bss_info = bss_info_get('hostapd', v.ifname, timed_out);
 		if (!iface.bss_info)
-			iface.bss_info = ubus.call('wpa_supplicant', 'bss_info', { iface: v.ifname });
+			iface.bss_info = bss_info_get('wpa_supplicant', v.ifname, timed_out);
 	}
 
 	for (let radio, data in wireless_status)
@@ -325,13 +340,20 @@ function dbm2quality(dbm) {
 	return quality;
 }
 
+function get_band_modes(iface) {
+	let band = iface.radio?.band;
+	if (!band)
+		return null;
+
+	return wlan_data?.['phy' + iface.wiphy]?.info?.bands?.[uc(band)]?.modes;
+}
+
 function hwmodelist(name) {
 	const mode = { 'HT*': 'n', 'VHT*': 'ac', 'HE*': 'ax', 'EHT*': 'be' };
 	let iface = ifaces[name];
-	let phy = board_data.wlan?.['phy' + iface.wiphy];
-	if (!phy || !iface.radio?.band)
+	let htmodes = get_band_modes(iface);
+	if (!htmodes)
 		return '';
-	let htmodes = phy.info.bands[uc(iface.radio.band)].modes;
 	let list = [];
 	if (iface.radio.band == '2g' && 'NOHT' in htmodes)
 		push(list, 'g/b');
@@ -344,6 +366,9 @@ function hwmodelist(name) {
 }
 
 export function assoclist(dev) {
+	if (!ifaces[dev])
+		return {};
+
 	let stations = ifaces[dev].assoclist;
 	let ret = {};
 	
@@ -367,6 +392,7 @@ export function assoclist(dev) {
 				flags: assoc_flags(station.sta_info.tx_bitrate ?? {}),
 			},
 			expected_throughput: format_expected_throughput(station.sta_info.expected_throughput ?? 0),
+			connected_time: station.sta_info.connected_time ?? 0,
 		};
 		ret[sta.mac] = sta;
 	}
@@ -488,12 +514,11 @@ export function info(name) {
 };
 
 export function htmodelist(name) {
-	let iface = ifaces[name];
-	let phy = board_data.wlan?.['phy' + iface.wiphy];
-	if (!phy || !iface.radio.band)
+	let htmodes = get_band_modes(ifaces[name]);
+	if (!htmodes)
 		return [];
 
-	return filter(phy.info.bands[uc(iface.radio.band)].modes, (v) => v != 'NOHT');
+	return filter(htmodes, (v) => v != 'NOHT');
 };
 
 export function txpowerlist(name) {
@@ -530,22 +555,27 @@ function scan_extension(ext, cell) {
 
 	switch(ord(ext, 0)) {
 	case 36:
-		let offset = 7;
+		cell.he = {};
 
-		if (!(ord(ext, 3) & 0x2))
-			break;
+		if (cell.band == '6') {
+			let offset = 7;
 
-		if (ord(ext, 2) & 0x40)
-			offset += 3;
+			if (ord(ext, 2) & 0x40)
+				offset += 3;
 
-		if (ord(ext, 2) & 0x80)
-			offset += 1;
+			if (ord(ext, 2) & 0x80)
+				offset += 1;
 
-		cell.he = {
-			chan_width: eht_chan_width[ord(ext, offset + 1) & 0x3],
-			center_chan_1: ord(ext, offset + 2),
-			center_chan_2: ord(ext, offset + 3),
-		};
+			cell.he.chan_width = eht_chan_width[ord(ext, offset + 1) & 0x3];
+			cell.he.center_chan_1 = ord(ext, offset + 2);
+			cell.he.center_chan_2 = ord(ext, offset + 3);
+		} else if (cell.vht) {
+			cell.he.chan_width = cell.vht.chan_width;
+			cell.he.center_chan_1 = cell.vht.center_chan_1;
+			cell.he.center_chan_2 = cell.vht.center_chan_2;
+		} else if (cell.ht) {
+			cell.he.chan_width = cell.ht.chan_width;
+		}
 		break;
 
 	case 106:
@@ -561,6 +591,38 @@ function scan_extension(ext, cell) {
 	}
 };
 
+const scan_done_cmds = [
+	nl80211.const.NL80211_CMD_NEW_SCAN_RESULTS,
+	nl80211.const.NL80211_CMD_SCAN_ABORTED
+];
+
+function clock_ms() {
+	let t = clock(true);
+	return t[0] * 1000 + t[1] / 1000000;
+}
+
+// The event socket stays subscribed for the life of the process and can hold
+// the results of an earlier scan. scan() reads nl80211.error() after the
+// trigger, so clear the timeout error of the drain.
+function scan_events_drain() {
+	while (nl80211.waitfor(scan_done_cmds, 0))
+		;
+	nl80211.error();
+}
+
+function scan_done_wait(dev, timeout_ms) {
+	let deadline = clock_ms() + timeout_ms;
+	let left;
+
+	while ((left = deadline - clock_ms()) > 0) {
+		let res = nl80211.waitfor(scan_done_cmds, left);
+		if (!res || res.msg?.dev == dev)
+			return res;
+	}
+
+	return null;
+}
+
 export function scan(dev) {
 	const rsn_cipher = [ 'NONE', 'WEP-40', 'TKIP', 'WRAP', 'CCMP', 'WEP-104', 'AES-OCB', 'CKIP', 'GCMP', 'GCMP-256', 'CCMP-256' ];
 	const ht_chan_offset = [ 'no secondary', 'above', '[reserved]', 'below' ];
@@ -574,23 +636,23 @@ export function scan(dev) {
 		scan_ssids: [ '' ],
 	};
 
-	let res = nl80211.request(nl80211.const.NL80211_CMD_TRIGGER_SCAN, 0, params);
-	if (res === false) {
-		printf("Unable to trigger scan: " + nl80211.error() + "\n");
-		exit(1);
+	scan_events_drain();
+
+	nl80211.request(nl80211.const.NL80211_CMD_TRIGGER_SCAN, 0, params);
+	let err = nl80211.error();
+	if (err) {
+		warn("Unable to trigger scan on " + dev + ": " + err + "\n");
+		return null;
 	}
 
-	res = nl80211.waitfor([
-		nl80211.const.NL80211_CMD_NEW_SCAN_RESULTS,
-		nl80211.const.NL80211_CMD_SCAN_ABORTED
-	], 5000);
+	let res = scan_done_wait(dev, 5000);
 
 	if (!res) {
-		printf("Netlink error while awaiting scan results: " + nl80211.error() + "\n");
-		exit(1);
+		warn("Netlink error while awaiting scan results on " + dev + ": " + nl80211.error() + "\n");
+		return null;
 	} else if (res.cmd == nl80211.const.NL80211_CMD_SCAN_ABORTED) {
-		printf("Scan aborted by kernel\n");
-		exit(1);
+		warn("Scan aborted by kernel on " + dev + "\n");
+		return null;
 	}
 
 	let scan = nl80211.request(nl80211.const.NL80211_CMD_GET_SCAN, nl80211.const.NLM_F_DUMP, { dev });

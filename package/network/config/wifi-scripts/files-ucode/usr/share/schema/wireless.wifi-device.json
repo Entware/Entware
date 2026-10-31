@@ -153,6 +153,21 @@
 			"type": "boolean",
 			"default": true
 		},
+		"eht_mu_beamformer": {
+			"description": "EHT multiple user beamformer support",
+			"type": "boolean",
+			"default": true
+		},
+		"eht_su_beamformee": {
+			"description": "EHT single user beamformee support",
+			"type": "boolean",
+			"default": true
+		},
+		"eht_su_beamformer": {
+			"description": "EHT single user beamformer support",
+			"type": "boolean",
+			"default": true
+		},
 		"enable_background_radar": {
 			"description": "This feature allows CAC to be run on dedicated radio RF chains",
 			"type": "boolean"
@@ -319,6 +334,28 @@
 			"type": "number",
 			"default": 3
 		},
+		"he_spr_srg_bss_colors": {
+			"description": "BSS colors (0-63) of the Spatial Reuse Group",
+			"type": "array",
+			"items": {
+				"type": "number"
+			}
+		},
+		"he_spr_srg_obss_pd_max_offset": {
+			"description": "SRG OBSS PD Max Offset",
+			"type": "number"
+		},
+		"he_spr_srg_obss_pd_min_offset": {
+			"description": "SRG OBSS PD Min Offset",
+			"type": "number"
+		},
+		"he_spr_srg_partial_bssid": {
+			"description": "Partial BSSID values (0-63) of the Spatial Reuse Group",
+			"type": "array",
+			"items": {
+				"type": "number"
+			}
+		},
 		"he_su_beamformee": {
 			"description": "",
 			"type": "boolean",
@@ -333,6 +370,11 @@
 			"description": "",
 			"type": "boolean",
 			"default": false
+		},
+		"he_twt_responder": {
+			"description": "Whether TWT (HE) responder is enabled.",
+			"type": "boolean",
+			"default": true
 		},
 		"hostapd_options": {
 			"type": "array",
@@ -550,6 +592,12 @@
 		"phy": {
 			"description": "Name of the phy, as described in board.json",
 			"type": "string"
+		},
+		"punct_bitmap": {
+			"description": "EHT disabled subchannel bitmap: bit n punctures the nth 20 MHz subchannel from the lowest frequency",
+			"type": "number",
+			"minimum": 0,
+			"maximum": 65535
 		},
 		"radio": {
 			"description": "Index of the phy radio (for multi-radio PHYs)",
