@@ -1,6 +1,6 @@
 --- a/internal.h
 +++ b/internal.h
-@@ -42,6 +42,14 @@ typedef uint16_t u16;
+@@ -43,6 +43,14 @@ typedef uint16_t u16;
  typedef uint8_t u8;
  typedef int32_t s32;
  
