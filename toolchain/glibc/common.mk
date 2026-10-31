@@ -4,7 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-# XXX Entware specific: keep versions 2.23/2.27
+# XXX Entware specific: keep versions 2.27
 
 include $(TOPDIR)/rules.mk
 
@@ -15,10 +15,6 @@ PKG_RELEASE:=1
 PKG_SOURCE_URL:=@GNU/glibc
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_CPE_ID:=cpe:/a:gnu:glibc
-
-ifeq ($(PKG_VERSION),2.23)
-  PKG_HASH:=f39f068ce7d749608ff15182b7da28627dd129eaba2687e28bec876d26135629
-endif
 
 ifeq ($(PKG_VERSION),2.27)
   PKG_HASH:=e49c919c83579984f7c2442243861d04227e8dc831a08d7bf60cdacfdcd08797
@@ -73,7 +69,6 @@ GLIBC_CONFIGURE:= \
 		  $(if $(CONFIG_PKG_CC_STACKPROTECTOR_STRONG),--enable-stack-protector=strong) \
 		  $(if $(CONFIG_PKG_CC_STACKPROTECTOR_ALL),--enable-stack-protector=all) \
 		  $(if $(CONFIG_PKG_RELRO_FULL),--enable-bind-now) \
-		  $(if $(CONFIG_GLIBC_USE_VERSION_2_23),--enable-obsolete-rpc) \
 		  $(if $(CONFIG_GLIBC_USE_VERSION_2_27),--enable-obsolete-rpc) \
 		  $(if $(CONFIG_GLIBC_USE_VERSION_2_27),--enable-obsolete-nsl) \
 		  $(if $(CONFIG_PKG_FORTIFY_SOURCE_1),--enable-fortify-source=1) \
