@@ -12,9 +12,9 @@ PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/odhcpd.git
-PKG_MIRROR_HASH:=89af53f1b6db61a5cc31eb39713f52eaa521e3ed3da12a742ad55b0bd8e5c248
-PKG_SOURCE_DATE:=2026-01-19
-PKG_SOURCE_VERSION:=13ef483716a504378b223d668c2482c93a804336
+PKG_MIRROR_HASH:=52c861067b98cc389694a929e003b067d269b5d3eca1145315fef236efbea113
+PKG_SOURCE_DATE:=2026-10-28
+PKG_SOURCE_VERSION:=5f5f900a7177b23588f290685609cec1b9ddd7c5
 
 PKG_MAINTAINER:=Álvaro Fernández Rojas <noltari@gmail.com>
 PKG_LICENSE:=GPL-2.0
@@ -40,6 +40,7 @@ define Package/odhcpd
   $(Package/odhcpd/default)
   TITLE:=OpenWrt DHCPv4/DHCPv6/NDP/RA server
   VARIANT:=full
+  PROVIDES:=odhcpd-ipv6only
 endef
 
 define Package/odhcpd/description
@@ -54,6 +55,7 @@ define Package/odhcpd-ipv6only
   $(Package/odhcpd/default)
   TITLE:=OpenWrt DHCPv6/NDP/RA server (without DHCPv4)
   VARIANT:=ipv6only
+  DEFAULT_VARIANT:=1
   DEPENDS+=@IPV6
 endef
 
