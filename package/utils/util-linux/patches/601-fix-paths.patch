@@ -11,7 +11,7 @@
  execprefixdir = prefixdir
  sysconfdir = prefixdir / get_option('sysconfdir')
  usrbin_exec_dir = execprefixdir / bindir
-@@ -76,8 +76,8 @@ conf.set('docdir', docdir)
+@@ -74,8 +74,8 @@ conf.set_quoted('_PATH_SYSCONFDIR', sysc
  conf.set_quoted('_PATH_SYSCONFSTATICDIR', sysconfstaticdir)
  conf.set_quoted('_PATH_RUNSTATEDIR', runstatedir)
  conf.set_quoted('_PATH_LOCALSTATEDIR', localstatedir)
@@ -22,7 +22,7 @@
  
  conf.set_quoted('_PATH_VENDORDIR', vendordir)
  conf.set('USE_VENDORDIR', vendordir == '' ? false : 1)
-@@ -4059,7 +4059,7 @@ if asciidoctor.found()
+@@ -4147,7 +4147,7 @@ if asciidoctor.found()
  	  '-b', 'manpage',
  	  '-a', 'VERSION=' + meson.project_version(),
  	  '-a', 'release-version=' + meson.project_version(),
@@ -33,7 +33,7 @@
            '--destination-dir=' + meson.current_build_dir(),
 --- a/meson_options.txt
 +++ b/meson_options.txt
-@@ -298,7 +298,7 @@ option('allow-32bit-time', type: 'boolea
+@@ -302,7 +302,7 @@ option('allow-32bit-time', type: 'boolea
  
  option('fs-search-path',
         type : 'string',

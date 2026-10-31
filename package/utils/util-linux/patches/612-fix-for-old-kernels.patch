@@ -1,0 +1,37 @@
+../lib/netlink.c: In function 'process_addr':
+../lib/netlink.c:191:8: error: 'IFA_FLAGS' undeclared (first use in this function); did you mean 'AT_FLAGS'?
+   case IFA_FLAGS:
+        ^~~~~~~~~
+        AT_FLAGS
+../lib/netlink.c:191:8: note: each undeclared identifier is reported only once for each function it appears in
+
+---
+
+--- a/lib/netlink.c
++++ b/lib/netlink.c
+@@ -21,6 +21,11 @@
+ #include "debug.h"
+ #include "nls.h"
+ 
++/* IFA_FLAGS since Linux 3.14 */
++#ifndef LINUX_VERSION_CODE
++#include <linux/version.h>
++#endif
++
+ /*
+  * Debug stuff (based on include/debug.h)
+  */
+@@ -188,11 +193,13 @@ static int process_addr(struct ul_nl_dat
+ 				     nl->addr.ifa_valid));
+ 		}
+ 		break;
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,14,0)
+ 		case IFA_FLAGS:
+ 			nl->addr.ifa_flags = *(uint32_t *)(RTA_DATA(attr));
+ 			DBG(ADDR, ul_debug(" IFA_FLAGS: 0x%08x",
+ 					  nl->addr.ifa_flags));
+ 		break;
++#endif
+ 		default:
+ 			DBG(ADDR, ul_debug(" rta_type = 0x%04x",
+ 					  attr->rta_type));

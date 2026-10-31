@@ -2,7 +2,7 @@
 
 --- a/meson.build
 +++ b/meson.build
-@@ -3391,14 +3391,14 @@ exe3 = executable(
+@@ -3453,14 +3453,14 @@ exe3 = executable(
    install : opt,
    build_by_default : opt)
  
@@ -25,7 +25,7 @@
  
  exe5 = executable(
    'coresched',
-@@ -3410,9 +3410,9 @@ exe5 = executable(
+@@ -3472,9 +3472,9 @@ exe5 = executable(
    build_by_default : opt)
  
  if opt and not is_disabler(exe)

@@ -42,7 +42,7 @@
  #include "monotonic.h"
  #include "strutils.h"
  #include "xalloc.h"
-@@ -581,6 +586,7 @@ int rtc_vl_read(const struct hwclock_con
+@@ -594,6 +599,7 @@ int rtc_vl_read(const struct hwclock_con
  		return 1;
  	}
  
@@ -50,7 +50,7 @@
  	if (ioctl(rtc_fd, RTC_VL_READ, &vl) == -1) {
  		warn(_("ioctl(%d, RTC_VL_READ) on %s failed"),
  		     rtc_fd, rtc_dev_name);
-@@ -591,6 +597,7 @@ int rtc_vl_read(const struct hwclock_con
+@@ -604,6 +610,7 @@ int rtc_vl_read(const struct hwclock_con
  		printf(_("ioctl(%d, RTC_VL_READ) on %s returned 0x%x\n"),
  		       rtc_fd, rtc_dev_name, vl);
  	}
@@ -58,7 +58,7 @@
  
  	for (i = 0; i < ARRAY_SIZE(vl_bits); ++i) {
  		const struct vl_bit *vlb = &vl_bits[i];
-@@ -616,11 +623,13 @@ int rtc_vl_clear(const struct hwclock_co
+@@ -629,11 +636,13 @@ int rtc_vl_clear(const struct hwclock_co
  		return 1;
  	}
  
@@ -82,7 +82,7 @@
  
  #include "debug.h"
  
-@@ -579,9 +580,11 @@ static void add_namespace_from_sock(stru
+@@ -596,9 +597,11 @@ static void add_namespace_from_sock(stru
  	if (sk < 0)
  		goto out_pidfd;
  
@@ -96,7 +96,7 @@
  		goto out_nsfd;
 --- a/sys-utils/nsenter.c
 +++ b/sys-utils/nsenter.c
-@@ -352,9 +352,11 @@ static void open_target_sk_netns(int pid
+@@ -439,9 +439,11 @@ static void open_target_sk_netns(int pid
  	if (fstat(sk, &sb) < 0)
  		err(EXIT_FAILURE, _("fstat(%d)"), sk);
  

@@ -1,15 +1,15 @@
 --- a/disk-utils/fsck.c
 +++ b/disk-utils/fsck.c
-@@ -73,7 +73,7 @@
- #define MAX_DEVICES 32
+@@ -74,7 +74,7 @@
  #define MAX_ARGS 32
+ #define MAX_OPTIONS 128
  
 -#define FSCK_RUNTIME_DIRNAME	"/run/fsck"
 +#define FSCK_RUNTIME_DIRNAME	"/opt/var/run/fsck"
  
  static const char *const ignored_types[] = {
  	"ignore",
-@@ -158,7 +158,7 @@ static int kill_sent;
+@@ -159,7 +159,7 @@ static int kill_sent;
  static char *fstype;
  static struct fsck_instance *instance_list;
  
@@ -20,7 +20,7 @@
  
 --- a/libblkid/src/blkidP.h
 +++ b/libblkid/src/blkidP.h
-@@ -308,15 +308,15 @@ struct blkid_struct_cache
+@@ -309,15 +309,15 @@ struct blkid_struct_cache
  #define BLKID_BIC_FL_CHANGED	0x0004	/* Cache has changed from disk */
  
  /* config file */
@@ -65,7 +65,7 @@
  #define UUIDD_OP_GET_MAXOP		1
 --- a/misc-utils/whereis.c
 +++ b/misc-utils/whereis.c
-@@ -101,20 +101,29 @@ struct wh_dirlist {
+@@ -102,20 +102,29 @@ struct wh_dirlist {
  };
  
  static const char *const bindirs[] = {
@@ -95,7 +95,7 @@
  	"/lib",
  	"/lib32",
  	"/lib64",
-@@ -154,7 +163,10 @@ static const char *const bindirs[] = {
+@@ -155,7 +164,10 @@ static const char *const bindirs[] = {
  	"/usr/old",
  	"/usr/new",
  	"/usr/local",
@@ -106,7 +106,7 @@
  	"/usr/share",
  
  	"/opt/*/bin",
-@@ -163,16 +175,21 @@ static const char *const bindirs[] = {
+@@ -164,16 +176,21 @@ static const char *const bindirs[] = {
  
  static const char *const mandirs[] = {
  	"/usr/man/*",
@@ -130,7 +130,7 @@
  	"/usr/src/lib/libc/net/*",
 --- a/term-utils/agetty.c
 +++ b/term-utils/agetty.c
-@@ -141,7 +141,7 @@
+@@ -142,7 +142,7 @@
  # include <sys/inotify.h>
  # include <linux/netlink.h>
  # include <linux/rtnetlink.h>
@@ -138,10 +138,10 @@
 +# define AGETTY_RELOAD_FILENAME "/opt/var/run/agetty.reload"	/* trigger file */
  # define AGETTY_RELOAD_FDNONE	-2			/* uninitialized fd */
  static int inotify_fd = AGETTY_RELOAD_FDNONE;
- static int netlink_fd = AGETTY_RELOAD_FDNONE;
+ static uint32_t netlink_groups;
 --- a/sys-utils/eject.c
 +++ b/sys-utils/eject.c
-@@ -661,11 +661,11 @@ static void umount_one(const struct ejec
+@@ -670,11 +670,11 @@ static void umount_one(const struct ejec
  		if (drop_permissions() != 0)
  			err(EXIT_FAILURE, _("drop permissions failed"));
  		if (ctl->p_option)
