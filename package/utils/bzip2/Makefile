@@ -55,15 +55,15 @@ define Package/bzip2/description
 	data compressor. This package provides the binary.
 endef
 
-# XXX no autotools
 TARGET_CFLAGS += \
 	$(FPIC)
 
+# XXX no autotools
 #CONFIGURE_ARGS += --prefix=/usr
 
 MAKE_FLAGS += \
 	-f Makefile-libbz2_so \
-	CFLAGS="$(TARGET_CFLAGS)" \
+	CFLAGS="$(TARGET_CFLAGS) $(TARGET_CPPFLAGS)" \
 	LDFLAGS="$(TARGET_LDFLAGS)" \
 	PREFIX=/opt \
 	all
@@ -94,7 +94,7 @@ HOST_CFLAGS += \
 	$(FPIC)
 
 HOST_MAKE_FLAGS+= \
-	CFLAGS="$(HOST_CFLAGS)" \
+	CFLAGS="$(HOST_CFLAGS) $(HOST_CPPFLAGS)" \
 	LDFLAGS="$(HOST_LDFLAGS)" \
 	PREFIX=$(STAGING_DIR_HOSTPKG) \
 	all
