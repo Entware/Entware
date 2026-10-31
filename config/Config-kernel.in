@@ -66,6 +66,28 @@ config KERNEL_RISCV_PMU_SBI
 	bool
 	depends on riscv64
 
+# Entware specifics: no KERNEL_NR_CPUS
+config KERNEL_NR_CPUS
+	int "Maximum number of CPUs (2-512)" if TARGET_x86
+	range 2 512 if TARGET_x86
+	default 512 if TARGET_x86_64
+	default 8 if TARGET_x86
+	depends on x86_64 && !LINUX_3_2
+	help
+	  Maximum number of CPUs supported by the kernel.
+	  Each CPU allocates approximately 100-200KB of RAM for
+	  per-CPU data structures.
+
+	  Sample values:
+	    4   - Ultra-low-level desktops e.g. Intel N150
+	    8   - Low-level desktops e.g. Intel N305
+	    16  - Mid-level dekstops e.g. AMD Ryzen 7
+	    32  - High-level desktops e.g. AMD Ryzen 9/Intel Core i9
+	    384 - High-level server e.g. AMD EPYC 9965
+
+	  Lower values reduce memory usage. Set to match your hardware
+	  for optimal memory efficiency.
+
 # Entware specifics: keep kernel version restriction (X86_VSYSCALL_EMULATION since Linux 3.19)
 config KERNEL_X86_VSYSCALL_EMULATION
 	bool "Enable vsyscall emulation"
@@ -90,6 +112,18 @@ config KERNEL_PERF_EVENTS
 	select KERNEL_ARM_PMUV3 if (arm_v7 || aarch64)
 	select KERNEL_RISCV_PMU if riscv64
 
+# Entware specifics: keep kernel version restriction (FEAT_BRBE since Linux 6.16)
+config KERNEL_ARM64_BRBE
+	bool "Enable support for branch stack sampling using FEAT_BRBE"
+	default y
+	depends on KERNEL_PERF_EVENTS && aarch64 && !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
+	help
+	  Enable perf support for Branch Record Buffer Extension (BRBE) which
+	  records all branches taken in an execution path. This supports some
+	  branch types and privilege based filtering. It captures additional
+	  relevant information such as cycle count, misprediction and branch
+	  type, branch privilege level etc.
+
 config KERNEL_PROFILING
 	bool "Compile the kernel with profiling enabled"
 	select KERNEL_PERF_EVENTS
@@ -112,17 +146,6 @@ config KERNEL_UBSAN
 	  behaviours in runtime. Various types of checks may be enabled
 	  via boot parameter ubsan_handle
 	  (see: Documentation/dev-tools/ubsan.rst).
-
-config KERNEL_UBSAN_SANITIZE_ALL
-	bool "Enable instrumentation for the entire kernel"
-	depends on KERNEL_UBSAN
-	default y
-	help
-	  This option activates instrumentation for the entire kernel.
-	  If you don't enable this option, you have to explicitly specify
-	  UBSAN_SANITIZE := y for the files/directories you want to check for UB.
-	  Enabling this option will get kernel image size increased
-	  significantly.
 
 config KERNEL_UBSAN_ALIGNMENT
 	bool "Enable checking of pointers alignment"
@@ -546,6 +569,11 @@ config KERNEL_DEBUG_INFO
 	help
 	  This will compile your kernel and modules with debug information.
 
+# DEBUG_INFO has no prompt in the kernel, it is set by the "Debug information"
+# choice. Select DEBUG_INFO_NONE to actually disable debug information.
+config KERNEL_DEBUG_INFO_NONE
+	def_bool !KERNEL_DEBUG_INFO
+
 # Entware specifics: keep kernel version restriction (DEBUG_INFO_BTF since Linux 5.2)
 config KERNEL_DEBUG_INFO_BTF
 	bool "Enable additional BTF type information"
@@ -707,8 +735,47 @@ config KERNEL_FANOTIFY
 config KERNEL_BLK_DEV_BSG
 	bool "Compile the kernel with SCSI generic v4 support for any block device"
 
+# Entware specifics: keep kernel version restriction (HUGETLBFS since Linux 5.7)
+config KERNEL_HUGETLB_PAGE
+	bool "Compile the kernel with HugeTLB support"
+	depends on !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
+	select KERNEL_TRANSPARENT_HUGEPAGE
+	select KERNEL_HUGETLBFS
+
 config KERNEL_TRANSPARENT_HUGEPAGE
 	bool
+
+config KERNEL_PERSISTENT_HUGE_ZERO_FOLIO
+	bool "Allocate a PMD sized folio for zeroing"
+	depends on KERNEL_TRANSPARENT_HUGEPAGE
+	default n
+	help
+	  Enable this option to reduce the runtime refcounting overhead
+	  of the huge zero folio and expand the places in the kernel
+	  that can use huge zero folios. For instance, block I/O benefits
+	  from access to large folios for zeroing memory.
+
+	  With this option enabled, the huge zero folio is allocated
+	  once and never freed. One full huge page's worth of memory shall
+	  be used.
+
+	  Say Y if your system has lots of memory. Say N if you are
+	  memory constrained.
+
+config KERNEL_NO_PAGE_MAPCOUNT
+	bool "No per-page mapcount (EXPERIMENTAL)"
+	depends on KERNEL_TRANSPARENT_HUGEPAGE
+	default n
+	help
+	  Do not maintain per-page mapcounts for pages part of larger
+	  allocations, such as transparent huge pages.
+
+	  When this config option is enabled, some interfaces that relied on
+	  this information will rely on less-precise per-allocation information
+	  instead: for example, using the average per-page mapcount in such
+	  a large allocation instead of the per-page mapcount.
+
+	  EXPERIMENTAL because the impact of some changes is still unclear.
 
 choice
 	prompt "Transparent Hugepage Support sysfs defaults"
@@ -735,11 +802,6 @@ config KERNEL_ARM64_CONTPTE
 
 config KERNEL_HUGETLBFS
 	bool
-
-config KERNEL_HUGETLB_PAGE
-	bool "Compile the kernel with HugeTLB support"
-	select KERNEL_TRANSPARENT_HUGEPAGE
-	select KERNEL_HUGETLBFS
 
 config KERNEL_MAGIC_SYSRQ
 	bool "Compile the kernel with SysRq support"
@@ -1046,18 +1108,6 @@ if KERNEL_CGROUPS
 		  This config option also selects MM_OWNER config option, which
 		  could in turn add some fork/exit overhead.
 
-	config KERNEL_MEMCG_KMEM
-		bool "Memory Resource Controller Kernel Memory accounting (EXPERIMENTAL)"
-		default y
-		depends on KERNEL_MEMCG
-		help
-		  The Kernel Memory extension for Memory Resource Controller can limit
-		  the amount of memory used by kernel objects in the system. Those are
-		  fundamentally different from the entities handled by the standard
-		  Memory Controller, which are page-based, and can be swapped. Users of
-		  the kmem extension can use it to guarantee that no group of processes
-		  will ever exhaust kernel resources alone.
-	
 	config KERNEL_MEMCG_V1
 		bool "Legacy cgroup v1 memory controller"
 		default n
@@ -1133,29 +1183,15 @@ if KERNEL_CGROUPS
 		  This option only enables generic Block IO controller infrastructure.
 		  One needs to also enable actual IO controlling logic/policy. For
 		  enabling proportional weight division of disk bandwidth in CFQ, set
-		  CONFIG_CFQ_GROUP_IOSCHED=y; for enabling throttling policy, set
+		  CONFIG_BFQ_GROUP_IOSCHED=y; for enabling throttling policy, set
 		  CONFIG_BLK_DEV_THROTTLING=y.
 
 	if KERNEL_BLK_CGROUP
 
-		config KERNEL_CFQ_GROUP_IOSCHED
-			bool "Proportional weight of disk bandwidth in CFQ"
-
 		config KERNEL_BLK_DEV_THROTTLING
 			bool "Enable throttling policy"
 			default y
-
-		config KERNEL_BLK_DEV_THROTTLING_LOW
-			bool "Block throttling .low limit interface support (EXPERIMENTAL)"
-			depends on KERNEL_BLK_DEV_THROTTLING
 	endif
-
-	config KERNEL_DEBUG_BLK_CGROUP
-		bool "Enable Block IO controller debugging"
-		depends on KERNEL_BLK_CGROUP
-		help
-		  Enable some debugging help. Currently it exports additional stat
-		  files in a cgroup which can be useful for debugging.
 
 	config KERNEL_NET_CLS_CGROUP
 		bool "legacy Control Group Classifier"
@@ -1213,6 +1249,15 @@ if KERNEL_NAMESPACES
 		help
 		  Allow user space to create what appear to be multiple instances
 		  of the network stack.
+
+# Entware specifics: keep kernel version restriction (TIME_NS since Linux 6.19)
+	config KERNEL_TIME_NS
+		bool "Time namespace"
+	depends on !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
+		default y
+		help
+		  In this namespace boottime and monotonic clocks can be set.
+		  The time will keep going with the same pace.
 
 endif
 
@@ -1506,46 +1551,6 @@ menu "Filesystem ACL and attr support options"
 
 	config KERNEL_TMPFS_POSIX_ACL
 		bool "Enable POSIX ACL for TMPFS Filesystems"
-		select KERNEL_FS_POSIX_ACL
-		default y if USE_FS_ACL_ATTR
-
-	config KERNEL_CIFS_ACL
-		bool "Enable CIFS ACLs"
-		select KERNEL_FS_POSIX_ACL
-		default y if USE_FS_ACL_ATTR
-
-# not found HFS_FS_POSIX_ACL
-#	config KERNEL_HFS_FS_POSIX_ACL
-#		bool "Enable POSIX ACL for HFS Filesystems"
-#		select KERNEL_FS_POSIX_ACL
-#		default y if USE_FS_ACL_ATTR
-
-# Entware specifics: keep kernel version restriction (HFSPLUS_FS_POSIX_ACL since Linux 3.12)
-	config KERNEL_HFSPLUS_FS_POSIX_ACL
-		bool "Enable POSIX ACL for HFS+ Filesystems"
-		select KERNEL_FS_POSIX_ACL
-		depends on !(LINUX_3_2||LINUX_3_4||LINUX_3_10)
-		default y if USE_FS_ACL_ATTR
-
-	config KERNEL_NFS_ACL_SUPPORT
-		bool "Enable ACLs for NFS"
-		default y if USE_FS_ACL_ATTR
-
-# typo?
-	config KERNEL_NFS_V3_ACL
-		bool "Enable ACLs for NFSv3"
-
-# typo?
-	config KERNEL_NFSD_V2_ACL
-		bool "Enable ACLs for NFSDv2"
-
-# typo?
-	config KERNEL_NFSD_V3_ACL
-		bool "Enable ACLs for NFSDv3"
-
-# typo?
-	config KERNEL_REISERFS_FS_POSIX_ACL
-		bool "Enable POSIX ACLs for ReiserFS"
 		select KERNEL_FS_POSIX_ACL
 		default y if USE_FS_ACL_ATTR
 
