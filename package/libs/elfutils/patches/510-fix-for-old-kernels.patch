@@ -24,7 +24,7 @@ aarch64_initreg.c:61:24: warning: unused variable 'pac_mask' [-Wunused-variable]
  /* Deal with old glibc defining user_pt_regs instead of user_regs_struct.  */
  # ifndef HAVE_SYS_USER_REGS
  #  define user_regs_struct user_pt_regs
-@@ -58,17 +66,21 @@ aarch64_set_initial_registers_tid (pid_t
+@@ -79,17 +87,21 @@ aarch64_set_initial_registers_tid (pid_t
  
    /* General registers.  */
    struct user_regs_struct gregs;
@@ -46,7 +46,7 @@ aarch64_initreg.c:61:24: warning: unused variable 'pac_mask' [-Wunused-variable]
  
    /* X0..X30 plus SP.  */
    if (! setfunc (0, 32, (Dwarf_Word *) &gregs.regs[0], arg))
-@@ -78,8 +90,10 @@ aarch64_set_initial_registers_tid (pid_t
+@@ -99,8 +111,10 @@ aarch64_set_initial_registers_tid (pid_t
    if (! setfunc (-1, 1, (Dwarf_Word *) &gregs.pc, arg))
      return false;
  

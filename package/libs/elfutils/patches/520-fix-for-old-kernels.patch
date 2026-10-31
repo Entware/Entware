@@ -1,0 +1,82 @@
+--- a/backends/i386_initreg_sample.c
++++ b/backends/i386_initreg_sample.c
+@@ -30,20 +30,28 @@
+ # include <config.h>
+ #endif
+ 
++#ifndef LINUX_VERSION_CODE
++#include <linux/version.h>
++#endif
++
+ #include <stdlib.h>
+ #include <assert.h>
+ #if (defined __i386__ || defined __x86_64__) && defined(__linux__)
+ # include <linux/perf_event.h>
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,8,0)
+ # include <asm/perf_regs.h>
++#endif /* since Linux 3.8 */
+ #endif
+ 
+ #define BACKEND i386_
+ #include "libebl_CPU.h"
+ #include "libebl_PERF_FLAGS.h"
+ #if (defined __i386__ || defined __x86_64__) && defined(__linux__)
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,8,0)
+ # include "x86_initreg_sample.c"
+ # define HAVE_X86_INITREG_SAMPLE
+ #endif
++#endif
+ 
+ bool
+ i386_sample_sp_pc (const Dwarf_Word *regs, uint32_t n_regs,
+--- a/backends/libebl_PERF_FLAGS.h
++++ b/backends/libebl_PERF_FLAGS.h
+@@ -31,9 +31,16 @@
+ #ifndef _LIBEBL_PERF_FLAGS_H
+ #define _LIBEBL_PERF_FLAGS_H 1
+ 
++#ifndef LINUX_VERSION_CODE
++#include <linux/version.h>
++#endif
++
+ #if defined(__linux__)
+ /* XXX Need to exclude __linux__ arches without perf_regs.h. */
+-#if defined(__x86_64__) || defined(__i386__) || defined(__aarch64__) || defined(__arm__)
++#if defined(__x86_64__) && LINUX_VERSION_CODE >= KERNEL_VERSION(3,8,0) \
++  || defined(__i386__) && LINUX_VERSION_CODE >= KERNEL_VERSION(3,8,0) \
++  || defined(__aarch64__) && LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0) \
++  || defined(__arm__) && LINUX_VERSION_CODE >= KERNEL_VERSION(3,13,0)
+ /* || defined(other_architecture)... */
+ # include <asm/perf_regs.h>
+ #endif
+--- a/backends/x86_64_initreg_sample.c
++++ b/backends/x86_64_initreg_sample.c
+@@ -30,20 +30,28 @@
+ # include <config.h>
+ #endif
+ 
++#ifndef LINUX_VERSION_CODE
++#include <linux/version.h>
++#endif
++
+ #include <stdlib.h>
+ #include <assert.h>
+ #if defined(__x86_64__) && defined(__linux__)
+ # include <linux/perf_event.h>
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,8,0)
+ # include <asm/perf_regs.h>
++#endif /* since Linux 3.8 */
+ #endif
+ 
+ #define BACKEND x86_64_
+ #include "libebl_CPU.h"
+ #include "libebl_PERF_FLAGS.h"
+ #if defined(__x86_64__) && defined(__linux__)
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,8,0)
+ # include "x86_initreg_sample.c"
+ # define HAVE_X86_INITREG_SAMPLE
+ #endif
++#endif
+ 
+ bool
+ x86_64_sample_sp_pc (const Dwarf_Word *regs, uint32_t n_regs,
