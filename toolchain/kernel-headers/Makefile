@@ -71,8 +71,8 @@ endef
 #	$(CP) \
 #		$(HOST_BUILD_DIR)/arch/mips/include/asm/asm.h \
 #		$(HOST_BUILD_DIR)/arch/mips/include/asm/regdef.h \
-#		$(HOST_BUILD_DIR)/arch/mips/include/asm/asm-eva.h \
-#		$(HOST_BUILD_DIR)/arch/mips/include/asm/isa-rev.h \
+#		$(if $(call kernel_patchver_ge,3.15.0),$(HOST_BUILD_DIR)/arch/mips/include/asm/asm-eva.h) \
+#		$(if $(call kernel_patchver_ge,4.14.233),$(HOST_BUILD_DIR)/arch/mips/include/asm/isa-rev.h) \
 #		$(BUILD_DIR_TOOLCHAIN)/linux-dev/include/asm/
 #  endef
 #endif
