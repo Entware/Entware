@@ -330,6 +330,23 @@ endif
       APK_SCRIPTS_$(1)+=--script "post-deinstall:$$(ADIR_$(1))/postrm"
     endif
 
+ifneq ($(CONFIG_USE_APK),)
+    APK_TAGS_$(1):=
+    APK_INFO_$(1):=
+
+    ifneq ($$(ABIV_$(1)),)
+      APK_TAGS_$(1)+=openwrt:abiversion=$$(ABIV_$(1))
+    endif
+
+    ifneq ($(SECTION),)
+      APK_TAGS_$(1)+=openwrt:section=$(SECTION)
+    endif
+
+    ifneq ($(PKG_CPE_ID),)
+      APK_TAGS_$(1)+=openwrt:cpe=$(PKG_CPE_ID)
+    endif
+endif
+
     TARGET_VARIANT:=$$(if $(ALL_VARIANTS),$$(if $$(VARIANT),$$(filter-out *,$$(VARIANT)),$(firstword $(ALL_VARIANTS))))
     ifeq ($(BUILD_VARIANT),$$(if $$(TARGET_VARIANT),$$(TARGET_VARIANT),$(BUILD_VARIANT)))
     do_install=
@@ -368,8 +385,8 @@ endif
 
     $(eval $(call BuildPackVariable,$(1),conffiles))
     $(eval $(call BuildPackVariable,$(1),preinst,,1))
-    $(eval $(call BuildPackVariable,$(1),postinst,,1))
-    $(eval $(call BuildPackVariable,$(1),prerm,,1))
+    $(eval $(call BuildPackVariable,$(1),postinst,-pkg,1))
+    $(eval $(call BuildPackVariable,$(1),prerm,-pkg,1))
     $(eval $(call BuildPackVariable,$(1),postrm,,1))
 
     $(PKG_BUILD_DIR)/.pkgdir/$(1).installed : export PATH=$$(TARGET_PATH_PKG)
@@ -425,7 +442,7 @@ $$(call addfield,Depends,$$(Package/$(1)/DEPENDS)
 )$$(call addfield,LicenseFiles,$(LICENSE_FILES)
 )$$(call addfield,Section,$(SECTION)
 )$$(call addfield,Require-User,$(USERID)
-)$$(call addfield,SourceDateEpoch,$(PKG_SOURCE_DATE_EPOCH)
+)$$(call addfield,SourceDateEpoch,$$(PKG_SOURCE_DATE_EPOCH)
 )$$(call addfield,URL,$(URL)
 )$$(if $$(ABIV_$(1)),ABIVersion: $$(ABIV_$(1))
 )$(if $(PKG_CPE_ID),CPE-ID: $(PKG_CPE_ID)
@@ -439,8 +456,7 @@ $(_endef)
     $$(PACK_$(1)) : export CONTROL=$$(Package/$(1)/CONTROL)
     $$(PACK_$(1)) : $(call shexport,Package/$(1)/description)
     $$(PACK_$(1)) : export PATH=$$(TARGET_PATH_PKG)
-    $$(PACK_$(1)) : export PKG_SOURCE_DATE_EPOCH:=$(PKG_SOURCE_DATE_EPOCH)
-    $$(PACK_$(1)) : export SOURCE_DATE_EPOCH:=$(PKG_SOURCE_DATE_EPOCH)
+    $$(PACK_$(1)) : export SOURCE_DATE_EPOCH=$$(PKG_SOURCE_DATE_EPOCH)
     $(PKG_INFO_DIR)/$(1).provides $$(PACK_$(1)): $(STAMP_BUILT) $(INCLUDE_DIR)/package-pack.mk
 	rm -rf $$(IDIR_$(1))
 ifeq ($$(CONFIG_USE_APK),)
@@ -498,24 +514,22 @@ ifeq ($(CONFIG_USE_APK),)
 			printf "Description: "; echo "$$$$$(call shvar,Package/$(1)/description)" | sed -e 's,^[[:space:]]*, ,g'; \
 		) > control; \
 		chmod 644 control; \
+		( \
+			echo "#!/bin/sh"; \
+			echo "[ \"\$$$${IPKG_NO_SCRIPT}\" = \"1\" ] && exit 0"; \
+			echo "[ -s "/opt/lib/functions.sh" ] || exit 0"; \
+			echo ". /opt/lib/functions.sh"; \
+			echo "default_postinst \$$$$0 \$$$$@"; \
+		) > postinst; \
+		( \
+			echo "#!/bin/sh"; \
+			echo "[ -s "/opt/lib/functions.sh" ] || exit 0"; \
+			echo ". /opt/lib/functions.sh"; \
+			echo "default_prerm \$$$$0 \$$$$@"; \
+		) > prerm; \
+		chmod 0755 postinst prerm; \
 		$($(1)_COMMANDS) \
 	)
-#		( \
-#			echo "#!/bin/sh"; \
-#			echo "[ \"\$$$${IPKG_NO_SCRIPT}\" = \"1\" ] && exit 0"; \
-#			echo "[ -s "\$$$${IPKG_INSTROOT}/lib/functions.sh" ] || exit 0"; \
-#			echo ". \$$$${IPKG_INSTROOT}/lib/functions.sh"; \
-#			echo "default_postinst \$$$$0 \$$$$@"; \
-#		) > postinst; \
-#		( \
-#			echo "#!/bin/sh"; \
-#			echo "[ -s "\$$$${IPKG_INSTROOT}/lib/functions.sh" ] || exit 0"; \
-#			echo ". \$$$${IPKG_INSTROOT}/lib/functions.sh"; \
-#			echo "default_prerm \$$$$0 \$$$$@"; \
-#		) > prerm; \
-#		chmod 0755 postinst prerm; \
-#		$($(1)_COMMANDS) \
-#	)
 
 	$(FAKEROOT) $(STAGING_DIR_HOST)/bin/bash $(SCRIPT_DIR)/ipkg-build -m "$(FILE_MODES)" $$(IDIR_$(1)) $$(PDIR_$(1))
 else
@@ -564,7 +578,7 @@ else
 
 	if [ -n "$(USERID)" ]; then echo $(USERID) > $$(IDIR_$(1))/opt/lib/apk/packages/$(1)$$(ABIV_$(1)).rusers; fi;
 	if [ -n "$(ALTERNATIVES)" ]; then echo $(ALTERNATIVES) > $$(IDIR_$(1))/opt/lib/apk/packages/$(1)$$(ABIV_$(1)).alternatives; fi;
-	(cd $$(IDIR_$(1)) && find . -type f,l -printf "/%P\n" | sort > $(TMP_DIR)/$(1).list && mv $(TMP_DIR)/$(1).list $$(IDIR_$(1))/opt/lib/apk/packages/$(1)$$(ABIV_$(1)).list)
+	$$(if $$(findstring layer:1,$$(APK_INFO_$(1))),,(cd $$(IDIR_$(1)) && find . -type f,l -printf "/%P\n" | sort > $(TMP_DIR)/$(1).list && mv $(TMP_DIR)/$(1).list $$(IDIR_$(1))/opt/lib/apk/packages/$(1)$$(ABIV_$(1)).list))
 	# Move conffiles to IDIR and build conffiles_static with csums
 	if [ -f $$(ADIR_$(1))/conffiles ]; then \
 		mv -f $$(ADIR_$(1))/conffiles $$(IDIR_$(1))/opt/lib/apk/packages/$(1)$$(ABIV_$(1)).conffiles; \
@@ -594,10 +608,11 @@ else
 		exit 1; \
 	fi
 
-	$(FAKEROOT) $(STAGING_DIR_HOST)/bin/apk mkpkg \
+	SOURCE_DATE_EPOCH=0 $(FAKEROOT) $(STAGING_DIR_HOST)/bin/apk mkpkg \
 	  --info "name:$(1)$$(ABIV_$(1))" \
 	  --info "version:$(VERSION)" \
-	  $$(if $$(ABIV_$(1)),--info "tags:openwrt:abiversion=$$(ABIV_$(1))") \
+	  $$(if $$(APK_TAGS_$(1)),--info "tags:$$(APK_TAGS_$(1))") \
+	  $$(APK_INFO_$(1)) \
 	  --info "description:$$(call description_escape,$$(strip $$(Package/$(1)/description)))" \
 	  $(if $(findstring all,$(PKGARCH)),--info "arch:noarch",--info "arch:$(PKGARCH)") \
 	  --info "license:$(LICENSE)" \
@@ -609,11 +624,19 @@ else
 	  $$(APK_SCRIPTS_$(1)) \
 	  --info "depends:$$(foreach depends,$$(subst $$(comma),$$(space),$$(subst $$(space),,$$(subst $$(paren_right),,$$(subst $$(paren_left),,$$(Package/$(1)/DEPENDS))))),$$(depends))" \
 	  --files "$$(IDIR_$(1))" \
+	  $(if $(CONFIG_SIGN_EACH_PACKAGE),--sign $(BUILD_KEY_APK_SEC),) \
 	  --output "$$(PACK_$(1))"
 endif
 
 	@[ -f $$(PACK_$(1)) ]
 
+$(BuildTarget/ipkg/disabled)
+  endef
+
+  # Packages that are not selected only need the clean rule, which removes
+  # packages built before they were deselected. The rest of BuildTarget/ipkg
+  # takes about 0.7 ms per package to parse, for more than 1000 kmods.
+  define BuildTarget/ipkg/disabled
     $(1)-clean:
 ifeq ($(CONFIG_USE_APK),)
 	$$(call remove_ipkg_files,$(1),$$(call opkg_package_files,$(call gen_package_wildcard,$(1))))
@@ -621,8 +644,6 @@ else
 	$$(call remove_ipkg_files,$(1),$$(call apk_package_files,$(call gen_package_wildcard,$(1))))
 endif
 
-
     clean: $(1)-clean
-
   endef
 endif
