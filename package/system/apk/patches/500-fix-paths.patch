@@ -132,7 +132,7 @@
  			apk_dir_foreach_file(ac->root_fd, ac->keys_dir,
 --- a/src/database.c
 +++ b/src/database.c
-@@ -41,10 +41,10 @@
+@@ -42,10 +42,10 @@
  #include "apk_adb.h"
  #include "apk_fs.h"
  
@@ -147,7 +147,7 @@
  
  static struct apk_db_acl *apk_default_acl_dir, *apk_default_acl_file;
  
-@@ -1918,8 +1918,8 @@ static int setup_cache(struct apk_databa
+@@ -1934,8 +1934,8 @@ static int setup_cache(struct apk_databa
  const char *apk_db_layer_name(int layer)
  {
  	switch (layer) {
@@ -158,7 +158,7 @@
  	default:
  		assert(!"invalid layer");
  		return 0;
-@@ -2076,11 +2076,11 @@ int apk_db_open(struct apk_database *db)
+@@ -2094,11 +2094,11 @@ int apk_db_open(struct apk_database *db)
  		apk_db_parse_istream(db, ac->protected_paths, apk_db_add_protected_path);
  		ac->protected_paths = NULL;
  	} else {
@@ -174,7 +174,7 @@
  			add_protected_paths_from_file, db,
  			file_not_dot_list);
  	}
-@@ -2134,12 +2134,12 @@ int apk_db_open(struct apk_database *db)
+@@ -2152,12 +2152,12 @@ int apk_db_open(struct apk_database *db)
  
  	if (!(ac->open_flags & APK_OPENF_NO_SYS_REPOS)) {
  		if (ac->repositories_file == NULL) {
@@ -190,7 +190,7 @@
  				NULL);
  		} else {
  			add_repos_from_file(db, AT_FDCWD, NULL, ac->repositories_file);
-@@ -2282,8 +2282,8 @@ int apk_db_write_config(struct apk_datab
+@@ -2303,8 +2303,8 @@ int apk_db_write_config(struct apk_datab
  		return 0;
  
  	if (db->ctx->open_flags & APK_OPENF_CREATE) {
@@ -198,12 +198,12 @@
 -		apk_make_dirs(db->root_fd, "etc/apk", 0755, 0755);
 +		apk_make_dirs(db->root_fd, "opt/lib/apk/db", 0755, 0755);
 +		apk_make_dirs(db->root_fd, "opt/etc/apk", 0755, 0755);
- 	} else if (db->lock_fd == 0) {
+ 	} else if (db->lock_fd < 0) {
  		apk_err(out, "Refusing to write db without write lock!");
  		return -1;
 --- a/src/io.c
 +++ b/src/io.c
-@@ -1404,7 +1404,7 @@ static void idcache_load_users(int root_
+@@ -1402,7 +1402,7 @@ static void idcache_load_users(int root_
  	if (!idh->empty) return;
  	idh->empty = 0;
  
@@ -212,7 +212,7 @@
  	if (!in) return;
  
  	do {
-@@ -1437,7 +1437,7 @@ static void idcache_load_groups(int root
+@@ -1435,7 +1435,7 @@ static void idcache_load_groups(int root
  	if (!idh->empty) return;
  	idh->empty = 0;
  

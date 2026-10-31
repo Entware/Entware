@@ -12,28 +12,29 @@
  	['qsort_r', 'qsort_r.c', 'NEED_QSORT_R', 'stdlib.h'],
 --- a/src/package.c
 +++ b/src/package.c
-@@ -756,15 +756,15 @@ int apk_ipkg_run_script(struct apk_insta
+@@ -26,6 +26,11 @@
+ #include "apk_extract.h"
+ #include "apk_adb.h"
+ 
++/* MFD_ALLOW_SEALING/MFD_EXEC since Linux 3.17/6.3 */
++#ifndef LINUX_VERSION_CODE
++#include <linux/version.h>
++#endif
++
+ struct apk_package *apk_pkg_get_installed(struct apk_name *name)
+ {
+ 	apk_array_foreach(p, name->providers)
+@@ -756,11 +761,13 @@ int apk_ipkg_run_script(struct apk_insta
  
  	argv[0] = fn;
  
--	if (!db->memfd_failed) {
--		/* Linux kernel >= 6.3 */
--		fd = memfd_create(fn, MFD_EXEC);
--		if (fd < 0 && errno == EINVAL) {
--			/* Linux kernel < 6.3 */
--			fd = memfd_create(fn, 0);
--			if (fd < 0) db->memfd_failed = 1;
--		}
--	}
-+//	if (!db->memfd_failed) {
-+//		/* Linux kernel >= 6.3 */
-+//		fd = memfd_create(fn, MFD_EXEC);
-+//		if (fd < 0 && errno == EINVAL) {
-+//			/* Linux kernel < 6.3 */
-+//			fd = memfd_create(fn, 0);
-+//			if (fd < 0) db->memfd_failed = 1;
-+//		}
-+//	}
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,3,0)
+ 	if (!db->memfd_failed) {
+ 		/* Linux kernel >= 6.3 */
+ 		fd = memfd_create(fn, MFD_EXEC|MFD_ALLOW_SEALING);
+ 		if (fd < 0) db->memfd_failed = 1;
+ 	}
++#endif
  	if (!db->script_dirs_checked) {
  		if (fd < 0 && apk_make_dirs(root_fd, script_exec_dir, 0700, 0755) < 0) {
  			reason = "failed to prepare dirs for hook scripts: ";
