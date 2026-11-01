@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only
 #
-# Copyright (C) 2011-2024 Entware
+# Copyright (C) 2016-2026 Entware
 
 include $(TOPDIR)/rules.mk
 
@@ -15,5 +15,7 @@ include $(INCLUDE_DIR)/target.mk
 define Target/Description
   Build Software Repository for Intel x86-64 NASes, like QNAP and Synology.
 endef
+
+DEFAULT_PACKAGES += audio-support dvb-support input-support video-support
 
 $(eval $(call BuildTarget))
