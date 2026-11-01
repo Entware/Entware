@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only
 #
-# Copyright (C) 2016-2024 Entware
+# Copyright (C) 2016-2026 Entware
 
 include $(TOPDIR)/rules.mk
 
@@ -16,6 +16,8 @@ include $(INCLUDE_DIR)/target.mk
 define Target/Description
   Build Software Repository for MIPS (big-endian) soft float routers.
 endef
+
+DEFAULT_PACKAGES += audio-support dvb-support input-support video-support
 
 FEATURES:=$(filter-out mips16,$(FEATURES))
 
