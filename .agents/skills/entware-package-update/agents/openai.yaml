@@ -1,0 +1,4 @@
+interface:
+  display_name: "Entware Package Update"
+  short_description: "Update and verify packages in Entware feeds"
+  default_prompt: "Use $entware-package-update to update the next eligible Entware feed package."

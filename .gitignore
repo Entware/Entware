@@ -36,4 +36,3 @@ git-src
 .ccache
 .sccache
 .vscode*
-AGENTS.md
