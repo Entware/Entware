@@ -6,54 +6,138 @@ DROPBEAR="/opt/sbin/dropbear"
 
 . /opt/etc/config/dropbear.conf
 
+PORT="${PORT:-22}"
 PIDFILE="${PIDFILE:-/opt/var/run/dropbear.pid}"
+DESC="dropbear"
 
-dropbear_status ()
+ansi_red="\033[1;31m"
+ansi_white="\033[1;37m"
+ansi_green="\033[1;32m"
+ansi_yellow="\033[1;33m"
+ansi_std="\033[m"
+
+is_dropbear_pid()
 {
-	[ -f $PIDFILE ] && [ -d /proc/`cat $PIDFILE` ]
+	[ "$1" -gt 1 ] 2>/dev/null || return 1
+
+	DB_EXE=`readlink "/proc/$1/exe" 2>/dev/null` || return 1
+
+	case "$DB_EXE" in
+		"$DROPBEAR"|"$DROPBEAR (deleted)")
+			return 0
+			;;
+	esac
+
+	return 1
+}
+
+dropbear_status()
+{
+	DB_PID=
+	[ -r "$PIDFILE" ] || return 1
+
+	IFS= read -r DB_PID < "$PIDFILE"
+	case "$DB_PID" in
+		''|*[!0-9]*)
+			return 1
+			;;
+	esac
+
+	is_dropbear_pid "$DB_PID"
 }
 
 start()
 {
-	$DROPBEAR -p $PORT -P $PIDFILE
+	echo -e -n "$ansi_white Starting $DESC... $ansi_std"
+
+	if dropbear_status; then
+		echo -e "            $ansi_yellow already running. $ansi_std"
+		return 0
+	fi
+
+	rm -f "$PIDFILE"
+
+	if ! "$DROPBEAR" -p "$PORT" -P "$PIDFILE"; then
+		echo -e "            $ansi_red failed. $ansi_std"
+		return 1
+	fi
+
+	DB_COUNTER=0
+	while ! dropbear_status && [ "$DB_COUNTER" -le 10 ]; do
+		sleep 1
+		DB_COUNTER=`expr "$DB_COUNTER" + 1`
+	done
+
+	if dropbear_status; then
+		echo -e "            $ansi_green done. $ansi_std"
+		return 0
+	fi
+
+	echo -e "            $ansi_red failed. $ansi_std"
+	return 1
 }
 
 stop()
 {
-	kill `cat $PIDFILE`
+	echo -e -n "$ansi_white Shutting down $DESC... $ansi_std"
+
+	if ! dropbear_status; then
+		rm -f "$PIDFILE"
+		echo -e "            $ansi_green done. $ansi_std"
+		return 0
+	fi
+
+	DB_STOP_PID="$DB_PID"
+
+	if ! is_dropbear_pid "$DB_STOP_PID"; then
+		rm -f "$PIDFILE"
+		echo -e "            $ansi_green done. $ansi_std"
+		return 0
+	fi
+
+	if ! kill "$DB_STOP_PID"; then
+		echo -e "            $ansi_red failed. $ansi_std"
+		return 1
+	fi
+
+	DB_COUNTER=0
+	while is_dropbear_pid "$DB_STOP_PID"; do
+		if [ "$DB_COUNTER" -ge 10 ]; then
+			echo -e "            $ansi_red failed. $ansi_std"
+			return 1
+		fi
+
+		sleep 1
+		DB_COUNTER=`expr "$DB_COUNTER" + 1`
+	done
+
+	rm -f "$PIDFILE"
+	echo -e "            $ansi_green done. $ansi_std"
+	return 0
 }
+
 case "$1" in
 	start)
-		if dropbear_status
-		then
-			echo dropbear already running
-		else
-			start
-		fi
-		;;
-	stop)
-		if dropbear_status
-		then
-			stop
-		else
-			echo dropbear is not running
-		fi
-		;;
-	status)
-		if dropbear_status
-		then
-			echo dropbear already running
-		else
-			echo dropbear is not running
-		fi
-		;;
-
-	restart)
-		stop
-		sleep 3
 		start
 		;;
+	stop)
+		stop
+		;;
+	status|check)
+		echo -e -n "$ansi_white Checking $DESC... "
+		if dropbear_status; then
+			echo -e "            $ansi_green alive. $ansi_std"
+			true
+		else
+			echo -e "            $ansi_red dead. $ansi_std"
+			false
+		fi
+		;;
+	restart)
+		stop && start
+		;;
 	*)
-		echo "Usage: $0 {start|stop|restart|status}"
+		echo -e "$ansi_white Usage: $0 {start|stop|restart|status|check}$ansi_std"
+		false
 		;;
 esac
