@@ -16,7 +16,7 @@ PKG_CPE_ID:=cpe:/a:gnu:ncurses
 PKG_VERSION_MAJOR:=6.6
 PKG_SNAPSHOT_DATE:=20260801
 PKG_VERSION:=$(PKG_VERSION_MAJOR)$(if $(PKG_SNAPSHOT_DATE),.$(PKG_SNAPSHOT_DATE),)
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/ThomasDickey/ncurses-snapshots.git
@@ -222,7 +222,7 @@ define Package/libncurses/install
 	for lib in ncurses panel menu form; do \
 		ln -s lib$$$${lib}w.so $(1)/opt/lib/lib$$$${lib}.so; \
 		ln -s lib$$$${lib}w.so.6 $(1)/opt/lib/lib$$$${lib}.so.6; \
-		ln -s lib$$$${lib}w.so.$(PKG_VERSION) $(1)/opt/lib/lib$$$${lib}.so.$(PKG_VERSION); \
+		ln -s lib$$$${lib}w.so.$(PKG_VERSION_MAJOR) $(1)/opt/lib/lib$$$${lib}.so.$(PKG_VERSION_MAJOR); \
 	done
 endef
 
