@@ -385,8 +385,8 @@ endif
 
     $(eval $(call BuildPackVariable,$(1),conffiles))
     $(eval $(call BuildPackVariable,$(1),preinst,,1))
-    $(eval $(call BuildPackVariable,$(1),postinst,-pkg,1))
-    $(eval $(call BuildPackVariable,$(1),prerm,-pkg,1))
+    $(eval $(call BuildPackVariable,$(1),postinst,,1))
+    $(eval $(call BuildPackVariable,$(1),prerm,,1))
     $(eval $(call BuildPackVariable,$(1),postrm,,1))
 
     $(PKG_BUILD_DIR)/.pkgdir/$(1).installed : export PATH=$$(TARGET_PATH_PKG)
